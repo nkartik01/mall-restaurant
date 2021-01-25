@@ -1,0 +1,4 @@
+{
+  "JWTSecretAdmin": "admin",
+  "JWTSecretOperator": "operator"
+}
