@@ -104,7 +104,10 @@ router.get("/getTables", async (req, res) => {
 
 router.post("/updateTable", auth_operator, async (req, res) => {
   try {
-    await db.collection("table").doc(req.body.table.id).update({ tableHistory: req.body.orderHistory });
+    var table1 = await db.collection("table").doc(req.body.table.id).get();
+    table1 = table1.data();
+    table1.orderHistory = req.body.orderHistory;
+    await db.collection("table").doc(req.body.table.id).set(table1);
     //add oorder to chef side with timer and stuff
     var chefSide = { order: [] };
     var table = req.body.table;

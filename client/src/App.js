@@ -8,10 +8,13 @@ import OperatorEdit from "./components/OperatorEdit";
 import OperatorLogin from "./components/OperatorLogin";
 import ListOperators from "./components/ListOperators";
 import TakeOrder from "./components/TakeOrder";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
 
 function App() {
   return (
-    <div className="App">
+    <div className="App" style={{ height: "100%" }}>
+      <Header />
       <Router>
         <Switch>
           <Route path="/adminLogin" component={AdminLogin} />
@@ -24,6 +27,7 @@ function App() {
           <Route path="/" component={Landing} />
         </Switch>
       </Router>
+      <Footer />
     </div>
   );
 }

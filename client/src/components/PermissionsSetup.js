@@ -1,4 +1,4 @@
-import axios from "axios";
+// import axios from "axios";
 import React, { Component } from "react";
 
 export default class PermissionsSetup extends Component {
@@ -9,13 +9,11 @@ export default class PermissionsSetup extends Component {
     restaurant: {},
     wait: {},
   };
-  getMenus = async (e) => {
-    var res = await axios.get(
-      "http://localhost:5001/mall-restraunt/us-central1/api/menu/listMenus"
-    );
-    res = res.data;
-    this.setState({ menus: res.menus });
-  };
+  // getMenus = async (e) => {
+  //   var res = await axios.get("http://localhost:5001/mall-restraunt/us-central1/api/menu/listMenus");
+  //   res = res.data;
+  //   this.setState({ menus: res.menus });
+  // };
   onChange = (e) => {
     var array = e.target.id.split("-");
     console.log(e.target.checked);
@@ -24,15 +22,15 @@ export default class PermissionsSetup extends Component {
     this.props.setState1([array[0], x]);
     console.log(this.state);
   };
-  componentDidMount() {
-    this.getMenus();
-  }
+  // componentDidMount() {
+  //   this.getMenus();
+  // }
   render() {
-    var { menus } = this.state;
+    // var { menus } = this.state;
     var restraunts = ["counter", "restaurant1", "restaurant2", "bar", "others"];
     return (
       <div align="left">
-        <div>
+        {/* <div>
           <label>Recieve orders from: </label>
           <br />
           {menus.map((elem, i) => {
@@ -50,7 +48,7 @@ export default class PermissionsSetup extends Component {
               </div>
             );
           })}
-        </div>
+        </div> */}
         <div>
           <label>Recieve orders in: </label>
           <br />
