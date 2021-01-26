@@ -12,13 +12,15 @@
   },
   "emulators": {
     "functions": {
-      "port": 5001
+      "port": 5001,
+      "host": "0.0.0.0"
     },
     "firestore": {
       "port": 8000
     },
     "hosting": {
-      "port": 5000
+      "port": 80,
+      "host": "0.0.0.0"
     },
     "ui": {
       "enabled": true

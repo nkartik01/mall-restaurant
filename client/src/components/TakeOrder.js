@@ -8,23 +8,39 @@ export default class TakeOrder extends Component {
     menus: {},
   };
   getRestaurants = async () => {
-    var res = await axios.get("http://localhost:5001/mall-restraunt/us-central1/api/operator/getPermissions", {
+    var res = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/operator/getPermissions", {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     res = res.data;
     this.setState({ permissions: res.permissions });
-    res = await axios.get("http://localhost:5001/mall-restraunt/us-central1/api/menu/getRestaurantMenus", {
+    res = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/getRestaurantMenus", {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     res = res.data;
     console.log(res.menus);
     this.setState({ menus: res.menus });
-    res = await axios.get("http://localhost:5001/mall-restraunt/us-central1/api/menu/getTables", {
+    res = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/getTables", {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     res = res.data;
     res.tables.map((table, i) => {
-      res.tables[i].orderChange = { order: [], sum: 0 };
+      if (this.state.tables) {
+        res.tables[i].orderChange = this.state.tables[i].orderChange;
+        this.state.tables[i].orderChange.order.map((order, ind) => {
+          var c = 0;
+          for (var j = 0; j < table.orderHistory.order.length; j++) {
+            if (order.item === table.orderHistory.order[j].item) {
+              res.tables[i].orderHistory.order[j].quantity = res.tables[i].orderHistory.order[j].quantity + order.quantity;
+              c = 1;
+            }
+          }
+          if (c === 0) {
+            res.tables[i].orderHistory.order.push(order);
+          }
+          return null;
+        });
+        res.tables[i].orderHistory.sum = res.tables[i].orderHistory.sum + this.state.tables[i].orderChange.sum;
+      } else res.tables[i].orderChange = { order: [], sum: 0 };
       console.log(table.orderHistory);
       return null;
     });
@@ -32,7 +48,10 @@ export default class TakeOrder extends Component {
   };
 
   componentDidMount() {
-    this.getRestaurants();
+    this.interval = setInterval(() => this.getRestaurants(), 10000);
+  }
+  componentWillUnmount() {
+    clearInterval(this.interval);
   }
   render() {
     var rests = Object.keys(this.state.menus);
@@ -125,6 +144,7 @@ export default class TakeOrder extends Component {
                                                         if (tabind !== 1) {
                                                           tables[ii].orderChange.order.push({
                                                             item: item.name,
+                                                            category,
                                                             price: parseInt(item.price),
                                                             quantity: 1,
                                                           });
@@ -139,6 +159,7 @@ export default class TakeOrder extends Component {
                                                         if (tabind !== 1) {
                                                           tables[ii].orderHistory.order.push({
                                                             item: item.name,
+                                                            category,
                                                             price: item.price,
                                                             quantity: 1,
                                                           });
@@ -260,7 +281,7 @@ export default class TakeOrder extends Component {
                                                 e.target.disabled = true;
                                                 e.preventDefault();
                                                 await axios.post(
-                                                  "http://localhost:5001/mall-restraunt/us-central1/api/menu/updateTable",
+                                                  "http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/updateTable",
                                                   { orderHistory: tables[ii].orderHistory, orderChange: tables[ii].orderChange, table: tables[ii] },
                                                   { headers: { "x-auth-token": localStorage.getItem("token") } }
                                                 );
@@ -308,7 +329,7 @@ export default class TakeOrder extends Component {
                                           e.preventDefault();
                                           //   Payment logic as needed
                                           await axios.post(
-                                            "http://localhost:5001/mall-restraunt/us-central1/api/menu/freeTable",
+                                            "http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/freeTable",
                                             { table: tables[ii] },
                                             { headers: { "x-auth-token": localStorage.getItem("token") } }
                                           );

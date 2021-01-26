@@ -9,13 +9,30 @@ router.post("/registerCard", async (req, res) => {
   try {
     var uid = req.body.uid;
     console.log(uid);
-    db.collection("card")
-      .doc(uid)
-      .set({ uid, balance: 0, transactions: [], category: req.body.category });
+    var card = await db.collection("card").doc(uid).get();
+    card = card.data();
+    if (card) {
+      return res.status(400).send("Already Registered");
+    }
+    db.collection("card").doc(uid).set({ uid, balance: 0, transactions: [], category: "regular" });
     return res.send("Card Created");
   } catch (err) {
     console.log(err);
     return res.status(500).send(err);
+  }
+});
+
+router.get("/getCard/:uid", auth_operator, async (req, res) => {
+  try {
+    var card = await db.collection("card").doc(req.params.uid).get();
+    card = card.data();
+    if (!card) {
+      return res.status(400).send("card not found");
+    }
+    res.send({ card });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
   }
 });
 

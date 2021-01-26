@@ -94,7 +94,6 @@ router.get("/getTables", async (req, res) => {
       table.id = tables[i].id;
       tables[i] = table;
     }
-    console.log(tables);
     return res.send({ tables: tables });
   } catch (err) {
     console.log(err);
@@ -107,24 +106,13 @@ router.post("/updateTable", auth_operator, async (req, res) => {
     var table1 = await db.collection("table").doc(req.body.table.id).get();
     table1 = table1.data();
     table1.orderHistory = req.body.orderHistory;
+    if (!table1.orderSnippets) {
+      table1.orderSnippets = [];
+    }
+    table1.orderSnippets.push(req.body.orderChange);
     await db.collection("table").doc(req.body.table.id).set(table1);
     //add oorder to chef side with timer and stuff
-    var chefSide = { order: [] };
-    var table = req.body.table;
-    chefSide = await db
-      .collection("chefSide")
-      .doc(table.restaurant + "-" + table.table)
-      .get();
-    chefSide = chefSide.data();
-    if (!chefSide) {
-      chefSide = { order: [] };
-    }
-    chefSide.order.push({ orderTime: Date.now(), order: req.body.orderChange });
-    await db
-      .collection("chefSide")
-      .doc(table.restaurant + "-" + table.table)
-      .set(chefSide);
-    var chefSide = {};
+    await db.collection("chefSide").add(req.body.orderChange);
     res.send("done");
   } catch (err) {
     console.log(err);
@@ -136,7 +124,13 @@ router.post("/freeTable", auth_operator, async (req, res) => {
   try {
     var chefSide = await db.collection("chefSide").doc(req.body.table.restaurant).get();
     chefSide = chefSide.data();
-    if (!!chefSide && chefSide.order.length !== 0) {
+    if (
+      !!chefSide &&
+      chefSide.order.filter((obj, i) => {
+        if (obj.status === "made") return false;
+        return true;
+      }).length !== 0
+    ) {
       return res.status(400).send("Order not completed from kitchen");
     }
     await db

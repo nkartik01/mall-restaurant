@@ -19,6 +19,7 @@ app.use("/login", require("./login"));
 app.use("/menu", require("./menu"));
 app.use("/signup", require("./signup"));
 app.use("/operator", require("./operator"));
+app.use("/chef", require("./chef"));
 // Create and Deploy Your First Cloud Functions
 // https://firebase.google.com/docs/functions/write-firebase-functions
 

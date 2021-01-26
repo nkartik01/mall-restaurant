@@ -9,7 +9,25 @@ export default class Landing extends Component {
         {!status ? <Link to="/adminLogin">Admin Login</Link> : null}
         {status === "admin" ? (
           <Fragment>
-            <Link to="/operatorSignup">Add Operator</Link>
+            <Link className="btn btn-primary" to="/operatorSignup">
+              Add Operator
+            </Link>
+            <Link className="btn btn-primary" to="/listOperators">
+              Operator List
+            </Link>
+            <Link className="btn btn-primary" to="/registerRFID">
+              Register RFID Cards
+            </Link>
+          </Fragment>
+        ) : null}
+        {status === "operator" ? (
+          <Fragment>
+            <Link to="/takeOrder" className="btn btn-primary">
+              Take Orders
+            </Link>
+            <Link to="/manipulateRFID" className="btn btn-primary">
+              Manipulate RFID
+            </Link>
           </Fragment>
         ) : null}
       </div>

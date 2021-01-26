@@ -21,15 +21,7 @@ export default class OperatorSignup extends Component {
   };
   onSubmit = async (e) => {
     e.preventDefault();
-    var {
-      name,
-      username,
-      password,
-      restaurant,
-      wait,
-      edit,
-      changeMenu,
-    } = this.state;
+    var { name, username, password, restaurant, wait, edit, changeMenu } = this.state;
     var data = {
       name,
       username,
@@ -37,11 +29,7 @@ export default class OperatorSignup extends Component {
       permissions: { restaurant, wait, edit, changeMenu },
     };
     try {
-      await axios.post(
-        "http://localhost:5001/mall-restraunt/us-central1/api/signup/operator",
-        data,
-        { headers: { "x-auth-token": localStorage.getItem("token") } }
-      );
+      await axios.post("http://192.168.1.178:5001/mall-restraunt/us-central1/api/signup/operator", data, { headers: { "x-auth-token": localStorage.getItem("token") } });
       alert("Operator Created Successfully");
     } catch (err) {
       console.log(err);
@@ -54,16 +42,7 @@ export default class OperatorSignup extends Component {
         <div className="col-md-12" style={{ textAlign: "center" }}>
           <form className="form-control" onSubmit={(e) => this.onSubmit(e)}>
             <div className="from-group">
-              <input
-                required
-                className="form-control"
-                placeholder="Name"
-                type="text"
-                id="name"
-                name="name"
-                value={this.state.name}
-                onChange={(e) => this.onChange(e)}
-              />
+              <input required className="form-control" placeholder="Name" type="text" id="name" name="name" value={this.state.name} onChange={(e) => this.onChange(e)} />
             </div>
             <div className="from-group">
               <input
@@ -89,18 +68,8 @@ export default class OperatorSignup extends Component {
                 onChange={(e) => this.onChange(e)}
               />
             </div>
-            <PermissionsSetup
-              restaurant={this.state.restaurant}
-              wait={this.state.wait}
-              edit={this.state.edit}
-              changeMenu={this.state.changeMenu}
-              setState1={this.setState1}
-            />
-            <input
-              type="Submit"
-              value="Submit"
-              className="form-control btn-primary"
-            />
+            <PermissionsSetup restaurant={this.state.restaurant} wait={this.state.wait} edit={this.state.edit} changeMenu={this.state.changeMenu} setState1={this.setState1} />
+            <input type="Submit" value="Submit" className="form-control btn-primary" />
           </form>
         </div>
       </Fragment>

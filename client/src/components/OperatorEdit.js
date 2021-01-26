@@ -12,11 +12,9 @@ export default class OperatorEdit extends Component {
     changeMenu: false,
   };
   getOperator = async (e) => {
-    var res = await axios.get(
-      "http://localhost:5001/mall-restraunt/us-central1/api/operator/getOperator/" +
-        this.props.match.params.username,
-      { headers: { "x-auth-token": localStorage.getItem("token") } }
-    );
+    var res = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/operator/getOperator/" + this.props.match.params.username, {
+      headers: { "x-auth-token": localStorage.getItem("token") },
+    });
     res = res.data;
     this.setState({
       username: res.username,
@@ -44,11 +42,7 @@ export default class OperatorEdit extends Component {
         username,
         permissions: { restaurant, wait, edit, changeMenu },
       };
-      await axios.post(
-        "http://localhost:5001/mall-restraunt/us-central1/api/operator/edit",
-        data,
-        { headers: { "x-auth-token": localStorage.getItem("token") } }
-      );
+      await axios.post("http://192.168.1.178:5001/mall-restraunt/us-central1/api/operator/edit", data, { headers: { "x-auth-token": localStorage.getItem("token") } });
       alert("Operator edited successfully");
     } catch (err) {
       alert("some error occured");
@@ -63,39 +57,13 @@ export default class OperatorEdit extends Component {
         <div className="col-md-12" style={{ textAlign: "center" }}>
           <form className="form-control" onSubmit={(e) => this.onSubmit(e)}>
             <div className="from-group">
-              <input
-                className="form-control"
-                placeholder="Name"
-                type="text"
-                id="name"
-                name="name"
-                value={this.state.name}
-                onChange={(e) => this.onChange(e)}
-              />
+              <input className="form-control" placeholder="Name" type="text" id="name" name="name" value={this.state.name} onChange={(e) => this.onChange(e)} />
             </div>
             <div className="from-group">
-              <input
-                className="form-control"
-                placeholder="Username"
-                type="text"
-                id="username"
-                name="username"
-                value={this.state.username}
-                onChange={(e) => this.onChange(e)}
-              />
+              <input className="form-control" placeholder="Username" type="text" id="username" name="username" value={this.state.username} onChange={(e) => this.onChange(e)} />
             </div>
-            <PermissionsSetup
-              restaurant={this.state.restaurant}
-              wait={this.state.wait}
-              edit={this.state.edit}
-              changeMenu={this.state.changeMenu}
-              setState1={this.setState1}
-            />
-            <input
-              type="Submit"
-              value="Submit"
-              className="form-control btn-primary"
-            />
+            <PermissionsSetup restaurant={this.state.restaurant} wait={this.state.wait} edit={this.state.edit} changeMenu={this.state.changeMenu} setState1={this.setState1} />
+            <input type="Submit" value="Submit" className="form-control btn-primary" />
           </form>
         </div>
       </Fragment>
