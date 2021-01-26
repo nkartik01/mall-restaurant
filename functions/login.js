@@ -43,4 +43,37 @@ router.post("/admin", async (req, res) => {
   }
 });
 
+router.post("/operator", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    var operator = await db.collection("operator").doc(username).get();
+    try {
+      operator = operator.data();
+    } catch (err) {
+      console.log(err);
+      return res.status(400).send("Operator not found");
+    }
+    const isMatch = await bcryptjs.compare(password, operator.password);
+    if (!isMatch) {
+      return res.status(400).send("Wrong Password");
+    }
+    const payload = {
+      operator: {
+        id: username,
+      },
+    };
+    jwt.sign(payload, config.get("JWTSecretOperator"), (err, token) => {
+      if (err) throw err;
+      return res.status(200).json({
+        id: username,
+        token: token,
+        permissions: operator.permissions,
+      });
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+
 module.exports = router;

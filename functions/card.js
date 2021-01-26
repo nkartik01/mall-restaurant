@@ -9,7 +9,9 @@ router.post("/registerCard", async (req, res) => {
   try {
     var uid = req.body.uid;
     console.log(uid);
-    db.collection("card").doc(uid).set({ uid, balance: 0, transactions: [] });
+    db.collection("card")
+      .doc(uid)
+      .set({ uid, balance: 0, transactions: [], category: req.body.category });
     return res.send("Card Created");
   } catch (err) {
     console.log(err);
@@ -17,20 +19,52 @@ router.post("/registerCard", async (req, res) => {
   }
 });
 
-router.post("/addBalance", auth_operator, async (req, res) => {
+router.post("/addAmount", auth_operator, async (req, res) => {
   try {
     if (req.body.amount < 0) {
-      return res.status(400).send("Negetive balance not allowed.");
+      return res.status(400).send("Negetive amount not allowed.");
     }
     var uid = req.body.uid;
     var cardRef = db.collection("card").doc(uid);
     var card = await cardRef.get();
     card = card.data();
-    cardRef.update({ balance: card.balance + req.body.amount });
-    return res.send("balance added");
+    card.balance = card.balance + req.body.amount;
+    card.transactions.push({
+      by: req.operator.id,
+      prevBalance: card.balance - req.body.amount,
+      newBalance: card.balance,
+      transactionId: req.body.transactionId,
+    });
+    cardRef.set(card);
+    return res.send("amount added");
   } catch (err) {
     console.log(err);
     return res.status(500).send(err);
+  }
+});
+
+router.post("/deductAmount", auth_operator, async (req, res) => {
+  try {
+    if (req.body.amount < 0) {
+      return res.status(400).send("Negetive amount not allowed.");
+    }
+    var uid = req.body.uid;
+    var cardRef = db.collection("card").doc(uid);
+    var card = await cardRef.get();
+    card = card.data();
+    card.balance = card.balance - req.body.amount;
+    card.transactions.push({
+      by: req.operator.id,
+      prevBalance: card.balance + req.body.amount,
+      newBalance: card.balance,
+      orderId: req.body.orderId,
+    });
+
+    cardRef.set(card);
+    return res.send("amount deducted sucessfully");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
   }
 });
 

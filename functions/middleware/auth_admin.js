@@ -10,7 +10,6 @@ module.exports = function (req, res, next) {
     console.log(token);
     const decoded = jwt.verify(token, config.get("JWTSecretAdmin"));
     req.admin = decoded.admin;
-    console.log(decoded.admin);
     next();
   } catch (err) {
     console.log(err);

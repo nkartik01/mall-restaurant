@@ -81,10 +81,21 @@ router.get("/getOperatorList", auth_admin, async (req, res) => {
         username: operators[i].username,
       };
     }
-    return res.send(operators);
+    return res.send({ operators });
   } catch (err) {
     console.log(err);
     return res.status(500).send(err);
+  }
+});
+
+router.get("/getPermissions", auth_operator, async (req, res) => {
+  try {
+    var operator = await db.collection("operator").doc(req.operator.id).get();
+    operator = operator.data();
+    res.send({ permissions: operator.permissions });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
   }
 });
 

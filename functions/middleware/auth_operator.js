@@ -9,8 +9,7 @@ module.exports = function (req, res, next) {
   try {
     console.log(token);
     const decoded = jwt.verify(token, config.get("JWTSecretOperator"));
-    req.admin = decoded.admin;
-    console.log(decoded.admin);
+    req.operator = decoded.operator;
     next();
   } catch (err) {
     console.log(err);

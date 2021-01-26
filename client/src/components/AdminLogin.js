@@ -17,7 +17,7 @@ export default class AdminLogin extends Component {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("status", "admin");
       localStorage.setItem("username", username);
-      window.open("/#/");
+      window.open("/#/", "_self");
     } catch (err) {
       console.log(err);
       document.getElementById("error").innerHTML = "Invalid Credentials";
