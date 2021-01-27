@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { Component } from "react";
+import AlertDiv from "../AlertDiv";
 
 export default class RegisterRFID extends Component {
   state = { uid: "", status: "" };
@@ -11,24 +12,16 @@ export default class RegisterRFID extends Component {
         { uid: this.state.uid },
         { headers: { "x-auth-token": localStorage.getItem("token") } }
       );
-      document.getElementById("status").style.backgroundColor = "green";
-      document.getElementById("status").style.color = "black";
-      this.setState({ status: "Done", uid: "" });
-      setTimeout(() => this.setState({ status: "" }), 2000);
+      AlertDiv("green", "Registered Successfully");
     } catch (err) {
       console.log(err, err.response.status);
       if (err.response.status === 400) {
-        document.getElementById("status").style.backgroundColor = "red";
-        document.getElementById("status").style.color = "white";
-        this.setState({ status: "Already Exists", uid: "" });
-        setTimeout(() => this.setState({ status: "" }), 2000);
+        AlertDiv("red", "Already Exists");
       } else {
-        document.getElementById("status").style.backgroundColor = "red";
-        document.getElementById("status").style.color = "white";
-        this.setState({ status: "Error", uid: "" });
-        setTimeout(() => this.setState({ status: "" }), 2000);
+        AlertDiv("red", "UnIdentified Error");
       }
     }
+    this.setState({ uid: "" });
   };
   onChange = (e) => {
     e.preventDefault();

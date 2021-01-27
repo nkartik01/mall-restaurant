@@ -7,7 +7,6 @@ module.exports = function (req, res, next) {
     res.status(401).json({ msg: "NO token. Auth Failed" });
   }
   try {
-    console.log(token);
     const decoded = jwt.verify(token, config.get("JWTSecretAdmin"));
     req.admin = decoded.admin;
     next();

@@ -6,6 +6,7 @@ const auth_admin = require("./middleware/auth_admin");
 const auth_operator = require("./middleware/auth_operator");
 const fs = require("fs");
 const XLSX = require("xlsx");
+const { table } = require("console");
 router.get("/listMenus", async (req, res) => {
   try {
     return res.send({ menus: fs.readdirSync("./menus") });
@@ -21,7 +22,6 @@ router.get("/getItems/:menu", async (req, res) => {
     var menu = {};
     var sheets = workbook.SheetNames;
     for (var i = 0; i < sheets.length; i++) {
-      console.log(sheets);
       var worksheet = workbook.Sheets[sheets[i]];
       var ref = worksheet["!ref"];
 
@@ -51,20 +51,16 @@ router.get("/getRestaurantMenus", async (req, res) => {
     var menus = {};
     for (var k = 0; k < rests.length; k++) {
       var rest = rests[k].data();
-      console.log(rest);
       var menu = {};
       for (var l = 0; l < rest.menu.length; l++) {
-        console.log(rest.menu[l]);
         var workbook = XLSX.readFile("./menus/" + rest.menu[l]);
         var sheets = workbook.SheetNames;
         for (var i = 0; i < sheets.length; i++) {
-          console.log(sheets);
           var worksheet = workbook.Sheets[sheets[i]];
           var ref = worksheet["!ref"];
 
           ref = ref.split(":");
           var x1 = ref[1].match(/(\d+)/)[0];
-          console.log(worksheet);
           menu[sheets[i]] = [];
           for (var j = 1; j <= x1; j++) {
             menu[sheets[i]].push({
@@ -75,7 +71,6 @@ router.get("/getRestaurantMenus", async (req, res) => {
           }
         }
       }
-      console.log(menus);
       menus[rests[k].id] = menu;
     }
     return res.send({ menus });
@@ -105,15 +100,28 @@ router.post("/updateTable", auth_operator, async (req, res) => {
   try {
     var table1 = await db.collection("table").doc(req.body.table.id).get();
     table1 = table1.data();
+    var at = Date.now();
+    req.body.orderChange.at = at;
     table1.orderHistory = req.body.orderHistory;
-    if (!table1.orderSnippets) {
+
+    if (!table1.orderSnippets || table1.orderSnippets.length === 0) {
       table1.orderSnippets = [];
+      var bill = await db.collection("bill").add({ restaurant: table1.restaurant, table: table1.table, orderChanges: [], balance: 0, at });
+      table1.bill = bill.id;
+      console.log(bill);
     }
+    var bill = await db.collection("bill").doc(table1.bill).get();
+    bill = bill.data();
+    bill.balance = bill.balance + req.body.orderChange.sum;
+    table1.balance = bill.balance;
+    bill.orderChanges.push(req.body.orderChange);
+    bill.finalOrder = req.body.orderHistory;
+    db.collection("bill").doc(table1.bill).set(bill);
     table1.orderSnippets.push(req.body.orderChange);
-    await db.collection("table").doc(req.body.table.id).set(table1);
+    db.collection("table").doc(req.body.table.id).set(table1);
     //add oorder to chef side with timer and stuff
-    await db.collection("chefSide").add(req.body.orderChange);
-    res.send("done");
+    db.collection("chefSide").add(req.body.orderChange);
+    res.send(table1.bill);
   } catch (err) {
     console.log(err);
     res.status(500).send(err);
@@ -136,7 +144,7 @@ router.post("/freeTable", auth_operator, async (req, res) => {
     await db
       .collection("table")
       .doc(req.body.table.id)
-      .update({ orderHistory: { order: [], sum: 0 } });
+      .update({ orderHistory: { order: [], sum: 0 }, orderSnippets: [], bill: "", balance: 0 });
     res.send("Done");
   } catch (err) {
     console.log(err);
