@@ -34,6 +34,9 @@ export default class Header extends Component {
               <Link to="/manipulateRFID" className="btn btn-primary">
                 Manipulate RFID
               </Link>
+              <Link to="/billList" className="btn btn-primary">
+                Bill List
+              </Link>
             </Fragment>
           ) : null}
         </div>

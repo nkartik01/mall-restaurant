@@ -89,15 +89,19 @@ router.post("/deductAmount", auth_operator, async (req, res) => {
       // orderId: req.body.orderId,
     });
     console.log(card);
+
     var bill = await db.collection("bill").doc(req.body.bill).get();
     bill = bill.data();
+
     if (!bill) {
       return res.status(400).send("Issue with Bill");
     }
     if (!bill.transactions) {
       bill.transactions = [];
     }
-
+    if (req.body.to) {
+      bill.to = req.body.to;
+    }
     bill.balance = bill.balance - req.body.amount;
     if (req.body.table) {
       db.collection("table").doc(req.body.table).update({ balance: bill.balance });

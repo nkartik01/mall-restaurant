@@ -12,13 +12,14 @@ import Footer from "./components/Footer";
 import RegisterRFID from "./components/RegisterRFID";
 import ManipulateRFID from "./components/ManipulateRFID";
 import BillList from "./components/BillList";
+import Bill from "./components/Bill";
 
 function App(props) {
   return (
     <div className="App" style={{ height: "100%" }}>
-      <Router>
+      <Router align="center">
         <Header />
-        <div id="alertDiv"></div>
+        <div id="alertDiv" style={{ left: "2.5%", position: "fixed", zIndex: 20, width: "95%", top: 20 }} align="center"></div>
         <Switch>
           <Route path="/adminLogin" component={AdminLogin} />
           <Route path="/operatorSignup" component={OperatorSignup} />
@@ -28,6 +29,7 @@ function App(props) {
           <Route path="/listOperators" component={ListOperators} />
           <Route path="/registerRFID" component={RegisterRFID} />
           <Route path="/manipulateRFID" component={() => <ManipulateRFID store={props.store} />} />
+          <Route path="/bill/:id" component={Bill} />
           <Route path="/billList" component={() => <BillList store={props.store} />} />
           <Route path="/" component={Landing} />
         </Switch>

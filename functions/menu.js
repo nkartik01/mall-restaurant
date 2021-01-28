@@ -16,7 +16,7 @@ router.get("/listMenus", async (req, res) => {
   }
 });
 
-router.get("/getItems/:menu", async (req, res) => {
+router.get("/setMenu/:menu", async (req, res) => {
   try {
     var workbook = XLSX.readFile("./menus/" + req.params.menu);
     var menu = {};
@@ -24,7 +24,6 @@ router.get("/getItems/:menu", async (req, res) => {
     for (var i = 0; i < sheets.length; i++) {
       var worksheet = workbook.Sheets[sheets[i]];
       var ref = worksheet["!ref"];
-
       ref = ref.split(":");
       var x1 = ref[1].match(/(\d+)/)[0];
       console.log(worksheet);
@@ -33,10 +32,11 @@ router.get("/getItems/:menu", async (req, res) => {
         menu[sheets[i]].push({
           name: worksheet["A" + j].v,
           price: worksheet["B" + j].v,
-          description: worksheet["C" + j].v,
+          // description: worksheet["C" + j].v,
         });
       }
     }
+    db.collection("menu").doc(req.params.menu).set(menu);
     return res.send(menu);
   } catch (err) {
     console.log(err);
@@ -53,23 +53,8 @@ router.get("/getRestaurantMenus", async (req, res) => {
       var rest = rests[k].data();
       var menu = {};
       for (var l = 0; l < rest.menu.length; l++) {
-        var workbook = XLSX.readFile("./menus/" + rest.menu[l]);
-        var sheets = workbook.SheetNames;
-        for (var i = 0; i < sheets.length; i++) {
-          var worksheet = workbook.Sheets[sheets[i]];
-          var ref = worksheet["!ref"];
-
-          ref = ref.split(":");
-          var x1 = ref[1].match(/(\d+)/)[0];
-          menu[sheets[i]] = [];
-          for (var j = 1; j <= x1; j++) {
-            menu[sheets[i]].push({
-              name: worksheet["A" + j].v,
-              price: worksheet["B" + j].v,
-              description: worksheet["C" + j].v,
-            });
-          }
-        }
+        menu = await db.collection("menu").doc(rest.menu[l]).get();
+        menu = menu.data();
       }
       menus[rests[k].id] = menu;
     }
@@ -150,6 +135,16 @@ router.post("/freeTable", auth_operator, async (req, res) => {
     console.log(err);
     res.status(500).send(err);
   }
+});
+
+router.post("/createTables", async (req, res) => {
+  var restaurants = ["Urban Food Court", "Perry Bar", "Perry Club"];
+  for (var i = 0; i < 3; i++) {
+    for (var j = 0; j < 12; j++) {
+      db.collection("table").add({ orderHistory: { order: [], sum: 0 }, orderSnippets: [], balance: 0, bill: "", restaurant: restaurants[i], table: "table" + (j + 1) });
+    }
+  }
+  res.send("done");
 });
 
 module.exports = router;

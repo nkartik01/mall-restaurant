@@ -1,8 +1,8 @@
 import axios from "axios";
 import React, { Component, Fragment } from "react";
 import { Tabs, Tab, Row, Col, Nav } from "react-bootstrap";
-import AlertDiv from "../AlertDiv";
 import { setData } from "../redux/action/loadedData";
+import Payment from "./Payment";
 
 export default class TakeOrder extends Component {
   state = {
@@ -10,6 +10,9 @@ export default class TakeOrder extends Component {
     menus: {},
     partial: false,
     ...this.props.store.getState().loadedDataReducer,
+  };
+  setState1 = (x) => {
+    this.setState(x);
   };
   getRestaurants = async () => {
     var res = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/operator/getPermissions", {
@@ -142,6 +145,7 @@ export default class TakeOrder extends Component {
                                                           if (tables[ii].orderChange.order[i3].item === item.name) {
                                                             tabind = 1;
                                                             tables[ii].orderChange.order[i3].quantity = tables[ii].orderChange.order[i3].quantity + 1;
+                                                            break;
                                                           }
                                                         }
                                                         if (tabind !== 1) {
@@ -157,6 +161,7 @@ export default class TakeOrder extends Component {
                                                           if (tables[ii].orderHistory.order[i3].item === item.name) {
                                                             tabind = 1;
                                                             tables[ii].orderHistory.order[i3].quantity = tables[ii].orderHistory.order[i3].quantity + 1;
+                                                            break;
                                                           }
                                                         }
                                                         if (tabind !== 1) {
@@ -169,7 +174,6 @@ export default class TakeOrder extends Component {
                                                         }
                                                         tables[ii].orderHistory.sum = parseInt(tables[ii].orderHistory.sum) + parseInt(item.price);
                                                         tables[ii].orderChange.sum = parseInt(tables[ii].orderChange.sum) + parseInt(item.price);
-                                                        tables[ii].balance = parseInt(tables[ii].balance) + parseInt(item.price);
                                                         this.setState({});
                                                       }}
                                                     >
@@ -219,19 +223,18 @@ export default class TakeOrder extends Component {
                                                     <td>
                                                       <button
                                                         style={{ borderRadius: "100%" }}
-                                                        onClick={(e) => {
-                                                          e.preventDefault();
+                                                        onClick={() => {
                                                           tables[ii].orderChange.order[i1].quantity = tables[ii].orderChange.order[i1].quantity - 1;
                                                           if (tables[ii].orderChange.order[i1].quantity === 0) {
                                                             tables[ii].orderChange.order.splice(i1, 1);
                                                           }
                                                           tables[ii].orderChange.sum = parseInt(tables[ii].orderChange.sum) - parseInt(item.price);
                                                           tables[ii].orderHistory.sum = tables[ii].orderHistory.sum - parseInt(item.price);
-                                                          tables[ii].balance = tables[ii].balance - parseInt(item.price);
                                                           for (var i3 = 0; i3 < tables[ii].orderHistory.order.length; i3++) {
                                                             console.log(tables[ii].orderHistory.order[i3].item, item.item);
                                                             if (tables[ii].orderHistory.order[i3].item === item.item) {
                                                               tables[ii].orderHistory.order[i3].quantity = tables[ii].orderHistory.order[i3].quantity - 1;
+                                                              break;
                                                             }
                                                             if (tables[ii].orderHistory.order[i3].quantity === 0) {
                                                               tables[ii].orderHistory.order.splice(i3, 1);
@@ -246,16 +249,15 @@ export default class TakeOrder extends Component {
                                                       {" " + item.quantity + " "}
                                                       <button
                                                         style={{ borderRadius: "100%" }}
-                                                        onClick={(e) => {
-                                                          e.preventDefault();
+                                                        onClick={() => {
                                                           tables[ii].orderChange.order[i1].quantity = tables[ii].orderChange.order[i1].quantity + 1;
 
                                                           tables[ii].orderChange.sum = tables[ii].orderChange.sum + parseInt(item.price);
                                                           tables[ii].orderHistory.sum = tables[ii].orderHistory.sum + parseInt(item.price);
-                                                          tables[ii].balance = tables[ii].balance + parseInt(item.price);
                                                           for (var i3 = 0; i3 < tables[ii].orderHistory.order.length; i3++) {
                                                             if (tables[ii].orderHistory.order[i3].item === item.item) {
                                                               tables[ii].orderHistory.order[i3].quantity = tables[ii].orderHistory.order[i3].quantity + 1;
+                                                              break;
                                                             }
                                                             break;
                                                           }
@@ -328,26 +330,51 @@ export default class TakeOrder extends Component {
                                         </tr>
                                       </table>
                                       <h4>Balance: {tables[ii].balance ? tables[ii].balance : 0}</h4>
-                                      <form
+                                      <Payment
+                                        amount={tables[ii].balance ? tables[ii].balance : 0}
+                                        disable={tables[ii].orderChange.sum !== 0 || tables[ii].orderHistory.sum === 0 ? true : false}
+                                        bill={tables[ii].bill}
+                                        table={tables[ii].id}
+                                        callBack={async (amount) => {
+                                          console.log(amount);
+                                          tables[ii].balance = tables[ii].balance - amount;
+                                          this.setState({});
+                                          if (tables[ii].balance !== 0) return;
+                                          else {
+                                            await axios.post(
+                                              "http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/freeTable",
+                                              { table: tables[ii] },
+                                              { headers: { "x-auth-token": localStorage.getItem("token") } }
+                                            );
+                                            tables[ii].orderHistory.order = [];
+                                            tables[ii].orderHistory.sum = 0;
+                                            tables[ii].balance = 0;
+                                          }
+                                          this.setState({});
+                                        }}
+                                      />
+                                      {/* <form
                                         disabled={tables[ii].orderChange.sum !== 0 || tables[ii].orderHistory.sum === 0 ? true : false}
                                         onSubmit={async (e) => {
                                           e.preventDefault();
                                           try {
-                                            console.log(document.getElementById("uidInput").value);
+                                            var partAmount = this.state.partial ? parseInt(tables[ii].partial) : parseInt(tables[ii].orderHistory.sum);
+                                            console.log(tables[ii].uid, this.state.partial ? partAmount : tables[ii].balance);
                                             await axios.post(
                                               "http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/deductAmount",
                                               {
-                                                // amount: tables[ii].partial ? parseInt(document.getElementById("partialAmount").value) : tables[ii].orderHistory.sum,
-                                                amount: this.state.partial ? parseInt(document.getElementById("partialAmount").value) : tables[ii].orderHistory.sum,
+                                                // amount: tables[ii].partial ? partAmont) : tables[ii].orderHistory.sum,
+
+                                                amount: this.state.partial ? partAmount : tables[ii].balance,
                                                 uid: tables[ii].uid,
                                                 bill: tables[ii].bill,
                                                 table: tables[ii].id,
                                               },
                                               { headers: { "x-auth-token": localStorage.getItem("token") } }
                                             );
-                                            tables[ii].balance =
-                                              tables[ii].balance - (this.state.partial ? parseInt(document.getElementById("partialAmount").value) : tables[ii].orderHistory.sum);
-
+                                            tables[ii].balance = tables[ii].balance - (this.state.partial ? partAmount : tables[ii].balance);
+                                            console.log(tables[ii].balance - (this.state.partial ? parseInt(partAmount) : parseInt(tables[ii].balance)));
+                                            tables[ii].partial = "";
                                             tables[ii].uid = "";
                                             AlertDiv("green", "Paid");
                                             this.setState({});
@@ -387,6 +414,13 @@ export default class TakeOrder extends Component {
                                           max={tables[ii].balance}
                                           required
                                           placeholder="Partial Amount"
+                                          value={tables[ii].partial}
+                                          onChange={(e) => {
+                                            e.preventDefault();
+                                            var value = e.target.value;
+                                            tables[ii].partial = value;
+                                            this.setState({});
+                                          }}
                                           disabled={!this.state.partial || tables[ii].orderChange.sum !== 0 || tables[ii].orderHistory.sum === 0 ? true : false}
                                         />
                                         <br />
@@ -405,7 +439,7 @@ export default class TakeOrder extends Component {
                                           disabled={tables[ii].orderChange.sum !== 0 || tables[ii].orderHistory.sum === 0 ? true : false}
                                         />
                                         <input type="submit" value="Pay by Card" disabled={tables[ii].orderChange.sum !== 0 || tables[ii].orderHistory.sum === 0 ? true : false} />
-                                      </form>
+                                      </form> */}
                                       <button
                                         className="btn btn-primary"
                                         onClick={async (e) => {

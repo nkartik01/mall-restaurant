@@ -44,6 +44,7 @@ div {
 .activeColor.active {
   background-color: blue;
   color: wheat;
+  font-weight: bold;
 }
 
 .free {
@@ -54,4 +55,11 @@ div {
 .occupied {
   background-color: red;
   color: white;
+}
+.itemCard {
+  background-color: yellow;
+}
+.itemCard:active {
+  background-color: red;
+  color: yellow;
 }
