@@ -15,43 +15,29 @@ export default class TakeOrder extends Component {
     this.setState(x);
   };
   getRestaurants = async () => {
-    var res = await axios.get("http://192.168.2.171:5001/mall-restraunt/us-central1/api/operator/getPermissions", {
+    var res = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/operator/getPermissions", {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     res = res.data;
     this.setState({ permissions: res.permissions });
-    res = await axios.get("http://192.168.2.171:5001/mall-restraunt/us-central1/api/menu/getRestaurantMenus", {
+    res = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/getRestaurantMenus", {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     res = res.data;
     this.setState({ menus: res.menus });
-    res = await axios.get("http://192.168.2.171:5001/mall-restraunt/us-central1/api/menu/getTables", {
+    res = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/getTables", {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     res = res.data;
-    console.log(res.tables, this.state.tables);
-    res.tables.map((table, i) => {
-      if (this.state.tables) {
-        res.tables[i].orderChange = this.state.tables[i].orderChange;
-        console.log(this.state.tables[i]);
-        this.state.tables[i].orderChange.order.map((order, ind) => {
-          var c = 0;
-          for (var j = 0; j < table.orderHistory.order.length; j++) {
-            if (order.item === table.orderHistory.order[j].item) {
-              res.tables[i].orderHistory.order[j].quantity = res.tables[i].orderHistory.order[j].quantity + order.quantity;
-              c = 1;
-              break;
-            }
-          }
-          if (c === 0) {
-            res.tables[i].orderHistory.order.push(order);
-          }
-          return null;
-        });
-        res.tables[i].orderHistory.sum = res.tables[i].orderHistory.sum + this.state.tables[i].orderChange.sum;
+
+    var tables = this.state.tables;
+    for (var i = 0; i < res.tables.length; i++) {
+      if (tables && tables[i].orderChange.sum !== 0) {
+        res.tables[i].orderChange = tables[i].orderChange;
+        res.tables[i].orderHistory = tables[i].orderHistory;
+        res.tables[i].balance = tables[i].balance;
       } else res.tables[i].orderChange = { order: [], sum: 0 };
-      return null;
-    });
+    }
     this.setState({ tables: res.tables, isLoading: false });
     this.setRedux();
   };
@@ -60,10 +46,10 @@ export default class TakeOrder extends Component {
   };
   componentDidMount() {
     this.getRestaurants();
-    // this.interval = setInterval(() => this.getRestaurants(), 10000);
+    this.interval = setInterval(() => this.getRestaurants(), 10000);
   }
   componentWillUnmount() {
-    // clearInterval(this.interval);
+    clearInterval(this.interval);
   }
   render() {
     var rests = Object.keys(this.state.menus);
@@ -99,7 +85,7 @@ export default class TakeOrder extends Component {
                   <Tab.Container id="left-tabs-example" defaultActiveKey="table-0">
                     <Row>
                       {/* Tables */}
-                      <Col sm={2} style={{ maxHeight: "100%" }}>
+                      <Col sm={2} style={{ maxHeight: "100%", bottom: 0, top: 0, overflow: "auto" }}>
                         <Nav variant="pills" className="flex-column">
                           {tables.map((table, i) => {
                             var status = table.orderHistory.sum === 0 ? "free" : "occupied";
@@ -122,7 +108,7 @@ export default class TakeOrder extends Component {
                               <Tab.Pane eventKey={"table-" + ii} id="left-tabs-example">
                                 <Tab.Container id="left-tabs-example" defaultActiveKey="category-0">
                                   <Row>
-                                    <Col sm={2} style={{ border: "1px solid black" }}>
+                                    <Col sm={2} style={{ border: "1px solid black", bottom: 0, top: 0, overflow: "auto" }}>
                                       <h3 style={{ backgroundColor: "red", color: "white" }}>Ordering for {table.table}</h3>
                                       <Nav varient="pills" className="flex-column">
                                         {categories.map((category, i2) => {
@@ -187,6 +173,7 @@ export default class TakeOrder extends Component {
                                                         }
                                                         tables[ii].orderHistory.sum = parseInt(tables[ii].orderHistory.sum) + parseInt(item.price);
                                                         tables[ii].orderChange.sum = parseInt(tables[ii].orderChange.sum) + parseInt(item.price);
+                                                        tables[ii].balance = tables[ii].balance + parseInt(item.price);
                                                         this.setState({});
                                                       }}
                                                     >
@@ -251,7 +238,7 @@ export default class TakeOrder extends Component {
                                                             }
                                                             tables[ii].orderChange.sum = parseInt(tables[ii].orderChange.sum) - parseInt(item.price);
                                                             tables[ii].orderHistory.sum = tables[ii].orderHistory.sum - parseInt(item.price);
-
+                                                            tables[ii].balance = tables[ii].balance - parseInt(item.price);
                                                             console.log(tables[ii].orderHistory);
                                                             for (var i3 = 0; i3 < tables[ii].orderHistory.order.length; i3++) {
                                                               console.log(tables[ii].orderHistory, item.item);
@@ -282,7 +269,7 @@ export default class TakeOrder extends Component {
 
                                                             tables[ii].orderChange.sum = tables[ii].orderChange.sum + parseInt(item.price);
                                                             tables[ii].orderHistory.sum = tables[ii].orderHistory.sum + parseInt(item.price);
-
+                                                            tables[ii].balance = tables[ii].balance + parseInt(item.price);
                                                             console.log(tables[ii].orderHistory);
                                                             for (var i3 = 0; i3 < tables[ii].orderHistory.order.length; i3++) {
                                                               if (tables[ii].orderHistory.order[i3].item === item.item) {
@@ -318,7 +305,7 @@ export default class TakeOrder extends Component {
                                                 e.target.disabled = true;
                                                 e.preventDefault();
                                                 var res = await axios.post(
-                                                  "http://192.168.2.171:5001/mall-restraunt/us-central1/api/menu/updateTable",
+                                                  "http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/updateTable",
                                                   { orderHistory: tables[ii].orderHistory, orderChange: tables[ii].orderChange, table: tables[ii] },
                                                   { headers: { "x-auth-token": localStorage.getItem("token") } }
                                                 );
@@ -328,6 +315,7 @@ export default class TakeOrder extends Component {
                                                 e.target.disabled = false;
                                                 this.setState({});
                                               }}
+                                              disabled={tables[ii].orderChange.sum === 0 ? true : false}
                                             >
                                               Add to Order
                                             </button>
@@ -378,7 +366,7 @@ export default class TakeOrder extends Component {
                                           if (tables[ii].balance !== 0) return;
                                           else {
                                             await axios.post(
-                                              "http://192.168.2.171:5001/mall-restraunt/us-central1/api/menu/freeTable",
+                                              "http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/freeTable",
                                               { table: tables[ii] },
                                               { headers: { "x-auth-token": localStorage.getItem("token") } }
                                             );
@@ -397,7 +385,7 @@ export default class TakeOrder extends Component {
                                             var partAmount = this.state.partial ? parseInt(tables[ii].partial) : parseInt(tables[ii].orderHistory.sum);
                                             console.log(tables[ii].uid, this.state.partial ? partAmount : tables[ii].balance);
                                             await axios.post(
-                                              "http://192.168.2.171:5001/mall-restraunt/us-central1/api/card/deductAmount",
+                                              "http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/deductAmount",
                                               {
                                                 // amount: tables[ii].partial ? partAmont) : tables[ii].orderHistory.sum,
 
@@ -417,7 +405,7 @@ export default class TakeOrder extends Component {
                                             if (this.state.partial) return;
                                             else {
                                               await axios.post(
-                                                "http://192.168.2.171:5001/mall-restraunt/us-central1/api/menu/freeTable",
+                                                "http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/freeTable",
                                                 { table: tables[ii] },
                                                 { headers: { "x-auth-token": localStorage.getItem("token") } }
                                               );
@@ -483,7 +471,7 @@ export default class TakeOrder extends Component {
 
                                           //   Payment logic as needed
                                           await axios.post(
-                                            "http://192.168.2.171:5001/mall-restraunt/us-central1/api/menu/freeTable",
+                                            "http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/freeTable",
                                             { table: tables[ii] },
                                             { headers: { "x-auth-token": localStorage.getItem("token") } }
                                           );

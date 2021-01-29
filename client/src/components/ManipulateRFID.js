@@ -10,7 +10,7 @@ export default withRouter(
     getCard = async (e) => {
       try {
         e.preventDefault();
-        var res = await axios.get("http://192.168.2.171:5001/mall-restraunt/us-central1/api/card/getCard/" + this.state.uid, {
+        var res = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/getCard/" + this.state.uid, {
           headers: { "x-auth-token": localStorage.getItem("token") },
         });
         res = res.data;
@@ -31,7 +31,7 @@ export default withRouter(
       e.preventDefault();
       try {
         await axios.post(
-          "http://192.168.2.171:5001/mall-restraunt/us-central1/api/card/assign",
+          "http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/assign",
           {
             uid: this.state.uid,
             holder: this.state.card.holder,
@@ -50,7 +50,7 @@ export default withRouter(
       e.preventDefault();
       try {
         await axios.post(
-          "http://192.168.2.171:5001/mall-restraunt/us-central1/api/card/retire",
+          "http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/retire",
           { uid: this.state.uid },
           { headers: { "x-auth-token": localStorage.getItem("token") } }
         );
@@ -158,7 +158,7 @@ export default withRouter(
                     e.preventDefault();
                     console.log(e.target);
                     var res = await axios.post(
-                      "http://192.168.2.171:5001/mall-restraunt/us-central1/api/card/addAmount",
+                      "http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/addAmount",
                       { amount: this.state.toAdd, uid: this.state.uid },
                       { headers: { "x-auth-token": localStorage.getItem("token") } }
                     );

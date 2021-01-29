@@ -58,7 +58,7 @@ export default class Payment extends Component {
               // console.log()
               var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
               await axios.post(
-                "http://192.168.2.171:5001/mall-restraunt/us-central1/api/card/deductAmount",
+                "http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/deductAmount",
                 {
                   // amount: this.props.table.partial ? partAmont) : this.props.table.orderHistory.sum,
 
@@ -101,6 +101,7 @@ export default class Payment extends Component {
           <input type="submit" value="Pay by Card" disabled={this.props.disable} />
         </form>
         <form
+          id="cashForm"
           onSubmit={async (e) => {
             e.preventDefault();
             document.getElementById("partialForm").submit();
@@ -109,7 +110,7 @@ export default class Payment extends Component {
               // console.log()
               var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
               await axios.post(
-                "http://192.168.2.171:5001/mall-restraunt/us-central1/api/bill/byCash",
+                "http://192.168.1.178:5001/mall-restraunt/us-central1/api/bill/byCash",
                 {
                   // amount: this.props.table.partial ? partAmont) : this.props.table.orderHistory.sum,
 
@@ -135,7 +136,7 @@ export default class Payment extends Component {
             }
           }}
         >
-          <input className="form-control" type="submit" value="Cash Accepted" />
+          <input className="form-control" type="submit" value="Cash Accepted" disabled={this.props.disable} />
         </form>
       </div>
     );

@@ -52,7 +52,11 @@ router.post("/addAmount", auth_operator, async (req, res) => {
       details: { prevBalance: card.balance - req.body.amount, newBalance: card.balance, amount: req.body.amount },
       at: Date.now(),
     });
-    await cardRef.set(card);
+    var operator = await db.collection("operator").doc(req.operator.id).get();
+    operator = operator.data();
+    operator.balance = operator.balance + req.body.amount;
+    db.collection("operator").doc(req.operator.id).set(operator);
+    cardRef.set(card);
     return res.send("amount added");
   } catch (err) {
     console.log(err);

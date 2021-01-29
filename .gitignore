@@ -6,3 +6,4 @@ ui-debug.log
 /firestore_data
 firestore-debug.log
 firestore-debug.log
+client/.eslintcache
