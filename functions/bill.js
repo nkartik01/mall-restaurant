@@ -60,4 +60,35 @@ router.get("/pendingBills", auth_operator, async (req, res) => {
   }
 });
 
+router.post("/byCash", auth_operator, async (req, res) => {
+  try {
+    if (req.body.amount < 0) {
+      return res.status(400).send("Negetive amount not allowed.");
+    }
+    var now = Date.now();
+    var bill = await db.collection("bill").doc(req.body.bill).get();
+    bill = bill.data();
+
+    if (!bill) {
+      return res.status(400).send("Issue with Bill");
+    }
+    if (!bill.transactions) {
+      bill.transactions = [];
+    }
+    if (req.body.to) {
+      bill.to = req.body.to;
+    }
+    bill.balance = bill.balance - req.body.amount;
+    if (req.body.table) {
+      db.collection("table").doc(req.body.table).update({ balance: bill.balance });
+    }
+    bill.transactions.unshift({ type: "cash", by: req.operator.id, at: now, amount: req.body.amount });
+    db.collection("bill").doc(req.body.bill).set(bill);
+    res.send("Paid");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+
 module.exports = router;

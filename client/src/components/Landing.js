@@ -1,12 +1,18 @@
 import React, { Component, Fragment } from "react";
 import { Link } from "react-router-dom";
+import AdminLogin from "./AdminLogin";
+import OperatorLogin from "./OperatorLogin";
 
 export default class Landing extends Component {
   render() {
     var status = localStorage.getItem("status");
     return (
       <div>
-        {!status ? <Link to="/adminLogin">Admin Login</Link> : null}
+        {!status ? (
+          <Fragment>
+            <AdminLogin /> <br /> <OperatorLogin />
+          </Fragment>
+        ) : null}
         {status === "admin" ? (
           <Fragment>
             <Link className="btn btn-primary" to="/operatorSignup">

@@ -10,12 +10,13 @@ export default class OperatorLogin extends Component {
     e.preventDefault();
     const { username, password } = this.state;
     try {
-      var res = await axios.post("http://192.168.1.178:5001/mall-restraunt/us-central1/api/login/operator", { username: username, password: password });
+      var res = await axios.post("http://192.168.2.171:5001/mall-restraunt/us-central1/api/login/operator", { username: username, password: password });
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("status", "operator");
       localStorage.setItem("username", username);
       localStorage.setItem("permissions", res.data.permissions);
-      window.open("/#/", "_self");
+      this.setState({});
+      window.location.reload();
     } catch (err) {
       console.log(err);
       document.getElementById("error").innerHTML = "Invalid Credentials";
@@ -26,15 +27,16 @@ export default class OperatorLogin extends Component {
     return (
       <div>
         <form onSubmit={(e) => this.onSubmit(e)}>
+          <h3>Operator Login</h3>
           <div className="form-group">
-            <input type="text" name="username" id="username" value={username} onChange={(e) => this.onChange(e)} />
+            <input className="form-control" type="text" name="username" id="username" value={username} onChange={(e) => this.onChange(e)} placeholder="Operator Username" />
           </div>
           <div className="form-group">
-            <input type="password" name="password" id="password" value={password} onChange={(e) => this.onChange(e)} />
+            <input className="form-control" type="password" name="password" id="password" value={password} onChange={(e) => this.onChange(e)} placeholder="Password" />
           </div>
           <p style={{ color: "red" }} id="error"></p>
           <div className="form-group">
-            <input type="submit" value="Submit" />
+            <input className="btn btn-primary" type="submit" value="Log in as operator" />
           </div>
         </form>
       </div>

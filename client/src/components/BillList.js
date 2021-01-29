@@ -6,14 +6,14 @@ import { setData } from "../redux/action/loadedData";
 export default class BillList extends Component {
   state = { bills: this.props.store.getState().loadedDataReducer.bills ? this.props.store.getState().loadedDataReducer.bills : [] };
   getBills = async () => {
-    var bills = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/bill/listBills/50", { headers: { "x-auth-token": localStorage.getItem("token") } });
+    var bills = await axios.get("http://192.168.2.171:5001/mall-restraunt/us-central1/api/bill/listBills/50", { headers: { "x-auth-token": localStorage.getItem("token") } });
     bills = bills.data.bills;
     this.setState({ bills });
     this.props.store.dispatch(setData({ bills }));
   };
   getPending = async (e) => {
     e.preventDefault();
-    var bills = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/bill/pendingBills", { headers: { "x-auth-token": localStorage.getItem("token") } });
+    var bills = await axios.get("http://192.168.2.171:5001/mall-restraunt/us-central1/api/bill/pendingBills", { headers: { "x-auth-token": localStorage.getItem("token") } });
     bills = bills.data.bills;
     this.setState({ bills });
     this.props.store.dispatch(setData({ bills }));

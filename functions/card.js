@@ -48,9 +48,9 @@ router.post("/addAmount", auth_operator, async (req, res) => {
     card.balance = card.balance + req.body.amount;
     card.transactions.unshift({
       by: req.operator.id,
-      prevBalance: card.balance - req.body.amount,
-      newBalance: card.balance,
-      transactionId: req.body.transactionId,
+      type: "addition",
+      details: { prevBalance: card.balance - req.body.amount, newBalance: card.balance, amount: req.body.amount },
+      at: Date.now(),
     });
     cardRef.set(card);
     return res.send("amount added");
@@ -85,6 +85,7 @@ router.post("/deductAmount", auth_operator, async (req, res) => {
         prevBalance: card.balance + req.body.amount,
         newBalance: card.balance,
         bill: req.body.bill,
+        amount: req.body.amount,
       },
       // orderId: req.body.orderId,
     });

@@ -6,43 +6,7 @@ export default class Payment extends Component {
   render() {
     return (
       <div>
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            try {
-              // console.log()
-              var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
-              console.log(tranAmount, this.state.partial, this.props.amount);
-              console.log(this.state.uid, this.state.partial ? tranAmount : this.props.amount);
-              var pay = await axios.post(
-                "http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/deductAmount",
-                {
-                  // amount: this.props.table.partial ? partAmont) : this.props.table.orderHistory.sum,
-
-                  amount: tranAmount,
-                  to: this.state.partial ? this.state.to : undefined,
-                  uid: this.state.uid,
-                  bill: this.props.bill,
-                  table: !this.props.table ? false : this.props.table,
-                },
-                { headers: { "x-auth-token": localStorage.getItem("token") } }
-              );
-              console.log(pay);
-              this.setState({ partial: false, partialAmount: 0, uid: "" });
-              AlertDiv("green", "Paid");
-              if (!!this.props.callBack) {
-                this.props.callBack(tranAmount);
-              }
-            } catch (err) {
-              if (!!this.props.fallBack) {
-                this.props.fallBack();
-              }
-              this.setState({ uid: "" });
-              console.log(err, err.response);
-              AlertDiv("red", "Couldn't Deduct Money, " + err.response.data);
-            }
-          }}
-        >
+        <form id="partialForm">
           <input
             type="checkbox"
             id="partial"
@@ -85,6 +49,42 @@ export default class Payment extends Component {
             }}
           />
           <br />
+        </form>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            document.getElementById("partialForm").submit();
+            try {
+              // console.log()
+              var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
+              await axios.post(
+                "http://192.168.2.171:5001/mall-restraunt/us-central1/api/card/deductAmount",
+                {
+                  // amount: this.props.table.partial ? partAmont) : this.props.table.orderHistory.sum,
+
+                  amount: tranAmount,
+                  to: this.state.partial ? this.state.to : undefined,
+                  uid: this.state.uid,
+                  bill: this.props.bill,
+                  table: !this.props.table ? false : this.props.table,
+                },
+                { headers: { "x-auth-token": localStorage.getItem("token") } }
+              );
+              this.setState({ partial: false, partialAmount: 0, uid: "" });
+              AlertDiv("green", "Paid");
+              if (!!this.props.callBack) {
+                this.props.callBack(tranAmount);
+              }
+            } catch (err) {
+              if (!!this.props.fallBack) {
+                this.props.fallBack();
+              }
+              this.setState({ uid: "" });
+              console.log(err, err.response);
+              AlertDiv("red", "Couldn't Deduct Money, " + err.response.data);
+            }
+          }}
+        >
           <input
             placeholder="UID"
             type="text"
@@ -99,6 +99,43 @@ export default class Payment extends Component {
             disabled={this.props.disable}
           />
           <input type="submit" value="Pay by Card" disabled={this.props.disable} />
+        </form>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            document.getElementById("partialForm").submit();
+
+            try {
+              // console.log()
+              var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
+              await axios.post(
+                "http://192.168.2.171:5001/mall-restraunt/us-central1/api/bill/byCash",
+                {
+                  // amount: this.props.table.partial ? partAmont) : this.props.table.orderHistory.sum,
+
+                  amount: tranAmount,
+                  to: this.state.partial ? this.state.to : undefined,
+                  bill: this.props.bill,
+                  table: !this.props.table ? false : this.props.table,
+                },
+                { headers: { "x-auth-token": localStorage.getItem("token") } }
+              );
+              this.setState({ partial: false, partialAmount: 0, uid: "" });
+              AlertDiv("green", "Paid");
+              if (!!this.props.callBack) {
+                this.props.callBack(tranAmount);
+              }
+            } catch (err) {
+              if (!!this.props.fallBack) {
+                this.props.fallBack();
+              }
+              this.setState({ uid: "" });
+              console.log(err, err.response);
+              AlertDiv("red", "Couldn't Deduct Money, " + err.response.data);
+            }
+          }}
+        >
+          <input className="form-control" type="submit" value="Cash Accepted" />
         </form>
       </div>
     );

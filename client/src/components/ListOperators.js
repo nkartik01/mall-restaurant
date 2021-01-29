@@ -4,7 +4,9 @@ import React, { Component } from "react";
 export default class ListOperators extends Component {
   state = { operators: [] };
   getOperators = async () => {
-    var res = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/operator/getOperatorList", { headers: { "x-auth-token": localStorage.getItem("token") } });
+    var res = await axios.get("http://192.168.2.171:5001/mall-restraunt/us-central1/api/operator/getOperatorList", {
+      headers: { "x-auth-token": localStorage.getItem("token") },
+    });
     res = res.data;
     this.setState({ operators: res.operators });
     console.log(this.state.operator);

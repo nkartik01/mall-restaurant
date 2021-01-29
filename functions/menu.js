@@ -67,7 +67,7 @@ router.get("/getRestaurantMenus", async (req, res) => {
 
 router.get("/getTables", async (req, res) => {
   try {
-    var tables = await db.collection("table").get();
+    var tables = await db.collection("table").orderBy("table", "asc").orderBy("restaurant", "asc").get();
     tables = tables.docs;
     for (var i = 0; i < tables.length; i++) {
       var table = tables[i].data();
@@ -137,8 +137,13 @@ router.post("/freeTable", auth_operator, async (req, res) => {
   }
 });
 
-router.post("/createTables", async (req, res) => {
+router.get("/createTables", async (req, res) => {
   var restaurants = ["Urban Food Court", "Perry Bar", "Perry Club"];
+  // var tables = await db.collection("table").get();
+  // tables = tables.docs;
+  // for (var i = 0; i < tables.length; i++) {
+  //   db.collection("table").doc(tables[i].id).delete();
+  // }
   for (var i = 0; i < 3; i++) {
     for (var j = 0; j < 12; j++) {
       db.collection("table").add({ orderHistory: { order: [], sum: 0 }, orderSnippets: [], balance: 0, bill: "", restaurant: restaurants[i], table: "table" + (j + 1) });
