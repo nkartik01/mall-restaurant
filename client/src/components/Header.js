@@ -6,9 +6,8 @@ export default class Header extends Component {
     var status = localStorage.getItem("status");
     return (
       <div>
-        This is my header. Urban Food Cafe, CityWalk Mall, Abohar.
+        Urban Food Cafe, CityWalk Mall, Abohar.
         <div style={{ display: "inline-block" }}>
-          {!status ? <Fragment></Fragment> : null}
           {status === "admin" ? (
             <Fragment>
               <Link className="btn btn-primary" to="/operatorSignup">
@@ -35,6 +34,21 @@ export default class Header extends Component {
               </Link>
             </Fragment>
           ) : null}
+          {!status ? (
+            <Fragment></Fragment>
+          ) : (
+            <Fragment>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  localStorage.clear();
+                  window.open("/", "_self");
+                }}
+              >
+                Logout
+              </button>
+            </Fragment>
+          )}
         </div>
       </div>
     );

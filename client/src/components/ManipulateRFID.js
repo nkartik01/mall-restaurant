@@ -54,6 +54,7 @@ export default withRouter(
           { uid: this.state.uid },
           { headers: { "x-auth-token": localStorage.getItem("token") } }
         );
+        AlertDiv("green", "Retired Successfully");
         this.setState({ card: {}, uid: "" });
       } catch (err) {
         console.log(err, err.response);
@@ -125,7 +126,7 @@ export default withRouter(
                       <th scope="row">Balance</th>
                       <td>
                         {card.holder.assigned ? (
-                          card.balance
+                          <Fragment>{card.balance}</Fragment>
                         ) : (
                           <input
                             required
@@ -151,6 +152,38 @@ export default withRouter(
                   <input type="submit" value="Assign" className="btn btn-primary" />
                 )}
               </form>
+              {card.holder.assigned ? (
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    console.log(e.target);
+                    var res = await axios.post(
+                      "http://192.168.2.171:5001/mall-restraunt/us-central1/api/card/addAmount",
+                      { amount: this.state.toAdd, uid: this.state.uid },
+                      { headers: { "x-auth-token": localStorage.getItem("token") } }
+                    );
+                    console.log(res.data);
+                    AlertDiv("green", "Amount Added");
+                    this.getCard(e);
+                  }}
+                >
+                  <input
+                    type="number"
+                    min={0}
+                    required
+                    value={this.state.toAdd}
+                    onChange={(e) => {
+                      e.preventDefault();
+                      this.setState({ toAdd: parseInt(e.target.value) });
+                    }}
+                    id="toAdd"
+                    name="toAdd"
+                    placeholder="Amount to add"
+                    className="form-control"
+                  />
+                  <input type="submit" value="Add money to card" className="btn btn-primary" />
+                </form>
+              ) : null}
               <button
                 className="btn btn-primary"
                 onClick={(e) => {

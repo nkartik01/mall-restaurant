@@ -52,7 +52,7 @@ router.post("/addAmount", auth_operator, async (req, res) => {
       details: { prevBalance: card.balance - req.body.amount, newBalance: card.balance, amount: req.body.amount },
       at: Date.now(),
     });
-    cardRef.set(card);
+    await cardRef.set(card);
     return res.send("amount added");
   } catch (err) {
     console.log(err);
@@ -137,11 +137,8 @@ router.post("/retire", auth_operator, async (req, res) => {
   try {
     var card = await db.collection("card").doc(req.body.uid).get();
     card = card.data();
-    if (card.balance !== 0) {
-      return res.status(400).send("Card not empty");
-    }
     card.holder = { assigned: false };
-    card.transactions.unshift({ type: "retire", by: req.operator.id, at: parseInt(Date.now()) });
+    card.transactions.unshift({ type: "retire", by: req.operator.id, at: parseInt(Date.now()), details: { paidAmount: card.balance } });
     await db.collection("card").doc(req.body.uid).set(card);
     return res.send("Retired");
   } catch (err) {
