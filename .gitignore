@@ -1,9 +1,9 @@
-/functions/node_modules
-/client/node_modules
-/client/build
+functions/node_modules/
+client/node_modules/
+client/build/
 firebase-debug.log
 ui-debug.log
-/firestore_data
+firestore_data/
 firestore-debug.log
 firestore-debug.log
 client/.eslintcache

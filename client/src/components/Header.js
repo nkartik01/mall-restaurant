@@ -41,7 +41,9 @@ export default class Header extends Component {
               <button
                 onClick={(e) => {
                   e.preventDefault();
-                  localStorage.clear();
+                  localStorage.removeItem("status");
+                  localStorage.removeItem("token");
+                  localStorage.removeItem("username");
                   window.open("/", "_self");
                 }}
               >

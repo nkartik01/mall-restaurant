@@ -151,6 +151,7 @@ export default class Bill extends Component {
               disable={false}
               amount={bill.balance}
               bill={bill.id}
+              orderHistory={bill.finalOrder}
               callBack={(amount) => {
                 this.setState({ bill: { ...this.state.bill, balance: this.state.bill.balance - amount } });
                 this.getBill();

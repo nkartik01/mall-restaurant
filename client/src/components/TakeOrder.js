@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { Component, Fragment } from "react";
 import { Tabs, Tab, Row, Col, Nav } from "react-bootstrap";
 import { setData } from "../redux/action/loadedData";
+import OrderSheet from "./OrderSheet";
 import Payment from "./Payment";
 
 export default class TakeOrder extends Component {
@@ -72,9 +73,9 @@ export default class TakeOrder extends Component {
 
             {/* Restraunts */}
 
-            {rests.map((rest, ind) => {
+            {rests.map((rest, _) => {
               var categories = Object.keys(this.state.menus[rest]);
-              var tables = this.state.tables.filter((elem, x) => {
+              var tables = this.state.tables.filter((elem, _) => {
                 if (elem.restaurant === rest) {
                   return true;
                 }
@@ -106,6 +107,7 @@ export default class TakeOrder extends Component {
                           {tables.map((table, ii) => {
                             return (
                               <Tab.Pane eventKey={"table-" + ii} id="left-tabs-example">
+                                <OrderSheet menu={this.state.menus[rest]} table={table} />
                                 <Tab.Container id="left-tabs-example" defaultActiveKey="category-0">
                                   <Row>
                                     <Col sm={2} style={{ border: "1px solid black", bottom: 0, top: 0, overflow: "auto" }}>

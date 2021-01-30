@@ -104,7 +104,7 @@ export default class Payment extends Component {
           id="cashForm"
           onSubmit={async (e) => {
             e.preventDefault();
-            document.getElementById("partialForm").submit();
+            console.log(document.getElementById("partialForm").submit());
 
             try {
               // console.log()
@@ -123,6 +123,11 @@ export default class Payment extends Component {
               );
               this.setState({ partial: false, partialAmount: 0, uid: "" });
               AlertDiv("green", "Paid");
+              await axios.post(
+                "http://192.168.1.178:5001/mall-restraunt/us-central1/api/bill/printBill",
+                { bill: this.props.bill, balance: this.props.amount, orderHistory: this.props.orderHistory, paid: this.props.tranAmount, printer: localStorage.getItem("printer") },
+                { headers: { "x-auth-token": localStorage.getItem("token") } }
+              );
               if (!!this.props.callBack) {
                 this.props.callBack(tranAmount);
               }
@@ -138,6 +143,20 @@ export default class Payment extends Component {
         >
           <input className="form-control" type="submit" value="Cash Accepted" disabled={this.props.disable} />
         </form>
+        {/* <button
+          className="btn  btn-primary"
+          onClick={async (e) => {
+            e.preventDefault();
+
+            await axios.post(
+              "http://192.168.1.178:5001/mall-restraunt/us-central1/api/bill/printBill",
+              { bill: this.props.bill, balance: this.props.amount, orderHistory: this.props.orderHistory, paid: this.props.tranAmount, printer: localStorage.getItem("printer") },
+              { headers: { "x-auth-token": localStorage.getItem("token") } }
+            );
+          }}
+        >
+          Print Bill
+        </button> */}
       </div>
     );
   }

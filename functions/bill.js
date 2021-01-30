@@ -4,7 +4,9 @@ const admin = require("firebase-admin");
 const db = admin.firestore();
 const auth_admin = require("./middleware/auth_admin");
 const auth_operator = require("./middleware/auth_operator");
-
+const ThermalPrinter = require("node-thermal-printer").printer;
+const PrinterTypes = require("node-thermal-printer").types;
+const printer = require("printer");
 router.get("/listBills/:x", async (req, res) => {
   try {
     var x = parseInt(req.params.x);
@@ -85,7 +87,7 @@ router.post("/byCash", auth_operator, async (req, res) => {
     bill.transactions.unshift({ type: "cash", by: req.operator.id, at: now, amount: req.body.amount });
 
     var operator = await db.collection("operator").doc(req.operator.id).get();
-    operator = operator.get();
+    operator = operator.data();
     if (!operator.balance) {
       operator.balance = 0;
     }
@@ -104,47 +106,56 @@ router.post("/printBill", async (req, res) => {
     const ThermalPrinter = require("node-thermal-printer").printer;
     const PrinterTypes = require("node-thermal-printer").types;
     const electron = typeof process !== "undefined" && process.versions && !!process.versions.electro;
-    let printer = new ThermalPrinter({
+    console.log(req.body.printer);
+    let print = new ThermalPrinter({
       type: PrinterTypes.EPSON, // Printer type: 'star' or 'epson'
-      interface: "printer:TH400II", // Printer interface
+      // interface: "printer:" + req.body.printer, // Printer interface
+      interface: "printer:Microsoft Print to PDF",
       driver: require(electron ? "electron-printer" : "printer"),
     });
     console.log(1);
-    let isConnected = await printer.isPrinterConnected(); // Check if printer is connected, return bool of status
+    let isConnected = await print.isPrinterConnected(); // Check if print is connected, return bool of status
     console.log(isConnected);
-    printer.alignCenter();
-    printer.setTextSize(1, 1);
-    printer.println("Urban Food Court");
-    printer.setTextSize(0, 0);
-    printer.println("City Walk Mall, Abohar");
-    printer.newLine();
-    printer.leftRight("Bill: " + req.body.bill, "Date: " + new Date(Date.now()).toLocaleDateString());
-    printer.leftRight("", "Time: " + new Date(Date.now()).toLocaleTimeString());
-    printer.drawLine();
-    printer.table(["Sr. No.", "Item", "Price", "Quantity", "Amount"]);
-    printer.drawLine();
+    print.alignCenter();
+    print.setTextSize(1, 1);
+    print.println("Urban Food Court");
+    print.setTextSize(0, 0);
+    print.println("City Walk Mall, Abohar");
+    print.newLine();
+    print.leftRight("Bill: " + req.body.bill, "Date: " + new Date(Date.now()).toLocaleDateString());
+    print.leftRight("", "Time: " + new Date(Date.now()).toLocaleTimeString());
+    print.drawLine();
+    print.tableCustom([{ text: "Sr. No.", width: 0.1 }, { text: "Item", width: 0.4 }, { text: "Price" }, { text: "Quantity", width: 0.1 }, { text: "Amount" }]);
+    print.table(["Sr. No.", "Item", "Price", "Quantity", "Amount"]);
+    print.drawLine();
     req.body.orderHistory.order.map((order, i) => {
-      return printer.table([i + 1, order.item, order.price, order.quantity, order.price * order.quantity]);
+      return print.table([i + 1, order.item, order.price, order.quantity, order.price * order.quantity]);
     });
-    printer.drawLine();
-    printer.table(["", "", "", "", req.body.orderHistory.sum]);
+    print.drawLine();
+    print.table(["", "", "", "", req.body.orderHistory.sum]);
 
     // logic for tax
 
-    printer.leftRight("", "Already Paid: " + (req.body.orderHistory.sum - req.body.balance));
-    printer.leftRight("", "Balance: " + req.body.balance);
-    printer.partialCut();
+    print.leftRight("", "Already Paid: " + (req.body.orderHistory.sum - req.body.balance));
+    print.leftRight("", "Balance: " + req.body.balance);
+    print.partialCut();
 
-    // printer.println("hello");
+    // print.println("hello");
 
-    // printer.cut();
-    let execute = await printer.execute(); // Executes all the commands. Returns success or throws error
+    // print.cut();
+    let execute = await print.execute(); // Executes all the commands. Returns success or throws error
     console.log(execute);
     return res.send({ execute });
   } catch (err) {
     console.log(err);
     res.status(500).send(err);
   }
+});
+
+router.get("/printers", auth_admin, async (req, res) => {
+  var printers = printer.getPrinters();
+  console.log(printers);
+  res.send({ printers });
 });
 
 module.exports = router;
