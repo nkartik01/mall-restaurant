@@ -1,10 +1,11 @@
 import axios from "axios";
 import React, { Component } from "react";
+import { Link } from "react-router-dom";
 
 export default class ListOperators extends Component {
   state = { operators: [] };
   getOperators = async () => {
-    var res = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/operator/getOperatorList", {
+    var res = await axios.get("http://192.168.2.171:5001/mall-restraunt/us-central1/api/operator/getOperatorList", {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     res = res.data;
@@ -30,17 +31,9 @@ export default class ListOperators extends Component {
                 <td>{operator.name}</td>
                 <td>{operator.username}</td>
                 <td>
-                  <button
-                    type="button"
-                    className="btn"
-                    style={{ backgroundColor: "blue", color: "white" }}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      window.open("/#/operatorEdit/" + operator.username);
-                    }}
-                  >
+                  <Link className="btn btn-primary" to={"/operatorEdit/" + operator.username}>
                     Edit Operator
-                  </button>
+                  </Link>
                 </td>
               </tr>
             );

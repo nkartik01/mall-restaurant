@@ -1,5 +1,5 @@
 import "./App.css";
-import { HashRouter as Router, Route, Switch } from "react-router-dom";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import Landing from "./components/Landing";
 import AdminLogin from "./components/AdminLogin";
 import OperatorSignup from "./components/OperatorSignup";

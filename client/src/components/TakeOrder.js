@@ -16,17 +16,17 @@ export default class TakeOrder extends Component {
     this.setState(x);
   };
   getRestaurants = async () => {
-    var res = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/operator/getPermissions", {
+    var res = await axios.get("http://192.168.2.171:5001/mall-restraunt/us-central1/api/operator/getPermissions", {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     res = res.data;
     this.setState({ permissions: res.permissions });
-    res = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/getRestaurantMenus", {
+    res = await axios.get("http://192.168.2.171:5001/mall-restraunt/us-central1/api/menu/getRestaurantMenus", {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     res = res.data;
     this.setState({ menus: res.menus });
-    res = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/getTables", {
+    res = await axios.get("http://192.168.2.171:5001/mall-restraunt/us-central1/api/menu/getTables", {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     res = res.data;
@@ -307,7 +307,7 @@ export default class TakeOrder extends Component {
                                                 e.target.disabled = true;
                                                 e.preventDefault();
                                                 var res = await axios.post(
-                                                  "http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/updateTable",
+                                                  "http://192.168.2.171:5001/mall-restraunt/us-central1/api/menu/updateTable",
                                                   { orderHistory: tables[ii].orderHistory, orderChange: tables[ii].orderChange, table: tables[ii] },
                                                   { headers: { "x-auth-token": localStorage.getItem("token") } }
                                                 );
@@ -368,7 +368,7 @@ export default class TakeOrder extends Component {
                                           if (tables[ii].balance !== 0) return;
                                           else {
                                             await axios.post(
-                                              "http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/freeTable",
+                                              "http://192.168.2.171:5001/mall-restraunt/us-central1/api/menu/freeTable",
                                               { table: tables[ii] },
                                               { headers: { "x-auth-token": localStorage.getItem("token") } }
                                             );
@@ -387,7 +387,7 @@ export default class TakeOrder extends Component {
                                             var partAmount = this.state.partial ? parseInt(tables[ii].partial) : parseInt(tables[ii].orderHistory.sum);
                                             console.log(tables[ii].uid, this.state.partial ? partAmount : tables[ii].balance);
                                             await axios.post(
-                                              "http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/deductAmount",
+                                              "http://192.168.2.171:5001/mall-restraunt/us-central1/api/card/deductAmount",
                                               {
                                                 // amount: tables[ii].partial ? partAmont) : tables[ii].orderHistory.sum,
 
@@ -407,7 +407,7 @@ export default class TakeOrder extends Component {
                                             if (this.state.partial) return;
                                             else {
                                               await axios.post(
-                                                "http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/freeTable",
+                                                "http://192.168.2.171:5001/mall-restraunt/us-central1/api/menu/freeTable",
                                                 { table: tables[ii] },
                                                 { headers: { "x-auth-token": localStorage.getItem("token") } }
                                               );
@@ -473,7 +473,7 @@ export default class TakeOrder extends Component {
 
                                           //   Payment logic as needed
                                           await axios.post(
-                                            "http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/freeTable",
+                                            "http://192.168.2.171:5001/mall-restraunt/us-central1/api/menu/freeTable",
                                             { table: tables[ii] },
                                             { headers: { "x-auth-token": localStorage.getItem("token") } }
                                           );

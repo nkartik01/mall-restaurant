@@ -1,7 +1,6 @@
 import axios from "axios";
 import React, { Component, Fragment } from "react";
 import { Tab, Row, Col, Nav } from "react-bootstrap";
-import { setData } from "../redux/action/loadedData";
 import Payment from "./Payment";
 
 export default class OrderSheet extends Component {
@@ -215,11 +214,11 @@ export default class OrderSheet extends Component {
                         e.target.disabled = true;
                         e.preventDefault();
                         var res = await axios.post(
-                          "http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/updateTable",
+                          "http://192.168.2.171:5001/mall-restraunt/us-central1/api/menu/updateTable",
                           { orderHistory: propsTable.orderHistory, orderChange: propsTable.orderChange, table: propsTable },
                           { headers: { "x-auth-token": localStorage.getItem("token") } }
                         );
-                        propsTable.bill = res.data;
+                        propsTable.bill = res.data.bill;
                         propsTable.orderChange.order = [];
                         propsTable.orderChange.sum = 0;
                         e.target.disabled = false;
@@ -277,7 +276,7 @@ export default class OrderSheet extends Component {
                   if (propsTable.balance !== 0) return;
                   else {
                     await axios.post(
-                      "http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/freeTable",
+                      "http://192.168.2.171:5001/mall-restraunt/us-central1/api/menu/freeTable",
                       { table: propsTable },
                       { headers: { "x-auth-token": localStorage.getItem("token") } }
                     );
@@ -296,7 +295,7 @@ export default class OrderSheet extends Component {
                                             var partAmount = this.state.partial ? parseInt(propsTable.partial) : parseInt(propsTable.orderHistory.sum);
                                             console.log(propsTable.uid, this.state.partial ? partAmount : propsTable.balance);
                                             await axios.post(
-                                              "http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/deductAmount",
+                                              "http://192.168.2.171:5001/mall-restraunt/us-central1/api/card/deductAmount",
                                               {
                                                 // amount: propsTable.partial ? partAmont) : propsTable.orderHistory.sum,
 
@@ -316,7 +315,7 @@ export default class OrderSheet extends Component {
                                             if (this.state.partial) return;
                                             else {
                                               await axios.post(
-                                                "http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/freeTable",
+                                                "http://192.168.2.171:5001/mall-restraunt/us-central1/api/menu/freeTable",
                                                 { table: propsTable },
                                                 { headers: { "x-auth-token": localStorage.getItem("token") } }
                                               );
@@ -382,7 +381,7 @@ export default class OrderSheet extends Component {
 
                   //   Payment logic as needed
                   await axios.post(
-                    "http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/freeTable",
+                    "http://192.168.2.171:5001/mall-restraunt/us-central1/api/menu/freeTable",
                     { table: propsTable },
                     { headers: { "x-auth-token": localStorage.getItem("token") } }
                   );

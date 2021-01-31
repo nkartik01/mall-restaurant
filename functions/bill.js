@@ -109,8 +109,8 @@ router.post("/printBill", async (req, res) => {
     console.log(req.body.printer);
     let print = new ThermalPrinter({
       type: PrinterTypes.EPSON, // Printer type: 'star' or 'epson'
-      // interface: "printer:" + req.body.printer, // Printer interface
-      interface: "printer:Microsoft Print to PDF",
+      interface: "printer:" + req.body.printer, // Printer interface
+      // interface: "printer:Microsoft Print to PDF",
       driver: require(electron ? "electron-printer" : "printer"),
     });
     console.log(1);
@@ -123,21 +123,39 @@ router.post("/printBill", async (req, res) => {
     print.println("City Walk Mall, Abohar");
     print.newLine();
     print.leftRight("Bill: " + req.body.bill, "Date: " + new Date(Date.now()).toLocaleDateString());
-    print.leftRight("", "Time: " + new Date(Date.now()).toLocaleTimeString());
+    print.leftRight("Method: " + req.body.method, "Time: " + new Date(Date.now()).toLocaleTimeString());
+    if (req.body.method === "card") {
+      print.println("Card No.: " + req.body.uid);
+    }
     print.drawLine();
-    print.tableCustom([{ text: "Sr. No.", width: 0.1 }, { text: "Item", width: 0.4 }, { text: "Price" }, { text: "Quantity", width: 0.1 }, { text: "Amount" }]);
-    print.table(["Sr. No.", "Item", "Price", "Quantity", "Amount"]);
+    print.tableCustom([
+      { text: "Sr.", width: 0.1 },
+      { text: "Item", width: 0.4 },
+      { width: 0.15, text: "Price" },
+      { text: "Quantity", width: 0.17 },
+      { text: "Amount", width: 0.18 },
+    ]);
+    // print.table(["Sr. No.", "Item", "Price", "Quantity", "Amount"]);
     print.drawLine();
     req.body.orderHistory.order.map((order, i) => {
-      return print.table([i + 1, order.item, order.price, order.quantity, order.price * order.quantity]);
+      return print.tableCustom([
+        { text: i + 1, width: 0.1 },
+        { text: order.item, width: 0.4 },
+        { text: order.price, width: 0.2 },
+        { text: order.quantity, width: 0.1 },
+        { text: order.price * order.quantity, width: 0.2 },
+      ]);
+      // return print.table([i + 1, order.item, order.price, order.quantity, order.price * order.quantity]);
     });
     print.drawLine();
     print.table(["", "", "", "", req.body.orderHistory.sum]);
 
     // logic for tax
 
-    print.leftRight("", "Already Paid: " + (req.body.orderHistory.sum - req.body.balance));
+    if (req.body.orderHistory.sum - req.body.balance !== 0) print.leftRight("", "Already Paid: " + (req.body.orderHistory.sum - req.body.balance));
     print.leftRight("", "Balance: " + req.body.balance);
+    print.leftRight("", "Recieved: " + parseInt(req.body.paid));
+    if (req.body.balance - req.body.paid !== 0) print.leftRight("", "Pending: " + parseInt(parseInt(req.body.balance) - parseInt(req.body.paid)));
     print.partialCut();
 
     // print.println("hello");

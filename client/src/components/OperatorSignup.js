@@ -29,7 +29,7 @@ export default class OperatorSignup extends Component {
       permissions: { restaurant, wait, edit, changeMenu },
     };
     try {
-      await axios.post("http://192.168.1.178:5001/mall-restraunt/us-central1/api/signup/operator", data, { headers: { "x-auth-token": localStorage.getItem("token") } });
+      await axios.post("http://192.168.2.171:5001/mall-restraunt/us-central1/api/signup/operator", data, { headers: { "x-auth-token": localStorage.getItem("token") } });
       alert("Operator Created Successfully");
     } catch (err) {
       console.log(err);

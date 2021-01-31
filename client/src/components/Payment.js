@@ -6,7 +6,7 @@ export default class Payment extends Component {
   render() {
     return (
       <div>
-        <form id="partialForm">
+        <form id="partialForm" onSubmit={(e) => e.preventDefault()}>
           <input
             type="checkbox"
             id="partial"
@@ -53,12 +53,11 @@ export default class Payment extends Component {
         <form
           onSubmit={async (e) => {
             e.preventDefault();
-            document.getElementById("partialForm").submit();
             try {
               // console.log()
               var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
               await axios.post(
-                "http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/deductAmount",
+                "http://192.168.2.171:5001/mall-restraunt/us-central1/api/card/deductAmount",
                 {
                   // amount: this.props.table.partial ? partAmont) : this.props.table.orderHistory.sum,
 
@@ -70,8 +69,22 @@ export default class Payment extends Component {
                 },
                 { headers: { "x-auth-token": localStorage.getItem("token") } }
               );
+              await axios.post(
+                "http://192.168.2.171:5001/mall-restraunt/us-central1/api/bill/printBill",
+                {
+                  bill: this.props.bill,
+                  balance: this.props.amount,
+                  orderHistory: this.props.orderHistory,
+                  paid: tranAmount,
+                  printer: localStorage.getItem("printer"),
+                  method: "card",
+                  uid: this.state.uid,
+                },
+                { headers: { "x-auth-token": localStorage.getItem("token") } }
+              );
               this.setState({ partial: false, partialAmount: 0, uid: "" });
               AlertDiv("green", "Paid");
+
               if (!!this.props.callBack) {
                 this.props.callBack(tranAmount);
               }
@@ -104,13 +117,12 @@ export default class Payment extends Component {
           id="cashForm"
           onSubmit={async (e) => {
             e.preventDefault();
-            console.log(document.getElementById("partialForm").submit());
 
             try {
               // console.log()
               var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
               await axios.post(
-                "http://192.168.1.178:5001/mall-restraunt/us-central1/api/bill/byCash",
+                "http://192.168.2.171:5001/mall-restraunt/us-central1/api/bill/byCash",
                 {
                   // amount: this.props.table.partial ? partAmont) : this.props.table.orderHistory.sum,
 
@@ -124,8 +136,15 @@ export default class Payment extends Component {
               this.setState({ partial: false, partialAmount: 0, uid: "" });
               AlertDiv("green", "Paid");
               await axios.post(
-                "http://192.168.1.178:5001/mall-restraunt/us-central1/api/bill/printBill",
-                { bill: this.props.bill, balance: this.props.amount, orderHistory: this.props.orderHistory, paid: this.props.tranAmount, printer: localStorage.getItem("printer") },
+                "http://192.168.2.171:5001/mall-restraunt/us-central1/api/bill/printBill",
+                {
+                  bill: this.props.bill,
+                  balance: this.props.amount,
+                  orderHistory: this.props.orderHistory,
+                  paid: tranAmount,
+                  printer: localStorage.getItem("printer"),
+                  method: "cash",
+                },
                 { headers: { "x-auth-token": localStorage.getItem("token") } }
               );
               if (!!this.props.callBack) {
@@ -149,7 +168,7 @@ export default class Payment extends Component {
             e.preventDefault();
 
             await axios.post(
-              "http://192.168.1.178:5001/mall-restraunt/us-central1/api/bill/printBill",
+              "http://192.168.2.171:5001/mall-restraunt/us-central1/api/bill/printBill",
               { bill: this.props.bill, balance: this.props.amount, orderHistory: this.props.orderHistory, paid: this.props.tranAmount, printer: localStorage.getItem("printer") },
               { headers: { "x-auth-token": localStorage.getItem("token") } }
             );

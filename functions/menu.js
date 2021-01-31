@@ -91,8 +91,10 @@ router.post("/updateTable", auth_operator, async (req, res) => {
 
     if (!table1.orderSnippets || table1.orderSnippets.length === 0) {
       table1.orderSnippets = [];
-      var bill = await db.collection("bill").add({ restaurant: table1.restaurant, table: table1.table, orderChanges: [], balance: 0, at });
-      table1.bill = bill.id;
+      var bills = await db.collection("bill").get();
+      bills = bills.docs;
+      var bill = await db.collection("bill").doc(bills.length.toString()).set({ restaurant: table1.restaurant, table: table1.table, orderChanges: [], balance: 0, at });
+      table1.bill = bills.length.toString();
       console.log(bill);
     }
     var bill = await db.collection("bill").doc(table1.bill).get();
@@ -106,7 +108,7 @@ router.post("/updateTable", auth_operator, async (req, res) => {
     db.collection("table").doc(req.body.table.id).set(table1);
     //add oorder to chef side with timer and stuff
     db.collection("chefSide").add(req.body.orderChange);
-    res.send(table1.bill);
+    res.send({ bill: table1.bill });
   } catch (err) {
     console.log(err);
     res.status(500).send(err);

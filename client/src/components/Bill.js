@@ -1,11 +1,11 @@
 import axios from "axios";
 import React, { Component } from "react";
 import Payment from "./Payment";
-
+// const printer = require("printer");
 export default class Bill extends Component {
   state = { isLoading: true, bill: {} };
   getBill = async () => {
-    var bill = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/bill/getBill/" + this.props.match.params.id, {
+    var bill = await axios.get("http://192.168.2.171:5001/mall-restraunt/us-central1/api/bill/getBill/" + this.props.match.params.id, {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     bill = bill.data.bill;
@@ -24,6 +24,7 @@ export default class Bill extends Component {
     this.getBill();
   }
   render() {
+    // console.log(printer.getPrinters());
     var bill = this.state.bill;
     return (
       <div>
