@@ -375,4 +375,11 @@ router.get("/printers", auth_admin, async (req, res) => {
   res.send({ printers });
 });
 
+router.get("/clearBills",async(req,res)=>{
+  var bills=await db.collection("chefSide").get();
+  bills=bills.docs;
+  for(var i=0;i<bills.length;i++){
+    db.collection("chefSide").doc(bills[i].id).delete()
+  }
+})
 module.exports = router;

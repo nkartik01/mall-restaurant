@@ -185,14 +185,14 @@ export default class OrderSheet extends Component {
                         propsTable.orderHistory.sum = propsTable.orderHistory.sum + propsTable.orderChange.sum;
                         propsTable.balance = propsTable.balance + propsTable.orderChange.sum;
                         var res = await axios.post(
-                          "http://192.168.1.106:5001/mall-restraunt/us-central1/api/menu/updateTable",
+                          "http://192.168.2.2:5001/mall-restraunt/us-central1/api/menu/updateTable",
                           { orderHistory: propsTable.orderHistory, orderChange: propsTable.orderChange, table: propsTable },
                           { headers: { "x-auth-token": localStorage.getItem("token") } }
                         );
                         AlertDiv("green", "Order Added");
                         try {
                           res = await axios.post(
-                            "http://192.168.1.106:5001/mall-restraunt/us-central1/api/bill/printOrder",
+                            "http://192.168.2.2:5001/mall-restraunt/us-central1/api/bill/printOrder",
                             { order: propsTable.orderChange, bill: res.data.bill, orderId: res.data.orderId, printer: localStorage.getItem("printer") },
                             { headers: { "x-auth-token": localStorage.getItem("token") } }
                           );
@@ -260,7 +260,7 @@ export default class OrderSheet extends Component {
                   if (propsTable.balance !== 0) return;
                   else {
                     await axios.post(
-                      "http://192.168.1.106:5001/mall-restraunt/us-central1/api/menu/freeTable",
+                      "http://192.168.2.2:5001/mall-restraunt/us-central1/api/menu/freeTable",
                       { table: propsTable },
                       { headers: { "x-auth-token": localStorage.getItem("token") } }
                     );
@@ -279,7 +279,7 @@ export default class OrderSheet extends Component {
                                             var partAmount = this.state.partial ? parseInt(propsTable.partial) : parseInt(propsTable.orderHistory.sum);
                                             console.log(propsTable.uid, this.state.partial ? partAmount : propsTable.balance);
                                             await axios.post(
-                                              "http://192.168.1.106:5001/mall-restraunt/us-central1/api/card/deductAmount",
+                                              "http://192.168.2.2:5001/mall-restraunt/us-central1/api/card/deductAmount",
                                               {
                                                 // amount: propsTable.partial ? partAmont) : propsTable.orderHistory.sum,
 
@@ -299,7 +299,7 @@ export default class OrderSheet extends Component {
                                             if (this.state.partial) return;
                                             else {
                                               await axios.post(
-                                                "http://192.168.1.106:5001/mall-restraunt/us-central1/api/menu/freeTable",
+                                                "http://192.168.2.2:5001/mall-restraunt/us-central1/api/menu/freeTable",
                                                 { table: propsTable },
                                                 { headers: { "x-auth-token": localStorage.getItem("token") } }
                                               );
@@ -366,7 +366,7 @@ export default class OrderSheet extends Component {
 
                   //   Payment logic as needed
                   await axios.post(
-                    "http://192.168.1.106:5001/mall-restraunt/us-central1/api/menu/freeTable",
+                    "http://192.168.2.2:5001/mall-restraunt/us-central1/api/menu/freeTable",
                     { table: propsTable },
                     { headers: { "x-auth-token": localStorage.getItem("token") } }
                   );
