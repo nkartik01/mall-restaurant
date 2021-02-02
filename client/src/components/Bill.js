@@ -5,7 +5,7 @@ import Payment from "./Payment";
 export default class Bill extends Component {
   state = { isLoading: true, bill: {} };
   getBill = async () => {
-    var bill = await axios.get("http://192.168.2.171:5001/mall-restraunt/us-central1/api/bill/getBill/" + this.props.match.params.id, {
+    var bill = await axios.get("http://192.168.1.106:5001/mall-restraunt/us-central1/api/bill/getBill/" + this.props.match.params.id, {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     bill = bill.data.bill;
@@ -148,16 +148,19 @@ export default class Bill extends Component {
                 })}
               </tbody>
             </table>
-            <Payment
-              disable={false}
-              amount={bill.balance}
-              bill={bill.id}
-              orderHistory={bill.finalOrder}
-              callBack={(amount) => {
-                this.setState({ bill: { ...this.state.bill, balance: this.state.bill.balance - amount } });
-                this.getBill();
-              }}
-            />
+            <div hidden>
+              <Payment
+                disable={bill.balance === 0 ? true : false}
+                amount={bill.balance}
+                bill={bill.id}
+                orderHistory={bill.finalOrder}
+                afterDisc={this.getBill}
+                callBack={(amount) => {
+                  this.setState({ bill: { ...this.state.bill, balance: this.state.bill.balance - amount } });
+                  this.getBill();
+                }}
+              />
+            </div>
           </div>
         ) : null}
       </div>

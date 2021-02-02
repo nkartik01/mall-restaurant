@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { Component, Fragment } from "react";
 import { Tab, Row, Col, Nav } from "react-bootstrap";
+import AlertDiv from "../AlertDiv";
 import Payment from "./Payment";
 
 export default class OrderSheet extends Component {
@@ -8,11 +9,14 @@ export default class OrderSheet extends Component {
     super(props);
     console.log(props);
   }
-
+  afterDisc = () => {
+    this.props.getRestaurants();
+  };
   render() {
     var menu = this.props.menu;
     var categories = Object.keys(this.props.menu);
     var propsTable = this.props.table;
+    propsTable.projectedTotal = propsTable.orderHistory.sum + propsTable.orderChange.sum;
     return (
       <div>
         <Tab.Container id="left-tabs-example" defaultActiveKey="category-0">
@@ -40,7 +44,7 @@ export default class OrderSheet extends Component {
                         {menu[category].map((item, _) => {
                           return (
                             <div
-                              style={{ backgroundColor: "yellow", border: "1px dotted black" }}
+                              style={{ backgroundColor: "yellow", border: "1px dotted black", verticalAlign: "middle" }}
                               className="card col-md-3"
                               id={propsTable.table + "-" + item.name + "-" + item.price + "-" + localStorage.getItem("username")}
                               onClick={(e) => {
@@ -64,32 +68,13 @@ export default class OrderSheet extends Component {
                                     quantity: 1,
                                   });
                                 }
-                                tabind = -1;
-                                for (i3 = 0; i3 < propsTable.orderHistory.order.length; i3++) {
-                                  if (propsTable.orderHistory.order[i3].item === item.name) {
-                                    tabind = 1;
-                                    propsTable.orderHistory.order[i3].quantity = propsTable.orderHistory.order[i3].quantity + 1;
-                                    break;
-                                  }
-                                }
-                                if (tabind !== 1) {
-                                  propsTable.orderHistory.order.push({
-                                    item: item.name,
-                                    category,
-                                    price: item.price,
-                                    quantity: 1,
-                                  });
-                                }
-                                propsTable.orderHistory.sum = parseInt(propsTable.orderHistory.sum) + parseInt(item.price);
                                 propsTable.orderChange.sum = parseInt(propsTable.orderChange.sum) + parseInt(item.price);
-                                propsTable.balance = propsTable.balance + parseInt(item.price);
+                                propsTable.projectedTotal = propsTable.projectedTotal + parseInt(item.price);
                                 this.setState({});
                               }}
                             >
-                              <h4>{item.name}</h4>
-                              <br />
+                              <h5>{item.name}</h5>
                               {item.price}
-                              <br />
                             </div>
                           );
                         })}
@@ -136,35 +121,15 @@ export default class OrderSheet extends Component {
                                 <button
                                   style={{ borderRadius: "100%" }}
                                   onClick={() => {
-                                    console.log(propsTable.orderHistory, propsTable.orderChange);
-                                    console.log(propsTable.orderChange.order[i1].quantity);
                                     var x = propsTable.orderChange.order[i1].quantity;
                                     x = x - 1;
                                     propsTable.orderChange.order[i1].quantity = x;
-                                    console.log(propsTable.orderChange);
                                     if (propsTable.orderChange.order[i1].quantity === 0) {
                                       propsTable.orderChange.order.splice(i1, 1);
                                     }
                                     propsTable.orderChange.sum = parseInt(propsTable.orderChange.sum) - parseInt(item.price);
-                                    propsTable.orderHistory.sum = propsTable.orderHistory.sum - parseInt(item.price);
-                                    propsTable.balance = propsTable.balance - parseInt(item.price);
-                                    console.log(propsTable.orderHistory);
-                                    for (var i3 = 0; i3 < propsTable.orderHistory.order.length; i3++) {
-                                      console.log(propsTable.orderHistory, item.item);
-
-                                      if (propsTable.orderHistory.order[i3].item === item.item) {
-                                        console.log("inside if");
-                                        propsTable.orderHistory.order[i3].quantity = propsTable.orderHistory.order[i3].quantity - 1;
-                                        if (propsTable.orderHistory.order[i3].quantity === 0) {
-                                          propsTable.orderHistory.order.splice(i3, 1);
-                                        }
-                                        break;
-                                      }
-                                      console.log(propsTable.orderHistory);
-                                    }
-                                    console.log(propsTable.orderHistory);
+                                    propsTable.projectedTotal = propsTable.projectedTotal - parseInt(item.price);
                                     this.setState({});
-                                    console.log(propsTable.orderHistory);
                                   }}
                                 >
                                   -
@@ -177,18 +142,8 @@ export default class OrderSheet extends Component {
                                     propsTable.orderChange.order[i1].quantity = propsTable.orderChange.order[i1].quantity + 1;
 
                                     propsTable.orderChange.sum = propsTable.orderChange.sum + parseInt(item.price);
-                                    propsTable.orderHistory.sum = propsTable.orderHistory.sum + parseInt(item.price);
-                                    propsTable.balance = propsTable.balance + parseInt(item.price);
-                                    console.log(propsTable.orderHistory);
-                                    for (var i3 = 0; i3 < propsTable.orderHistory.order.length; i3++) {
-                                      if (propsTable.orderHistory.order[i3].item === item.item) {
-                                        propsTable.orderHistory.order[i3].quantity = propsTable.orderHistory.order[i3].quantity + 1;
-                                        break;
-                                      }
-                                    }
-                                    console.log(propsTable.orderHistory.order[i3]);
+                                    propsTable.projectedTotal = propsTable.projectedTotal + parseInt(item.price);
                                     this.setState({});
-                                    console.log(propsTable.orderHistory.order[i3]);
                                   }}
                                 >
                                   +
@@ -208,16 +163,43 @@ export default class OrderSheet extends Component {
                         </tr>
                       </tbody>
                     </table>
+                    <h4>Projected Total: {propsTable.projectedTotal}</h4>
                     <button
                       className="btn btn-primary"
                       onClick={async (e) => {
                         e.target.disabled = true;
                         e.preventDefault();
+                        for (var i = 0; i < propsTable.orderChange.order.length; i++) {
+                          var c = 0;
+                          for (var j = 0; j < propsTable.orderHistory.order.length; j++) {
+                            if (propsTable.orderChange.order[i].item === propsTable.orderHistory.order[j].item) {
+                              propsTable.orderHistory.order[j].quantity = propsTable.orderHistory.order[j].quantity + propsTable.orderChange.order[i].quantity;
+                              c = 1;
+                              break;
+                            }
+                          }
+                          if (c === 0) {
+                            propsTable.orderHistory.order.push({ ...propsTable.orderChange.order[i] });
+                          }
+                        }
+                        propsTable.orderHistory.sum = propsTable.orderHistory.sum + propsTable.orderChange.sum;
+                        propsTable.balance = propsTable.balance + propsTable.orderChange.sum;
                         var res = await axios.post(
-                          "http://192.168.2.171:5001/mall-restraunt/us-central1/api/menu/updateTable",
+                          "http://192.168.1.106:5001/mall-restraunt/us-central1/api/menu/updateTable",
                           { orderHistory: propsTable.orderHistory, orderChange: propsTable.orderChange, table: propsTable },
                           { headers: { "x-auth-token": localStorage.getItem("token") } }
                         );
+                        AlertDiv("green", "Order Added");
+                        try {
+                          res = await axios.post(
+                            "http://192.168.1.106:5001/mall-restraunt/us-central1/api/bill/printOrder",
+                            { order: propsTable.orderChange, bill: res.data.bill, orderId: res.data.orderId, printer: localStorage.getItem("printer") },
+                            { headers: { "x-auth-token": localStorage.getItem("token") } }
+                          );
+                        } catch (err) {
+                          console.log(err, err.response);
+                          AlertDiv("red", "Couldn't print bill");
+                        }
                         propsTable.bill = res.data.bill;
                         propsTable.orderChange.order = [];
                         propsTable.orderChange.sum = 0;
@@ -269,6 +251,8 @@ export default class OrderSheet extends Component {
                 bill={propsTable.bill}
                 table={propsTable.id}
                 orderHistory={propsTable.orderHistory}
+                setState={this.setState1}
+                afterDisc={this.afterDisc}
                 callBack={async (amount) => {
                   console.log(amount);
                   propsTable.balance = propsTable.balance - amount;
@@ -276,7 +260,7 @@ export default class OrderSheet extends Component {
                   if (propsTable.balance !== 0) return;
                   else {
                     await axios.post(
-                      "http://192.168.2.171:5001/mall-restraunt/us-central1/api/menu/freeTable",
+                      "http://192.168.1.106:5001/mall-restraunt/us-central1/api/menu/freeTable",
                       { table: propsTable },
                       { headers: { "x-auth-token": localStorage.getItem("token") } }
                     );
@@ -295,7 +279,7 @@ export default class OrderSheet extends Component {
                                             var partAmount = this.state.partial ? parseInt(propsTable.partial) : parseInt(propsTable.orderHistory.sum);
                                             console.log(propsTable.uid, this.state.partial ? partAmount : propsTable.balance);
                                             await axios.post(
-                                              "http://192.168.2.171:5001/mall-restraunt/us-central1/api/card/deductAmount",
+                                              "http://192.168.1.106:5001/mall-restraunt/us-central1/api/card/deductAmount",
                                               {
                                                 // amount: propsTable.partial ? partAmont) : propsTable.orderHistory.sum,
 
@@ -315,7 +299,7 @@ export default class OrderSheet extends Component {
                                             if (this.state.partial) return;
                                             else {
                                               await axios.post(
-                                                "http://192.168.2.171:5001/mall-restraunt/us-central1/api/menu/freeTable",
+                                                "http://192.168.1.106:5001/mall-restraunt/us-central1/api/menu/freeTable",
                                                 { table: propsTable },
                                                 { headers: { "x-auth-token": localStorage.getItem("token") } }
                                               );
@@ -375,13 +359,14 @@ export default class OrderSheet extends Component {
                                         <input type="submit" value="Pay by Card" disabled={propsTable.orderChange.sum !== 0 || propsTable.orderHistory.sum === 0 ? true : false} />
                                       </form> */}
               <button
+                hidden
                 className="btn btn-primary"
                 onClick={async (e) => {
                   e.preventDefault();
 
                   //   Payment logic as needed
                   await axios.post(
-                    "http://192.168.2.171:5001/mall-restraunt/us-central1/api/menu/freeTable",
+                    "http://192.168.1.106:5001/mall-restraunt/us-central1/api/menu/freeTable",
                     { table: propsTable },
                     { headers: { "x-auth-token": localStorage.getItem("token") } }
                   );

@@ -91,11 +91,13 @@ router.post("/updateTable", auth_operator, async (req, res) => {
 
     if (!table1.orderSnippets || table1.orderSnippets.length === 0) {
       table1.orderSnippets = [];
-      var bills = await db.collection("bill").get();
+      var bills = await db.collection("bill").where("restaurant", "==", table1.restaurant).get();
       bills = bills.docs;
-      var bill = await db.collection("bill").doc(bills.length.toString()).set({ restaurant: table1.restaurant, table: table1.table, orderChanges: [], balance: 0, at });
-      table1.bill = bills.length.toString();
-      console.log(bill);
+      var bill = await db
+        .collection("bill")
+        .doc((table1.restaurant === "Urban Food Court" ? "UFC-" : table1.restaurant === "Perry Club" ? "PC-" : null) + (bills.length + 1).toString())
+        .set({ restaurant: table1.restaurant, table: table1.table, orderChanges: [], balance: 0, at });
+      table1.bill = (table1.restaurant === "Urban Food Court" ? "UFC-" : table1.restaurant === "Perry Club" ? "PC-" : null) + (bills.length + 1).toString();
     }
     var bill = await db.collection("bill").doc(table1.bill).get();
     bill = bill.data();
@@ -107,8 +109,19 @@ router.post("/updateTable", auth_operator, async (req, res) => {
     table1.orderSnippets.push(req.body.orderChange);
     db.collection("table").doc(req.body.table.id).set(table1);
     //add oorder to chef side with timer and stuff
-    db.collection("chefSide").add(req.body.orderChange);
-    res.send({ bill: table1.bill });
+    var start = new Date();
+    start.setHours(0, 0, 0, 0);
+    start = start.valueOf();
+    var end = new Date();
+    end.setHours(23, 59, 59, 999);
+    end = end.valueOf();
+    var orders = await db.collection("chefSide").where("at", ">=", start).where("at", "<=", end).get();
+    orders = orders.docs;
+
+    db.collection("chefSide")
+      .doc((orders.length + 1).toString())
+      .set(req.body.orderChange);
+    res.send({ bill: table1.bill, orderId: (orders.length + 1).toString() });
   } catch (err) {
     console.log(err);
     res.status(500).send(err);
@@ -131,7 +144,7 @@ router.post("/freeTable", auth_operator, async (req, res) => {
     await db
       .collection("table")
       .doc(req.body.table.id)
-      .update({ orderHistory: { order: [], sum: 0 }, orderSnippets: [], bill: "", balance: 0 });
+      .update({ orderHistory: { order: [], sum: 0 }, orderSnippets: [], bill: "", balance: 0, discType: false, discAmount: 0 });
     res.send("Done");
   } catch (err) {
     console.log(err);

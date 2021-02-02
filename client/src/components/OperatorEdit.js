@@ -12,7 +12,7 @@ export default class OperatorEdit extends Component {
     changeMenu: false,
   };
   getOperator = async (e) => {
-    var res = await axios.get("http://192.168.2.171:5001/mall-restraunt/us-central1/api/operator/getOperator/" + this.props.match.params.username, {
+    var res = await axios.get("http://192.168.1.106:5001/mall-restraunt/us-central1/api/operator/getOperator/" + this.props.match.params.username, {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     res = res.data;
@@ -42,7 +42,7 @@ export default class OperatorEdit extends Component {
         username,
         permissions: { restaurant, wait, edit, changeMenu },
       };
-      await axios.post("http://192.168.2.171:5001/mall-restraunt/us-central1/api/operator/edit", data, { headers: { "x-auth-token": localStorage.getItem("token") } });
+      await axios.post("http://192.168.1.106:5001/mall-restraunt/us-central1/api/operator/edit", data, { headers: { "x-auth-token": localStorage.getItem("token") } });
       alert("Operator edited successfully");
     } catch (err) {
       alert("some error occured");

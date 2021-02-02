@@ -8,7 +8,7 @@ export default class RegisterRFID extends Component {
     e.preventDefault();
     try {
       await axios.post(
-        "http://192.168.2.171:5001/mall-restraunt/us-central1/api/card/registerCard",
+        "http://192.168.1.106:5001/mall-restraunt/us-central1/api/card/registerCard",
         { uid: this.state.uid },
         { headers: { "x-auth-token": localStorage.getItem("token") } }
       );
