@@ -144,17 +144,17 @@ router.post("/updateTable", auth_operator, async (req, res) => {
 
 router.post("/freeTable", auth_operator, async (req, res) => {
   try {
-    var chefSide = await db.collection("chefSide").doc(req.body.table.restaurant).get();
-    chefSide = chefSide.data();
-    if (
-      !!chefSide &&
-      chefSide.order.filter((obj, i) => {
-        if (obj.status === "made") return false;
-        return true;
-      }).length !== 0
-    ) {
-      return res.status(400).send("Order not completed from kitchen");
-    }
+    // var chefSide = await db.collection("chefSide").doc(req.body.table.restaurant).get();
+    // chefSide = chefSide.data();
+    // if (
+    //   !!chefSide &&
+    //   chefSide.order.filter((obj, i) => {
+    //     if (obj.status === "made") return false;
+    //     return true;
+    //   }).length !== 0
+    // ) {
+    //   return res.status(400).send("Order not completed from kitchen");
+    // }
     await db
       .collection("table")
       .doc(req.body.table.id)

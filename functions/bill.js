@@ -381,12 +381,10 @@ router.get("/printers", auth_admin, async (req, res) => {
 });
 
 router.get("/clearBills", async (req, res) => {
-  var bills = await db.collection("table").where("restaurant", "==", "Umega Hotel").get();
+  var bills = await db.collection("chefSide").get();
   bills = bills.docs;
   for (var i = 0; i < bills.length; i++) {
-    db.collection("table").doc(bills[i].id).delete();
+    db.collection("chefSide").doc(bills[i].id).delete();
   }
-  res.send("done");
 });
-
 module.exports = router;

@@ -5,7 +5,7 @@ export default class Payment extends Component {
   state = { partial: false, partialAmount: 0, upiId: "", cardId: "", discType: "none", discReason: "By operator" };
   getBill = async () => {
     try {
-      var bill = await axios.get("http://192.168.1.106:5001/mall-restraunt/us-central1/api/bill/getBill/" + this.props.bill, {
+      var bill = await axios.get("http://192.168.2.2:5001/mall-restraunt/us-central1/api/bill/getBill/" + this.props.bill, {
         headers: { "x-auth-token": localStorage.getItem("token") },
       });
       bill = bill.data;
@@ -29,7 +29,7 @@ export default class Payment extends Component {
             console.log(this.props.table);
             e.preventDefault();
             await axios.post(
-              "http://192.168.1.106:5001/mall-restraunt/us-central1/api/bill/addDiscount",
+              "http://192.168.2.2:5001/mall-restraunt/us-central1/api/bill/addDiscount",
               {
                 bill: this.props.bill,
                 discType: this.state.discType,
@@ -213,7 +213,7 @@ export default class Payment extends Component {
               var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
               if (!window.confirm("Are you sure you want to deduct Rs." + tranAmount + " from this card?")) return;
               await axios.post(
-                "http://192.168.1.106:5001/mall-restraunt/us-central1/api/card/deductAmount",
+                "http://192.168.2.2:5001/mall-restraunt/us-central1/api/card/deductAmount",
                 {
                   // amount: this.props.table.partial ? partAmont) : this.props.table.orderHistory.sum,
 
@@ -226,7 +226,7 @@ export default class Payment extends Component {
                 { headers: { "x-auth-token": localStorage.getItem("token") } }
               );
               await axios.post(
-                "http://192.168.1.106:5001/mall-restraunt/us-central1/api/bill/printBill",
+                "http://192.168.2.2:5001/mall-restraunt/us-central1/api/bill/printBill",
                 {
                   bill: this.props.bill,
                   balance: this.props.amount,
@@ -295,7 +295,7 @@ export default class Payment extends Component {
               alert("Return Rs. " + received + " - " + tranAmount + " = " + (received - tranAmount));
               if (!window.confirm("Are you sure you received Rs." + tranAmount + " for this order in Cash?")) return;
               await axios.post(
-                "http://192.168.1.106:5001/mall-restraunt/us-central1/api/bill/byCash",
+                "http://192.168.2.2:5001/mall-restraunt/us-central1/api/bill/byCash",
                 {
                   // amount: this.props.table.partial ? partAmont) : this.props.table.orderHistory.sum,
 
@@ -310,7 +310,7 @@ export default class Payment extends Component {
               this.setState({ partial: false, partialAmount: 0, uid: "" });
               AlertDiv("yellow", "Paid");
               await axios.post(
-                "http://192.168.1.106:5001/mall-restraunt/us-central1/api/bill/printBill",
+                "http://192.168.2.2:5001/mall-restraunt/us-central1/api/bill/printBill",
                 {
                   bill: this.props.bill,
                   balance: this.props.amount,
@@ -352,7 +352,7 @@ export default class Payment extends Component {
               var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
               if (!window.confirm("Are you sure you received Rs." + tranAmount + " for this order in UPI transaction?")) return;
               await axios.post(
-                "http://192.168.1.106:5001/mall-restraunt/us-central1/api/bill/byCard",
+                "http://192.168.2.2:5001/mall-restraunt/us-central1/api/bill/byCard",
                 {
                   // amount: this.props.table.partial ? partAmont) : this.props.table.orderHistory.sum,
                   tranId: this.state.upiId,
@@ -367,7 +367,7 @@ export default class Payment extends Component {
               this.setState({ partial: false, partialAmount: 0, uid: "" });
               AlertDiv("green", "Paid");
               await axios.post(
-                "http://192.168.1.106:5001/mall-restraunt/us-central1/api/bill/printBill",
+                "http://192.168.2.2:5001/mall-restraunt/us-central1/api/bill/printBill",
                 {
                   bill: this.props.bill,
                   balance: this.props.amount,
@@ -427,7 +427,7 @@ export default class Payment extends Component {
               var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
               if (!window.confirm("Are you sure you received Rs." + tranAmount + " for this order in Card Swipe transaction?")) return;
               await axios.post(
-                "http://192.168.1.106:5001/mall-restraunt/us-central1/api/bill/byCard",
+                "http://192.168.2.2:5001/mall-restraunt/us-central1/api/bill/byCard",
                 {
                   // amount: this.props.table.partial ? partAmont) : this.props.table.orderHistory.sum,
                   tranId: this.state.cardId,
@@ -442,7 +442,7 @@ export default class Payment extends Component {
               this.setState({ partial: false, partialAmount: 0, uid: "" });
               AlertDiv("green", "Paid");
               await axios.post(
-                "http://192.168.1.106:5001/mall-restraunt/us-central1/api/bill/printBill",
+                "http://192.168.2.2:5001/mall-restraunt/us-central1/api/bill/printBill",
                 {
                   bill: this.props.bill,
                   balance: this.props.amount,

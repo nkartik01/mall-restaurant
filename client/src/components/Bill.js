@@ -5,7 +5,7 @@ import Payment from "./Payment";
 export default class Bill extends Component {
   state = { isLoading: true, bill: {} };
   getBill = async () => {
-    var bill = await axios.get("http://192.168.1.106:5001/mall-restraunt/us-central1/api/bill/getBill/" + this.props.match.params.id, {
+    var bill = await axios.get("http://192.168.2.2:5001/mall-restraunt/us-central1/api/bill/getBill/" + this.props.match.params.id, {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     bill = bill.data.bill;
