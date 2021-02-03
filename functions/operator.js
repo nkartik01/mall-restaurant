@@ -11,10 +11,7 @@ const config = require("config");
 router.post("/edit", auth_admin, async (req, res) => {
   const { username, password } = req.body;
   try {
-    var operator = await db
-      .collection("operator")
-      .where("username", "==", username)
-      .get();
+    var operator = await db.collection("operator").where("username", "==", username).get();
     console.log(operator.size, operator.docs.length);
     if (operator.size === 0) {
       return res.status(400).send("Operator doesnt exist");
@@ -23,14 +20,10 @@ router.post("/edit", auth_admin, async (req, res) => {
       name: req.body.name,
       username: username,
       permissions: req.body.permissions,
-      lastEdited: req.operator.id,
+      lastEdited: req.admin.id,
     };
     try {
-      await admin
-        .firestore()
-        .collection("operator")
-        .doc(username)
-        .update(operator1);
+      await admin.firestore().collection("operator").doc(username).update(operator1);
       const payload = {
         user: {
           id: username,
@@ -55,10 +48,7 @@ router.post("/edit", auth_admin, async (req, res) => {
 
 router.get("/getOperator/:username", auth_admin, async (req, res) => {
   try {
-    var operator = await db
-      .collection("operator")
-      .doc(req.params.username)
-      .get();
+    var operator = await db.collection("operator").doc(req.params.username).get();
     if (operator.data()) {
       return res.send(operator.data());
     }

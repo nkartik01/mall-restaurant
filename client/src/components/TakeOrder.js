@@ -14,7 +14,7 @@ export default class TakeOrder extends Component {
   setState1 = (x) => {
     this.setState(x);
   };
-  getRestaurants = async () => {
+  getMenus = async () => {
     var res = await axios.get("http://192.168.1.106:5001/mall-restraunt/us-central1/api/operator/getPermissions", {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
@@ -25,7 +25,9 @@ export default class TakeOrder extends Component {
     });
     res = res.data;
     this.setState({ menus: res.menus });
-    res = await axios.get("http://192.168.1.106:5001/mall-restraunt/us-central1/api/menu/getTables", {
+  };
+  getRestaurants = async () => {
+    var res = await axios.get("http://192.168.1.106:5001/mall-restraunt/us-central1/api/menu/getTables", {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     res = res.data;
@@ -46,7 +48,8 @@ export default class TakeOrder extends Component {
   };
   componentDidMount() {
     this.getRestaurants();
-    this.interval = setInterval(() => this.getRestaurants(), 10000);
+    this.getMenus();
+    this.interval = setInterval(() => this.getRestaurants(), 60000);
   }
   componentWillUnmount() {
     clearInterval(this.interval);

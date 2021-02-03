@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 import Payment from "./Payment";
 // const printer = require("printer");
 export default class Bill extends Component {
@@ -50,6 +50,26 @@ export default class Bill extends Component {
                   <th scope="row">Total Amount</th>
                   <td>{bill.amount}</td>
                 </tr>
+                {bill.discType && bill.discType !== "none" ? (
+                  <Fragment>
+                    <tr>
+                      <th scope="row">Discount Type</th>
+                      <td>{bill.discType}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Discount Amount</th>
+                      <td>{bill.discAmount}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Discount Reason</th>
+                      <td>{bill.discReason}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Discount By</th>
+                      <td>{bill.discBy}</td>
+                    </tr>
+                  </Fragment>
+                ) : null}
                 <tr>
                   <th scope="row">Restaurant</th>
                   <td>{bill.restaurant}</td>

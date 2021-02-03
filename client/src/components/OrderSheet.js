@@ -205,6 +205,7 @@ export default class OrderSheet extends Component {
                         propsTable.orderChange.sum = 0;
                         e.target.disabled = false;
                         this.setState({});
+                        this.props.getRestaurants();
                       }}
                       disabled={propsTable.orderChange.sum === 0 ? true : false}
                     >
@@ -245,119 +246,36 @@ export default class OrderSheet extends Component {
                 </tbody>
               </table>
               <h4>Balance: {propsTable.balance ? propsTable.balance : 0}</h4>
-              <Payment
-                amount={propsTable.balance ? propsTable.balance : 0}
-                disable={propsTable.orderChange.sum !== 0 || propsTable.orderHistory.sum === 0 ? true : false}
-                bill={propsTable.bill}
-                table={propsTable.id}
-                orderHistory={propsTable.orderHistory}
-                setState={this.setState1}
-                afterDisc={this.afterDisc}
-                callBack={async (amount) => {
-                  console.log(amount);
-                  propsTable.balance = propsTable.balance - amount;
-                  this.setState({});
-                  if (propsTable.balance !== 0) return;
-                  else {
-                    await axios.post(
-                      "http://192.168.1.106:5001/mall-restraunt/us-central1/api/menu/freeTable",
-                      { table: propsTable },
-                      { headers: { "x-auth-token": localStorage.getItem("token") } }
-                    );
-                    propsTable.orderHistory.order = [];
-                    propsTable.orderHistory.sum = 0;
-                    propsTable.balance = 0;
-                  }
-                  this.setState({});
-                }}
-              />
-              {/* <form
-                                        disabled={propsTable.orderChange.sum !== 0 || propsTable.orderHistory.sum === 0 ? true : false}
-                                        onSubmit={async (e) => {
-                                          e.preventDefault();
-                                          try {
-                                            var partAmount = this.state.partial ? parseInt(propsTable.partial) : parseInt(propsTable.orderHistory.sum);
-                                            console.log(propsTable.uid, this.state.partial ? partAmount : propsTable.balance);
-                                            await axios.post(
-                                              "http://192.168.1.106:5001/mall-restraunt/us-central1/api/card/deductAmount",
-                                              {
-                                                // amount: propsTable.partial ? partAmont) : propsTable.orderHistory.sum,
-
-                                                amount: this.state.partial ? partAmount : propsTable.balance,
-                                                uid: propsTable.uid,
-                                                bill: propsTable.bill,
-                                                table: propsTable.id,
-                                              },
-                                              { headers: { "x-auth-token": localStorage.getItem("token") } }
-                                            );
-                                            propsTable.balance = propsTable.balance - (this.state.partial ? partAmount : propsTable.balance);
-                                            console.log(propsTable.balance - (this.state.partial ? parseInt(partAmount) : parseInt(propsTable.balance)));
-                                            propsTable.partial = "";
-                                            propsTable.uid = "";
-                                            AlertDiv("green", "Paid");
-                                            this.setState({});
-                                            if (this.state.partial) return;
-                                            else {
-                                              await axios.post(
-                                                "http://192.168.1.106:5001/mall-restraunt/us-central1/api/menu/freeTable",
-                                                { table: propsTable },
-                                                { headers: { "x-auth-token": localStorage.getItem("token") } }
-                                              );
-                                              propsTable.orderHistory.order = [];
-                                              propsTable.orderHistory.sum = 0;
-                                              propsTable.balance = 0;
-                                            }
-                                            propsTable.uid = "";
-                                            AlertDiv("green", "Paid");
-                                            this.setState({});
-                                          } catch (err) {
-                                            console.log(err, err.response);
-                                            AlertDiv("red", "Couldn't Deduct Money, " + err.response.data);
-                                          }
-                                        }}
-                                      >
-                                        <input
-                                          type="checkbox"
-                                          id="partial"
-                                          disabled={propsTable.orderChange.sum !== 0 || propsTable.orderHistory.sum === 0 ? true : false}
-                                          // value={propsTable.partial}
-                                          onChange={(e) => {
-                                            this.setState({ partial: e.target.checked });
-                                          }}
-                                        />
-                                        <label htmlFor="partial">Partial Payment?</label>
-                                        <input
-                                          type="number"
-                                          id="partialAmount"
-                                          max={propsTable.balance}
-                                          required
-                                          placeholder="Partial Amount"
-                                          value={propsTable.partial}
-                                          onChange={(e) => {
-                                            e.preventDefault();
-                                            var value = e.target.value;
-                                            propsTable.partial = value;
-                                            this.setState({});
-                                          }}
-                                          disabled={!this.state.partial || propsTable.orderChange.sum !== 0 || propsTable.orderHistory.sum === 0 ? true : false}
-                                        />
-                                        <br />
-                                        <input
-                                          placeholder="UID"
-                                          type="text"
-                                          id="uidInput"
-                                          value={propsTable.uid}
-                                          autoFocus
-                                          onChange={(e) => {
-                                            e.preventDefault();
-                                            propsTable.uid = e.target.value;
-                                            this.setState({});
-                                          }}
-                                          required
-                                          disabled={propsTable.orderChange.sum !== 0 || propsTable.orderHistory.sum === 0 ? true : false}
-                                        />
-                                        <input type="submit" value="Pay by Card" disabled={propsTable.orderChange.sum !== 0 || propsTable.orderHistory.sum === 0 ? true : false} />
-                                      </form> */}
+              {propsTable.bill && propsTable.bill !== "" ? (
+                <Fragment>
+                  <Payment
+                    amount={propsTable.balance ? propsTable.balance : 0}
+                    disable={propsTable.orderChange.sum !== 0 || propsTable.orderHistory.sum === 0 ? true : false}
+                    bill={propsTable.bill}
+                    table={propsTable.id}
+                    orderHistory={propsTable.orderHistory}
+                    setState={this.setState1}
+                    afterDisc={this.afterDisc}
+                    callBack={async (amount) => {
+                      console.log(amount);
+                      propsTable.balance = propsTable.balance - amount;
+                      this.setState({});
+                      if (propsTable.balance !== 0) return;
+                      else {
+                        await axios.post(
+                          "http://192.168.1.106:5001/mall-restraunt/us-central1/api/menu/freeTable",
+                          { table: propsTable },
+                          { headers: { "x-auth-token": localStorage.getItem("token") } }
+                        );
+                        propsTable.orderHistory.order = [];
+                        propsTable.orderHistory.sum = 0;
+                        propsTable.balance = 0;
+                      }
+                      this.setState({});
+                    }}
+                  />
+                </Fragment>
+              ) : null}
               <button
                 hidden
                 className="btn btn-primary"

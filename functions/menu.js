@@ -93,11 +93,25 @@ router.post("/updateTable", auth_operator, async (req, res) => {
       table1.orderSnippets = [];
       var bills = await db.collection("bill").where("restaurant", "==", table1.restaurant).get();
       bills = bills.docs;
+      var prefix =
+        table1.restaurant === "Urban Food Court"
+          ? "UFC-"
+          : table1.restaurant === "Perry Club"
+          ? "PC-"
+          : table1.restaurant === "Pizzaria"
+          ? "PZ-"
+          : table1.restaurant === "Dosa Counter"
+          ? "DC-"
+          : table1.restaurant === "Juice Bar"
+          ? "JB-"
+          : table1.restaurant === "Umega Hotel"
+          ? "UH-"
+          : null;
       var bill = await db
         .collection("bill")
-        .doc((table1.restaurant === "Urban Food Court" ? "UFC-" : table1.restaurant === "Perry Club" ? "PC-" : null) + (bills.length + 1).toString())
+        .doc(prefix + (bills.length + 1).toString())
         .set({ restaurant: table1.restaurant, table: table1.table, orderChanges: [], balance: 0, at });
-      table1.bill = (table1.restaurant === "Urban Food Court" ? "UFC-" : table1.restaurant === "Perry Club" ? "PC-" : null) + (bills.length + 1).toString();
+      table1.bill = prefix + (bills.length + 1).toString();
     }
     var bill = await db.collection("bill").doc(table1.bill).get();
     bill = bill.data();
@@ -153,17 +167,18 @@ router.post("/freeTable", auth_operator, async (req, res) => {
 });
 
 router.get("/createTables", async (req, res) => {
-  var restaurants = ["Urban Food Court", "Perry Bar", "Perry Club"];
+  // var restaurants = ["Urban Food Court", "Perry Club"];
+  var restaurants = ["Pizzaria", "Dosa Counter", "Juice Bar", "Umega Hotel"];
   // var tables = await db.collection("table").get();
   // tables = tables.docs;
   // for (var i = 0; i < tables.length; i++) {
   //   db.collection("table").doc(tables[i].id).delete();
   // }
-  for (var i = 0; i < 3; i++) {
-    for (var j = 0; j < 12; j++) {
-      db.collection("table").add({ orderHistory: { order: [], sum: 0 }, orderSnippets: [], balance: 0, bill: "", restaurant: restaurants[i], table: "table" + (j + 1) });
-    }
+  // for (var i = 0; i < 3; i++) {
+  for (var j = 0; j < 25; j++) {
+    db.collection("table").add({ orderHistory: { order: [], sum: 0 }, orderSnippets: [], balance: 0, bill: "", restaurant: restaurants[3], table: "room" + (j + 1) });
   }
+  // }
   res.send("done");
 });
 

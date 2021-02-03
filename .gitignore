@@ -5,3 +5,6 @@ firebase-debug.log
 ui-debug.log
 firestore_data/
 client/.eslintcache
+firestore_data/firestore_export/firestore_export.overall_export_metadata
+*.export_metadata
+firestore_data/firestore_export/all_namespaces/all_kinds/output-0

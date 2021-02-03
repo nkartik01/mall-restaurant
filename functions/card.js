@@ -140,10 +140,15 @@ router.post("/assign", auth_operator, async (req, res) => {
 router.post("/retire", auth_operator, async (req, res) => {
   try {
     var card = await db.collection("card").doc(req.body.uid).get();
+    var opertor = await db.collection("operator").doc(req.operator.id).get();
+    operator = operator.data();
+
     card = card.data();
     card.holder = { assigned: false };
     card.transactions.unshift({ type: "retire", by: req.operator.id, at: parseInt(Date.now()), details: { paidAmount: card.balance } });
-    await db.collection("card").doc(req.body.uid).set(card);
+    operator.balance = operator.balance - card.balance;
+    db.collection("operator").doc(req.operator.id).set(opertor);
+    db.collection("card").doc(req.body.uid).set(card);
     return res.send("Retired");
   } catch (err) {
     console.log(err);
