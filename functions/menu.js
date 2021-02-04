@@ -88,6 +88,20 @@ router.post("/updateTable", auth_operator, async (req, res) => {
     var at = Date.now();
     req.body.orderChange.at = at;
     table1.orderHistory = req.body.orderHistory;
+    var prefix =
+      table1.restaurant === "Urban Food Court"
+        ? "UFC-"
+        : table1.restaurant === "Perry Club"
+        ? "PC-"
+        : table1.restaurant === "Pizzaria"
+        ? "PZ-"
+        : table1.restaurant === "Dosa Counter"
+        ? "DC-"
+        : table1.restaurant === "Juice Bar"
+        ? "JB-"
+        : table1.restaurant === "Umega Hotel"
+        ? "UH-"
+        : null;
 
     if (!table1.orderSnippets || table1.orderSnippets.length === 0) {
       table1.orderSnippets = [];
@@ -95,9 +109,9 @@ router.post("/updateTable", auth_operator, async (req, res) => {
       bills = bills.docs;
       var bill = await db
         .collection("bill")
-        .doc((table1.restaurant === "Urban Food Court" ? "UFC-" : table1.restaurant === "Perry Club" ? "PC-" : null) + (bills.length + 1).toString())
+        .doc(prefix + (bills.length + 1).toString())
         .set({ restaurant: table1.restaurant, table: table1.table, orderChanges: [], balance: 0, at });
-      table1.bill = (table1.restaurant === "Urban Food Court" ? "UFC-" : table1.restaurant === "Perry Club" ? "PC-" : null) + (bills.length + 1).toString();
+      table1.bill = prefix + (bills.length + 1).toString();
     }
     var bill = await db.collection("bill").doc(table1.bill).get();
     bill = bill.data();
@@ -115,12 +129,12 @@ router.post("/updateTable", auth_operator, async (req, res) => {
     var end = new Date();
     end.setHours(23, 59, 59, 999);
     end = end.valueOf();
-    var orders = await db.collection("chefSide").where("at", ">=", start).where("at", "<=", end).get();
+    var orders = await db.collection("chefSide").where("at", ">=", start).where("at", "<=", end).where("restaurant", "==", table1.restaurant).get();
     orders = orders.docs;
 
     db.collection("chefSide")
-      .doc((orders.length + 1).toString())
-      .set(req.body.orderChange);
+      .doc(prefix + (orders.length + 1).toString())
+      .set({ ...req.body.orderChange, restaurant: table1.restaurant });
     res.send({ bill: table1.bill, orderId: (orders.length + 1).toString() });
   } catch (err) {
     console.log(err);
@@ -153,17 +167,18 @@ router.post("/freeTable", auth_operator, async (req, res) => {
 });
 
 router.get("/createTables", async (req, res) => {
-  var restaurants = ["Urban Food Court", "Perry Bar", "Perry Club"];
+  // var restaurants = ["Urban Food Court", "Perry Club"];
+  var restaurants = ["Pizzaria", "Dosa Counter", "Juice Bar", "Umega Hotel"];
   // var tables = await db.collection("table").get();
   // tables = tables.docs;
   // for (var i = 0; i < tables.length; i++) {
   //   db.collection("table").doc(tables[i].id).delete();
   // }
-  for (var i = 0; i < 3; i++) {
-    for (var j = 0; j < 12; j++) {
-      db.collection("table").add({ orderHistory: { order: [], sum: 0 }, orderSnippets: [], balance: 0, bill: "", restaurant: restaurants[i], table: "table" + (j + 1) });
-    }
+  // for (var i = 0; i < 3; i++) {
+  for (var j = 0; j < 25; j++) {
+    db.collection("table").add({ orderHistory: { order: [], sum: 0 }, orderSnippets: [], balance: 0, bill: "", restaurant: restaurants[3], table: "room" + (j + 1) });
   }
+  // }
   res.send("done");
 });
 

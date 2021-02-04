@@ -6,15 +6,15 @@ import { setData } from "../redux/action/loadedData";
 
 export default withRouter(
   class ManipulateRFID extends Component {
-    state = { uid: "", card: {} };
+    state = { uid: "", card: {}, cards: [] };
     getCard = async (e) => {
       try {
         e.preventDefault();
-        var res = await axios.get("http://192.168.2.2:5001/mall-restraunt/us-central1/api/card/getCard/" + this.state.uid, {
+        var res = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/getCard/" + this.state.uid, {
           headers: { "x-auth-token": localStorage.getItem("token") },
         });
         res = res.data;
-        this.setState({ card: res.card });
+        this.setState({ card: res.card, cards: [] });
       } catch (err) {
         console.log(err, err.response);
         AlertDiv("red", "Error, " + err.response.data);
@@ -31,7 +31,7 @@ export default withRouter(
       e.preventDefault();
       try {
         await axios.post(
-          "http://192.168.2.2:5001/mall-restraunt/us-central1/api/card/assign",
+          "http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/assign",
           {
             uid: this.state.uid,
             holder: this.state.card.holder,
@@ -50,7 +50,7 @@ export default withRouter(
       e.preventDefault();
       try {
         await axios.post(
-          "http://192.168.2.2:5001/mall-restraunt/us-central1/api/card/retire",
+          "http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/retire",
           { uid: this.state.uid },
           { headers: { "x-auth-token": localStorage.getItem("token") } }
         );
@@ -66,12 +66,51 @@ export default withRouter(
       return (
         <div>
           {Object.keys(this.state.card).length === 0 ? (
-            <form onSubmit={(e) => this.getCard(e)}>
-              <div className="form-group">
-                <input autoFocus type="text" required name={"uid"} placeholder="uid" id="uid" value={this.state.uid} onChange={(e) => this.onChange(e)} className="form-control" />
-              </div>
-              <input type="submit" value="Submit" className="btn btn-primary" />
-            </form>
+            <Fragment>
+              <form onSubmit={(e) => this.getCard(e)}>
+                <div className="form-group">
+                  <input
+                    autoFocus
+                    type="text"
+                    required
+                    name={"uid"}
+                    placeholder="uid"
+                    id="uid"
+                    autoComplete="off"
+                    value={this.state.uid}
+                    onChange={(e) => this.onChange(e)}
+                    className="form-control"
+                  />
+                </div>
+                <input type="submit" value="Submit" className="btn btn-primary" />
+              </form>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  var res = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/searchByPhone/" + this.state.phone, {
+                    headers: { "x-auth-token": localStorage.getItem("token") },
+                  });
+                  res = res.data;
+                  if (res.cards.length === 0) AlertDiv("red", "No Cards Found");
+                  else this.setState({ card: {}, uid: "", cards: res.cards });
+                }}
+              >
+                <div className="form-group">
+                  <input
+                    autoComplete="off"
+                    type="number"
+                    required
+                    name="phone"
+                    placeholder="Phone Number"
+                    id="phone"
+                    value={this.state.phone}
+                    onChange={(e) => this.onChange(e)}
+                    className="form-control"
+                  />
+                </div>
+                <input type="submit" value="Search" className="btn btn-primary" />
+              </form>
+            </Fragment>
           ) : (
             <Fragment>
               <center>
@@ -158,7 +197,7 @@ export default withRouter(
                     e.preventDefault();
                     console.log(e.target);
                     var res = await axios.post(
-                      "http://192.168.2.2:5001/mall-restraunt/us-central1/api/card/addAmount",
+                      "http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/addAmount",
                       { amount: this.state.toAdd, uid: this.state.uid },
                       { headers: { "x-auth-token": localStorage.getItem("token") } }
                     );
@@ -236,6 +275,36 @@ export default withRouter(
               </table>
             </Fragment>
           )}
+          {this.state.cards.length !== 0 ? (
+            <Fragment>
+              <table className="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Card Number</th>
+                    <th>Holder Name</th>
+                    <th>Balance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {this.state.cards.map((card, _) => {
+                    return (
+                      <tr
+                        onClick={(e) => {
+                          this.state.uid = card.id;
+                          this.state.phone = "";
+                          this.getCard(e);
+                        }}
+                      >
+                        <td>{card.uid}</td>
+                        <td> {card.holder.name} </td>
+                        <td>{card.balance}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </Fragment>
+          ) : null}
         </div>
       );
     }

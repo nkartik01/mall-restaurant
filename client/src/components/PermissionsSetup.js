@@ -10,7 +10,7 @@ export default class PermissionsSetup extends Component {
     wait: {},
   };
   // getMenus = async (e) => {
-  //   var res = await axios.get("http://192.168.2.2:5001/mall-restraunt/us-central1/api/menu/listMenus");
+  //   var res = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/menu/listMenus");
   //   res = res.data;
   //   this.setState({ menus: res.menus });
   // };
@@ -27,7 +27,7 @@ export default class PermissionsSetup extends Component {
   // }
   render() {
     // var { menus } = this.state;
-    var restraunts = ["Urban Food Court"];
+    var restraunts = ["Urban Food Court", "Perry Club", "Pizzaria", "Juice Bar", "Dosa Counter", "Umega Hotel"];
     return (
       <div align="left">
         {/* <div>

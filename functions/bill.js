@@ -207,26 +207,31 @@ router.post("/printBill", async (req, res) => {
     print.println("Urban Food Court");
     print.setTextSize(0, 0);
     print.println("City Walk Mall, Hanumangarh Road, Abohar");
+    print.println("A Unit of RDESCO City Walk Pvt. Ltd.");
     print.newLine();
     // print.println("Hanumangarh Road, Abohar");
     print.leftRight("GSTIN: 03AAICR8822Q1ZS", "FSSAI: 12119201000010");
     // print.println("GSTIN: 03AAICR8822Q1ZS");
     // print.println("FSSAI: 12119201000010");
+    if (req.body.preview) {
+      print.println("Bill Preview");
+    }
     print.newLine();
     print.leftRight("Bill No. :" + req.body.bill, "Date: " + new Date(Date.now()).toLocaleDateString());
-    print.leftRight("Method: " + req.body.method, "Time: " + new Date(Date.now()).toLocaleTimeString());
-    if (req.body.method === "rfid") {
-      print.println("Card No.: " + req.body.uid);
-    } else if (req.body.method !== "cash") {
-      print.println("Txn Id: " + req.body.tranId);
-    }
+    if (!req.body.preview) print.leftRight("Method: " + req.body.method, "Time: " + new Date(Date.now()).toLocaleTimeString());
+    if (!req.body.preview)
+      if (req.body.method === "rfid") {
+        print.println("Card No.: " + req.body.uid);
+      } else if (req.body.method !== "cash") {
+        print.println("Txn Id: " + req.body.tranId);
+      }
     print.drawLine();
     print.tableCustom([
       { text: "Sr.", width: 0.08, align: "LEFT" },
       { text: "Item", width: 0.4, align: "LEFT" },
-      { width: 0.13, text: "Price", align: "CENTER" },
-      { text: "Qty", width: 0.1, align: "CENTER" },
-      { text: "Amount", width: 0.19, align: "CENTER" },
+      { width: 0.13, text: "Price", align: "RIGHT" },
+      { text: "Qty", width: 0.1, align: "RIGHT" },
+      { text: "Amount", width: 0.19, align: "RIGHT" },
     ]);
     // print.table(["Sr. No.", "Item", "Price", "Quantity", "Amount"]);
     print.drawLine();
@@ -244,14 +249,21 @@ router.post("/printBill", async (req, res) => {
 
     print.leftRight("", "Total: " + req.body.orderHistory.sum + " ");
     // logic for tax
-
-    if (req.body.orderHistory.sum - req.body.balance !== 0) print.leftRight("", "Already Paid: " + (req.body.orderHistory.sum - req.body.balance) + " ");
-    print.leftRight("", "Balance: " + req.body.balance + " ");
-    print.leftRight("", "Recieved: " + parseInt(req.body.paid) + " ");
-    if (req.body.balance - req.body.paid !== 0) print.leftRight("", "Pending: " + parseInt(parseInt(req.body.balance) - parseInt(req.body.paid)) + " ");
-
+    var bill = await db.collection("bill").doc(req.body.bill).get();
+    bill = bill.data();
+    if (!bill.discAmount) bill.discAmount = 0;
+    if (bill.discAmount && bill.discAmount > 0) print.leftRight("", "Discount: " + bill.discAmount + " ");
+    console.log("hi", parseInt(req.body.orderHistory.sum - parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))));
+    if (parseInt(req.body.orderHistory.sum - parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))) !== 0)
+      print.leftRight("", "Already Paid: " + parseInt(req.body.orderHistory.sum - parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))).toString() + " ");
+    if (req.body.orderHistory.sum !== req.body.balance) print.leftRight("", "Amount to be paid: " + req.body.balance + " ");
+    if (!req.body.preview) {
+      print.leftRight("", "Amount Recieved: " + parseInt(req.body.paid) + " ");
+      if (req.body.balance - req.body.paid !== 0) print.leftRight("", "Pending: " + parseInt(parseInt(req.body.balance) - parseInt(req.body.paid)) + " ");
+    }
     // print.println("hello");
-
+    print.newLine();
+    print.println("Thanks for coming. We hope to see you again soon.");
     print.cut();
     let execute = await print.execute(); // Executes all the commands. Returns success or throws error
     console.log(execute);
@@ -274,8 +286,6 @@ router.post("/printOrder", async (req, res) => {
       // interface: "printer:Microsoft Print to PDF",
       driver: require(electron ? "electron-printer" : "printer"),
     });
-    var bill = await db.collection("bill").doc(req.body.bill).get();
-    bill = bill.data();
     console.log(1);
     let isConnected = await print.isPrinterConnected(); // Check if print is connected, return bool of status
     // console.log(isConnected);
@@ -287,6 +297,8 @@ router.post("/printOrder", async (req, res) => {
     print.println("City Walk Mall, Hanumangarh Road, Abohar");
     print.newLine();
     print.leftRight("GSTIN: 03AAICR8822Q1ZS", "FSSAI: 12119201000010");
+    print.println("A Unit of RDESCO City Walk Pvt. Ltd.");
+
     print.newLine();
 
     print.leftRight("Bill No. : " + req.body.bill, "Date: " + new Date(Date.now()).toLocaleDateString());
@@ -298,9 +310,9 @@ router.post("/printOrder", async (req, res) => {
     print.tableCustom([
       { text: "Sr.", width: 0.08, align: "LEFT" },
       { text: "Item", width: 0.4, align: "LEFT" },
-      { width: 0.13, text: "Price", align: "CENTER" },
-      { text: "Qty", width: 0.1, align: "CENTER" },
-      { text: "Amount", width: 0.19, align: "CENTER" },
+      { width: 0.13, text: "Price", align: "RIGHT" },
+      { text: "Qty", width: 0.1, align: "RIGHT" },
+      { text: "Amount", width: 0.19, align: "RIGHT" },
     ]);
     print.drawLine();
     req.body.order.order.map((order, i) => {
@@ -316,7 +328,6 @@ router.post("/printOrder", async (req, res) => {
 
     print.leftRight("", "Total: " + req.body.order.sum + " ");
     // logic for tax
-    if (bill.discAmount && bill.discAmount > 0) print.leftRight("", "Discount: " + bill.discAmount);
     print.print("Your Order No. is: ");
     print.setTextSize(1, 1);
     print.println(req.body.orderId);
@@ -375,11 +386,11 @@ router.get("/printers", auth_admin, async (req, res) => {
   res.send({ printers });
 });
 
-router.get("/clearBills",async(req,res)=>{
-  var bills=await db.collection("chefSide").get();
-  bills=bills.docs;
-  for(var i=0;i<bills.length;i++){
-    db.collection("chefSide").doc(bills[i].id).delete()
+router.get("/clearBills", async (req, res) => {
+  var bills = await db.collection("chefSide").get();
+  bills = bills.docs;
+  for (var i = 0; i < bills.length; i++) {
+    db.collection("chefSide").doc(bills[i].id).delete();
   }
-})
+});
 module.exports = router;

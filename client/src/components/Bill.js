@@ -1,11 +1,11 @@
 import axios from "axios";
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 import Payment from "./Payment";
 // const printer = require("printer");
 export default class Bill extends Component {
   state = { isLoading: true, bill: {} };
   getBill = async () => {
-    var bill = await axios.get("http://192.168.2.2:5001/mall-restraunt/us-central1/api/bill/getBill/" + this.props.match.params.id, {
+    var bill = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/bill/getBill/" + this.props.match.params.id, {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     bill = bill.data.bill;
@@ -50,6 +50,26 @@ export default class Bill extends Component {
                   <th scope="row">Total Amount</th>
                   <td>{bill.amount}</td>
                 </tr>
+                {bill.discType && bill.discType !== "none" ? (
+                  <Fragment>
+                    <tr>
+                      <th scope="row">Discount Type</th>
+                      <td>{bill.discType}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Discount Amount</th>
+                      <td>{bill.discAmount}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Discount Reason</th>
+                      <td>{bill.discReason}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Discount By</th>
+                      <td>{bill.discBy}</td>
+                    </tr>
+                  </Fragment>
+                ) : null}
                 <tr>
                   <th scope="row">Restaurant</th>
                   <td>{bill.restaurant}</td>
