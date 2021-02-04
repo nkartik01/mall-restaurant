@@ -1,5 +1,5 @@
 import "./App.css";
-import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import { HashRouter as Router, Route, Switch } from "react-router-dom";
 import Landing from "./components/Landing";
 import AdminLogin from "./components/AdminLogin";
 import OperatorSignup from "./components/OperatorSignup";
@@ -14,6 +14,7 @@ import ManipulateRFID from "./components/ManipulateRFID";
 import BillList from "./components/BillList";
 import Bill from "./components/Bill";
 import Booking from "./components/Booking";
+import Report from "./components/Report";
 
 function App(props) {
   return (
@@ -22,6 +23,7 @@ function App(props) {
         <Header />
         <div id="alertDiv" style={{ left: "2.5%", position: "fixed", zIndex: 20, width: "95%", top: 20 }} align="center"></div>
         <Switch>
+          <Route path="/report" component={Report} />
           <Route path="/booking" component={Booking} />
           <Route path="/adminLogin" component={AdminLogin} />
           <Route path="/operatorSignup" component={OperatorSignup} />

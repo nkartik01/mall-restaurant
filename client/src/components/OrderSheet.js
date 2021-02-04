@@ -193,7 +193,7 @@ export default class OrderSheet extends Component {
                         try {
                           res = await axios.post(
                             "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/printOrder",
-                            { order: propsTable.orderChange, bill: res.data.bill, orderId: res.data.orderId, printer: localStorage.getItem("printer") },
+                            { order: propsTable.orderChange, table: propsTable.id, bill: res.data.bill, orderId: res.data.orderId, printer: localStorage.getItem("printer") },
                             { headers: { "x-auth-token": localStorage.getItem("token") } }
                           );
                         } catch (err) {

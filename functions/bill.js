@@ -306,7 +306,7 @@ router.post("/printOrder", async (req, res) => {
     print.newLine();
 
     print.leftRight("Bill No. : " + req.body.bill, "Date: " + new Date(Date.now()).toLocaleDateString("en-GB"));
-    print.leftRight("", "Time: " + new Date(Date.now()).toLocaleTimeString());
+    print.leftRight("Table: " + req.body.table, "Time: " + new Date(Date.now()).toLocaleTimeString());
     if (req.body.method === "card") {
       print.println("Card No.: " + req.body.uid);
     }
@@ -402,7 +402,6 @@ router.post("/editBill", auth_operator, async (req, res) => {
   try {
     var bill = await db.collection("bill").doc(req.body.bill).get();
     bill = bill.data();
-
     console.log(req.body.orderHistory);
     bill.finalOrder = req.body.orderHistory;
     bill.balance = bill.balance - req.body.orderChange.sum;
