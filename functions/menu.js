@@ -174,11 +174,11 @@ router.get("/createTables", async (req, res) => {
   // for (var i = 0; i < tables.length; i++) {
   //   db.collection("table").doc(tables[i].id).delete();
   // }
-  // for (var i = 0; i < 3; i++) {
+  // for (var i = 0; i < 3; i++) /{
   for (var j = 0; j < 25; j++) {
-    db.collection("table").add({ orderHistory: { order: [], sum: 0 }, orderSnippets: [], balance: 0, bill: "", restaurant: restaurants[3], table: "room" + (j + 1) });
+    db.collection("table").add({ orderHistory: { order: [], sum: 0 }, orderSnippets: [], balance: 0, bill: "", restaurant: restaurants[3], table: "Room3" + ("0"+(j + 1)).slice(-2) });
   }
-  // }
+  // /}
   res.send("done");
 });
 

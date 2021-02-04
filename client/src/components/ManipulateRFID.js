@@ -10,7 +10,7 @@ export default withRouter(
     getCard = async (e) => {
       try {
         e.preventDefault();
-        var res = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/getCard/" + this.state.uid, {
+        var res = await axios.get("http://"+require("../config.json").ip+":5001/mall-restraunt/us-central1/api/card/getCard/" + this.state.uid, {
           headers: { "x-auth-token": localStorage.getItem("token") },
         });
         res = res.data;
@@ -31,7 +31,7 @@ export default withRouter(
       e.preventDefault();
       try {
         await axios.post(
-          "http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/assign",
+          "http://"+require("../config.json").ip+":5001/mall-restraunt/us-central1/api/card/assign",
           {
             uid: this.state.uid,
             holder: this.state.card.holder,
@@ -50,7 +50,7 @@ export default withRouter(
       e.preventDefault();
       try {
         await axios.post(
-          "http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/retire",
+          "http://"+require("../config.json").ip+":5001/mall-restraunt/us-central1/api/card/retire",
           { uid: this.state.uid },
           { headers: { "x-auth-token": localStorage.getItem("token") } }
         );
@@ -87,7 +87,7 @@ export default withRouter(
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();
-                  var res = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/searchByPhone/" + this.state.phone, {
+                  var res = await axios.get("http://"+require("../config.json").ip+":5001/mall-restraunt/us-central1/api/card/searchByPhone/" + this.state.phone, {
                     headers: { "x-auth-token": localStorage.getItem("token") },
                   });
                   res = res.data;
@@ -197,7 +197,7 @@ export default withRouter(
                     e.preventDefault();
                     console.log(e.target);
                     var res = await axios.post(
-                      "http://192.168.1.178:5001/mall-restraunt/us-central1/api/card/addAmount",
+                      "http://"+require("../config.json").ip+":5001/mall-restraunt/us-central1/api/card/addAmount",
                       { amount: this.state.toAdd, uid: this.state.uid },
                       { headers: { "x-auth-token": localStorage.getItem("token") } }
                     );
