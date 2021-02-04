@@ -88,25 +88,25 @@ router.post("/updateTable", auth_operator, async (req, res) => {
     var at = Date.now();
     req.body.orderChange.at = at;
     table1.orderHistory = req.body.orderHistory;
+    var prefix =
+      table1.restaurant === "Urban Food Court"
+        ? "UFC-"
+        : table1.restaurant === "Perry Club"
+        ? "PC-"
+        : table1.restaurant === "Pizzaria"
+        ? "PZ-"
+        : table1.restaurant === "Dosa Counter"
+        ? "DC-"
+        : table1.restaurant === "Juice Bar"
+        ? "JB-"
+        : table1.restaurant === "Umega Hotel"
+        ? "UH-"
+        : null;
 
     if (!table1.orderSnippets || table1.orderSnippets.length === 0) {
       table1.orderSnippets = [];
       var bills = await db.collection("bill").where("restaurant", "==", table1.restaurant).get();
       bills = bills.docs;
-      var prefix =
-        table1.restaurant === "Urban Food Court"
-          ? "UFC-"
-          : table1.restaurant === "Perry Club"
-          ? "PC-"
-          : table1.restaurant === "Pizzaria"
-          ? "PZ-"
-          : table1.restaurant === "Dosa Counter"
-          ? "DC-"
-          : table1.restaurant === "Juice Bar"
-          ? "JB-"
-          : table1.restaurant === "Umega Hotel"
-          ? "UH-"
-          : null;
       var bill = await db
         .collection("bill")
         .doc(prefix + (bills.length + 1).toString())
@@ -129,12 +129,12 @@ router.post("/updateTable", auth_operator, async (req, res) => {
     var end = new Date();
     end.setHours(23, 59, 59, 999);
     end = end.valueOf();
-    var orders = await db.collection("chefSide").where("at", ">=", start).where("at", "<=", end).get();
+    var orders = await db.collection("chefSide").where("at", ">=", start).where("at", "<=", end).where("restaurant", "==", table1.restaurant).get();
     orders = orders.docs;
 
     db.collection("chefSide")
-      .doc((orders.length + 1).toString())
-      .set(req.body.orderChange);
+      .doc(prefix + (orders.length + 1).toString())
+      .set({ ...req.body.orderChange, restaurant: table1.restaurant });
     res.send({ bill: table1.bill, orderId: (orders.length + 1).toString() });
   } catch (err) {
     console.log(err);

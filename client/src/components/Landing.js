@@ -7,7 +7,7 @@ import OperatorLogin from "./OperatorLogin";
 export default class Landing extends Component {
   state = { printers: [], printer: localStorage.getItem("printer") ? localStorage.getItem("printer") : "" };
   getPrinters = async () => {
-    var printers = await axios.get("http://192.168.2.2:5001/mall-restraunt/us-central1/api/bill/printers", { headers: { "x-auth-token": localStorage.getItem("token") } });
+    var printers = await axios.get("http://192.168.1.178:5001/mall-restraunt/us-central1/api/bill/printers", { headers: { "x-auth-token": localStorage.getItem("token") } });
     this.setState({ printers: printers.data.printers });
   };
   componentDidMount() {

@@ -213,14 +213,18 @@ router.post("/printBill", async (req, res) => {
     print.leftRight("GSTIN: 03AAICR8822Q1ZS", "FSSAI: 12119201000010");
     // print.println("GSTIN: 03AAICR8822Q1ZS");
     // print.println("FSSAI: 12119201000010");
+    if (req.body.preview) {
+      print.println("Bill Preview");
+    }
     print.newLine();
     print.leftRight("Bill No. :" + req.body.bill, "Date: " + new Date(Date.now()).toLocaleDateString());
-    print.leftRight("Method: " + req.body.method, "Time: " + new Date(Date.now()).toLocaleTimeString());
-    if (req.body.method === "rfid") {
-      print.println("Card No.: " + req.body.uid);
-    } else if (req.body.method !== "cash") {
-      print.println("Txn Id: " + req.body.tranId);
-    }
+    if (!req.body.preview) print.leftRight("Method: " + req.body.method, "Time: " + new Date(Date.now()).toLocaleTimeString());
+    if (!req.body.preview)
+      if (req.body.method === "rfid") {
+        print.println("Card No.: " + req.body.uid);
+      } else if (req.body.method !== "cash") {
+        print.println("Txn Id: " + req.body.tranId);
+      }
     print.drawLine();
     print.tableCustom([
       { text: "Sr.", width: 0.08, align: "LEFT" },
@@ -252,9 +256,11 @@ router.post("/printBill", async (req, res) => {
     console.log("hi", parseInt(req.body.orderHistory.sum - parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))));
     if (parseInt(req.body.orderHistory.sum - parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))) !== 0)
       print.leftRight("", "Already Paid: " + parseInt(req.body.orderHistory.sum - parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))).toString() + " ");
-    print.leftRight("", "Amount to be paid: " + req.body.balance + " ");
-    print.leftRight("", "Amount Recieved: " + parseInt(req.body.paid) + " ");
-    if (req.body.balance - req.body.paid !== 0) print.leftRight("", "Pending: " + parseInt(parseInt(req.body.balance) - parseInt(req.body.paid)) + " ");
+    if (req.body.orderHistory.sum !== req.body.balance) print.leftRight("", "Amount to be paid: " + req.body.balance + " ");
+    if (!req.body.preview) {
+      print.leftRight("", "Amount Recieved: " + parseInt(req.body.paid) + " ");
+      if (req.body.balance - req.body.paid !== 0) print.leftRight("", "Pending: " + parseInt(parseInt(req.body.balance) - parseInt(req.body.paid)) + " ");
+    }
     // print.println("hello");
     print.newLine();
     print.println("Thanks for coming. We hope to see you again soon.");

@@ -13,6 +13,7 @@ import RegisterRFID from "./components/RegisterRFID";
 import ManipulateRFID from "./components/ManipulateRFID";
 import BillList from "./components/BillList";
 import Bill from "./components/Bill";
+import Booking from "./components/Booking";
 
 function App(props) {
   return (
@@ -21,6 +22,7 @@ function App(props) {
         <Header />
         <div id="alertDiv" style={{ left: "2.5%", position: "fixed", zIndex: 20, width: "95%", top: 20 }} align="center"></div>
         <Switch>
+          <Route path="/booking" component={Booking} />
           <Route path="/adminLogin" component={AdminLogin} />
           <Route path="/operatorSignup" component={OperatorSignup} />
           <Route path="/operatorEdit/:username" component={OperatorEdit} />
