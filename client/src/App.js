@@ -25,7 +25,7 @@ function App(props) {
           <Route path="/booking" component={Booking} />
           <Route path="/adminLogin" component={AdminLogin} />
           <Route path="/operatorSignup" component={OperatorSignup} />
-          <Route path="/operatorEdit/:username" component={OperatorEdit} />
+          <Route path="/operator/:username" component={OperatorEdit} />
           <Route path="/operatorLogin" component={() => <OperatorLogin store={props.store} />} />
           <Route path="/takeOrder" component={() => <TakeOrder store={props.store} />} />
           <Route path="/listOperators" component={ListOperators} />

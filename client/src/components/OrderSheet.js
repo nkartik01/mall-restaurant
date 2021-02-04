@@ -7,11 +7,11 @@ import Payment from "./Payment";
 export default class OrderSheet extends Component {
   constructor(props) {
     super(props);
-    console.log(props);
   }
   afterDisc = () => {
     this.props.getRestaurants();
   };
+  state = { proposedChanges: { order: [], sum: 0, reason: "" }, historyCopy: { order: [], sum: 0 } };
   render() {
     var menu = this.props.menu;
     var categories = Object.keys(this.props.menu);
@@ -185,14 +185,14 @@ export default class OrderSheet extends Component {
                         propsTable.orderHistory.sum = propsTable.orderHistory.sum + propsTable.orderChange.sum;
                         propsTable.balance = propsTable.balance + propsTable.orderChange.sum;
                         var res = await axios.post(
-                          "http://"+require("../config.json").ip+":5001/mall-restraunt/us-central1/api/menu/updateTable",
+                          "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/menu/updateTable",
                           { orderHistory: propsTable.orderHistory, orderChange: propsTable.orderChange, table: propsTable },
                           { headers: { "x-auth-token": localStorage.getItem("token") } }
                         );
                         AlertDiv("green", "Order Added");
                         try {
                           res = await axios.post(
-                            "http://"+require("../config.json").ip+":5001/mall-restraunt/us-central1/api/bill/printOrder",
+                            "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/printOrder",
                             { order: propsTable.orderChange, bill: res.data.bill, orderId: res.data.orderId, printer: localStorage.getItem("printer") },
                             { headers: { "x-auth-token": localStorage.getItem("token") } }
                           );
@@ -212,6 +212,152 @@ export default class OrderSheet extends Component {
                       Add to Order
                     </button>
                   </div>
+                </Fragment>
+              ) : null}
+              {/* Edit table */}
+              {propsTable.bill && propsTable.bill !== "" ? (
+                <Fragment>
+                  {!this.state.edit ? (
+                    <button
+                      disabled={propsTable.orderHistory.sum === 0}
+                      className="btn btn-primary"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        var order = [];
+                        propsTable.orderHistory.order.map((ord, _) => {
+                          order.push({ ...ord });
+                          return;
+                        });
+                        this.state.historyCopy = { order, sum: propsTable.orderHistory.sum };
+                        console.log(this.state.historyCopy);
+                        this.setState({ edit: true });
+                      }}
+                    >
+                      Edit Order
+                    </button>
+                  ) : (
+                    <Fragment>
+                      <form
+                        onSubmit={async (e) => {
+                          e.preventDefault();
+                          console.log(this.state.proposedChanges, this.state.historyCopy);
+                          await axios.post(
+                            "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/editBill",
+                            { table: propsTable.id, bill: propsTable.bill, orderHistory: this.state.historyCopy, orderChange: this.state.proposedChanges },
+                            { headers: { "x-auth-token": localStorage.getItem("token") } }
+                          );
+                          propsTable.orderHistory = this.state.historyCopy;
+
+                          propsTable.balance = propsTable.balance - this.state.proposedChanges.sum;
+                          this.setState({ edit: false, proposedChanges: { reason: "", sum: 0, order: [] } });
+                        }}
+                      >
+                        <table className="table table-bordered">
+                          <thead>
+                            <tr>
+                              <th style={{ width: "10%" }} scope="col">
+                                S no.
+                              </th>
+                              <th style={{ width: "40%" }} scope="col">
+                                Item
+                              </th>
+                              <th style={{ width: "10%" }} scope="col">
+                                Price
+                              </th>
+                              <th style={{ width: "20%" }} scope="col">
+                                Quantity
+                              </th>
+                              <th style={{ width: "20%" }} scope="col">
+                                Amount
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {this.state.historyCopy.order.map((item, i1) => {
+                              return (
+                                <tr>
+                                  <th scope="row">{i1 + 1}</th>
+                                  <td align="left">{item.item}</td>
+                                  <td> {item.price} </td>
+                                  <td>
+                                    <button
+                                      style={{ borderRadius: "100%" }}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        console.log(this.state.historyCopy);
+                                        var x = this.state.historyCopy.order[i1].quantity;
+                                        x = x - 1;
+                                        this.state.historyCopy.order[i1].quantity = x;
+                                        var c = 0;
+
+                                        for (var i = 0; i < this.state.proposedChanges.order.length; i++) {
+                                          if (this.state.proposedChanges.order[i].item === this.state.historyCopy.order[i1].item) {
+                                            this.state.proposedChanges.order[i].quantity = this.state.proposedChanges.order[i].quantity + 1;
+                                            c = 1;
+                                            break;
+                                          }
+                                        }
+
+                                        if (c === 0) {
+                                          this.state.proposedChanges.order.push({ item: item.item, price: parseInt(item.price), quantity: 1 });
+                                        }
+
+                                        this.state.historyCopy.sum = parseInt(this.state.historyCopy.sum) - parseInt(item.price);
+
+                                        if (this.state.historyCopy.order[i1].quantity === 0) {
+                                          this.state.historyCopy.order.splice(i1, 1);
+                                        }
+                                        this.state.proposedChanges.sum = this.state.proposedChanges.sum + parseInt(item.price);
+                                        this.setState({});
+                                      }}
+                                    >
+                                      -
+                                    </button>
+                                    {" " + item.quantity + " "}
+                                    {/* <button
+                              style={{ borderRadius: "100%" }}
+                              onClick={() => {
+                                console.log(propsTable.orderHistory);
+                                propsTable.orderChange.order[i1].quantity = propsTable.orderChange.order[i1].quantity + 1;
+
+                                propsTable.orderChange.sum = propsTable.orderChange.sum + parseInt(item.price);
+                                propsTable.projectedTotal = propsTable.projectedTotal + parseInt(item.price);
+                                this.setState({});
+                              }}
+                            >
+                              +
+                            </button> */}
+                                  </td>
+
+                                  <td>{item.price * item.quantity}</td>
+                                </tr>
+                              );
+                            })}
+                            <tr>
+                              <td />
+                              <td />
+                              <td />
+                              <td />
+                              <th>{this.state.historyCopy.sum}</th>
+                            </tr>
+                          </tbody>
+                        </table>
+                        <input
+                          type="text"
+                          required
+                          className="form-control"
+                          placeholder="Reason for Changes"
+                          value={this.state.proposedChanges.reason}
+                          onChange={(e) => {
+                            e.preventDefault();
+                            this.state.proposedChanges.reason = e.target.value;
+                            this.setState({});
+                          }}
+                        />
+                        <input type="submit" className="btn" value="Done" />
+                      </form>
+                    </Fragment>
+                  )}
                 </Fragment>
               ) : null}
               <table className="table table-bordered">
@@ -263,7 +409,7 @@ export default class OrderSheet extends Component {
                       if (propsTable.balance !== 0) return;
                       else {
                         await axios.post(
-                          "http://"+require("../config.json").ip+":5001/mall-restraunt/us-central1/api/menu/freeTable",
+                          "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/menu/freeTable",
                           { table: propsTable },
                           { headers: { "x-auth-token": localStorage.getItem("token") } }
                         );
@@ -284,7 +430,7 @@ export default class OrderSheet extends Component {
 
                   //   Payment logic as needed
                   await axios.post(
-                    "http://"+require("../config.json").ip+":5001/mall-restraunt/us-central1/api/menu/freeTable",
+                    "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/menu/freeTable",
                     { table: propsTable },
                     { headers: { "x-auth-token": localStorage.getItem("token") } }
                   );

@@ -92,6 +92,10 @@ router.post("/byCash", auth_operator, async (req, res) => {
       operator.balance = 0;
     }
     operator.balance = operator.balance + req.body.amount;
+    if (!operator.transactions) {
+      operator.transactions = [];
+    }
+    operator.transactions.unshift({ type: "cash", bill: req.body.bill, at: now, amount: req.body.amount });
     db.collection("bill").doc(req.body.bill).set(bill);
     db.collection("operator").doc(req.operator.id).set(operator);
     res.send("Paid");
@@ -123,18 +127,18 @@ router.post("/byCard", auth_operator, async (req, res) => {
     if (req.body.table) {
       db.collection("table").doc(req.body.table).update({ balance: bill.balance });
     }
-    bill.transactions.unshift({ type: "cardSwipe", by: req.operator.id, at: now, amount: req.body.amount, tranId: req.body.tranId });
+    bill.transactions.unshift({ type: "card", by: req.operator.id, at: now, amount: req.body.amount, tranId: req.body.tranId });
 
     var operator = await db.collection("operator").doc(req.operator.id).get();
     operator = operator.data();
     if (!operator.balance) {
       operator.balance = 0;
     }
-    if (!operator.cardSwipes) {
-      operator.cardSwipes = [];
+    if (!operator.transactions) {
+      operator.transactions = [];
     }
 
-    operator.cardSwipes.push({ at: now, tranId: req.body.tranId, amount: req.body.amount, bill: req.body.bill });
+    operator.transactions.unshift({ at: now, tranId: req.body.tranId, amount: req.body.amount, bill: req.body.bill, type: "Card" });
     db.collection("bill").doc(req.body.bill).set(bill);
     db.collection("operator").doc(req.operator.id).set(operator);
     res.send("Paid");
@@ -173,11 +177,11 @@ router.post("/byUpi", auth_operator, async (req, res) => {
     if (!operator.balance) {
       operator.balance = 0;
     }
-    if (!operator.upiPays) {
-      operator.upiPays = [];
+    if (!operator.transactions) {
+      operator.transactions = [];
     }
 
-    operator.upiPays.push({ at: now, tranId: req.body.tranId, amount: req.body.amount, bill: req.body.bill });
+    operator.transactions.unshift({ at: now, tranId: req.body.tranId, amount: req.body.amount, bill: req.body.bill, type: "UPI" });
     db.collection("bill").doc(req.body.bill).set(bill);
     db.collection("operator").doc(req.operator.id).set(operator);
     res.send("Paid");
@@ -217,7 +221,7 @@ router.post("/printBill", async (req, res) => {
       print.println("Bill Preview");
     }
     print.newLine();
-    print.leftRight("Bill No. :" + req.body.bill, "Date: " + new Date(Date.now()).toLocaleDateString());
+    print.leftRight("Bill No. :" + req.body.bill, "Date: " + new Date(Date.now()).toLocaleDateString("en-GB"));
     if (!req.body.preview) print.leftRight("Method: " + req.body.method, "Time: " + new Date(Date.now()).toLocaleTimeString());
     if (!req.body.preview)
       if (req.body.method === "rfid") {
@@ -301,7 +305,7 @@ router.post("/printOrder", async (req, res) => {
 
     print.newLine();
 
-    print.leftRight("Bill No. : " + req.body.bill, "Date: " + new Date(Date.now()).toLocaleDateString());
+    print.leftRight("Bill No. : " + req.body.bill, "Date: " + new Date(Date.now()).toLocaleDateString("en-GB"));
     print.leftRight("", "Time: " + new Date(Date.now()).toLocaleTimeString());
     if (req.body.method === "card") {
       print.println("Card No.: " + req.body.uid);
@@ -387,10 +391,34 @@ router.get("/printers", auth_admin, async (req, res) => {
 });
 
 router.get("/clearBills", async (req, res) => {
-  var bills = await db.collection("table").get();
+  var bills = await db.collection("table").where("restaurant", "==", "Perry Club").get();
   bills = bills.docs;
   for (var i = 0; i < bills.length; i++) {
     db.collection("table").doc(bills[i].id).delete();
   }
 });
+
+router.post("/editBill", auth_operator, async (req, res) => {
+  try {
+    var bill = await db.collection("bill").doc(req.body.bill).get();
+    bill = bill.data();
+
+    console.log(req.body.orderHistory);
+    bill.finalOrder = req.body.orderHistory;
+    bill.balance = bill.balance - req.body.orderChange.sum;
+    var table = await db.collection("table").doc(req.body.table).get();
+    table = table.data();
+    table.balance = table.balance - req.body.orderChange.sum;
+    table.orderHistory = req.body.orderHistory;
+    req.body.orderChange.sum = req.body.orderChange.sum * -1;
+    bill.orderChanges.push({ ...req.body.orderChange, type: "edit", by: req.operator.id, at: Date.now() });
+    db.collection("bill").doc(req.body.bill).set(bill);
+    db.collection("table").doc(req.body.table).set(table);
+    res.send("done");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+
 module.exports = router;

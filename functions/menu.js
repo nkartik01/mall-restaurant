@@ -167,8 +167,8 @@ router.post("/freeTable", auth_operator, async (req, res) => {
 });
 
 router.get("/createTables", async (req, res) => {
-  // var restaurants = ["Urban Food Court", "Perry Club"];
-  var restaurants = ["Pizzaria", "Dosa Counter", "Juice Bar", "Umega Hotel"];
+  var restaurants = ["Urban Food Court", "Perry Club"];
+  // var restaurants = ["Pizzaria", "Dosa Counter", "Juice Bar", "Umega Hotel"];
   // var tables = await db.collection("table").get();
   // tables = tables.docs;
   // for (var i = 0; i < tables.length; i++) {
@@ -176,7 +176,14 @@ router.get("/createTables", async (req, res) => {
   // }
   // for (var i = 0; i < 3; i++) /{
   for (var j = 0; j < 25; j++) {
-    db.collection("table").add({ orderHistory: { order: [], sum: 0 }, orderSnippets: [], balance: 0, bill: "", restaurant: restaurants[3], table: "Room3" + ("0"+(j + 1)).slice(-2) });
+    db.collection("table").add({
+      orderHistory: { order: [], sum: 0 },
+      orderSnippets: [],
+      balance: 0,
+      bill: "",
+      restaurant: restaurants[1],
+      table: "Table" + ("0" + (j + 1)).slice(-2),
+    });
   }
   // /}
   res.send("done");

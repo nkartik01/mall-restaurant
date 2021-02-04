@@ -32,6 +32,9 @@ export default class Header extends Component {
               <Link to="/billList" className="btn btn-primary">
                 Bill List
               </Link>
+              <Link to={"/operator/" + localStorage.getItem("username")} className={"btn btn-primary"}>
+                Profile
+              </Link>
             </Fragment>
           ) : null}
           {!status ? (

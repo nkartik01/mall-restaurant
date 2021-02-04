@@ -6,15 +6,19 @@ import { setData } from "../redux/action/loadedData";
 export default class BillList extends Component {
   state = { bills: this.props.store.getState().loadedDataReducer.bills ? this.props.store.getState().loadedDataReducer.bills : [] };
   getBills = async () => {
-    console.log(require("../config.json").ip)
-    var bills = await axios.get("http://"+require("../config.json").ip+":5001/mall-restraunt/us-central1/api/bill/listBills/50", { headers: { "x-auth-token": localStorage.getItem("token") } });
+    console.log(require("../config.json").ip);
+    var bills = await axios.get("http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/listBills/50", {
+      headers: { "x-auth-token": localStorage.getItem("token") },
+    });
     bills = bills.data.bills;
     this.setState({ bills });
     this.props.store.dispatch(setData({ bills }));
   };
   getPending = async (e) => {
     e.preventDefault();
-    var bills = await axios.get("http://"+require("../config.json").ip+":5001/mall-restraunt/us-central1/api/bill/pendingBills", { headers: { "x-auth-token": localStorage.getItem("token") } });
+    var bills = await axios.get("http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/pendingBills", {
+      headers: { "x-auth-token": localStorage.getItem("token") },
+    });
     bills = bills.data.bills;
     this.setState({ bills });
     this.props.store.dispatch(setData({ bills }));
@@ -49,7 +53,7 @@ export default class BillList extends Component {
                   <td>{bill.to}</td>
                   <td>{bill.finalOrder.sum}</td>
                   <td>{bill.balance}</td>
-                  <td>{new Date(bill.at).toLocaleString()}</td>
+                  <td>{new Date(bill.at).toLocaleString("en-GB")}</td>
                   <td>
                     <Link to={"/bill/" + bill.id} className="btn btn-primary">
                       View Bill

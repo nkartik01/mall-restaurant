@@ -5,7 +5,7 @@ import Payment from "./Payment";
 export default class Bill extends Component {
   state = { isLoading: true, bill: {} };
   getBill = async () => {
-    var bill = await axios.get("http://"+require("../config.json").ip+":5001/mall-restraunt/us-central1/api/bill/getBill/" + this.props.match.params.id, {
+    var bill = await axios.get("http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/getBill/" + this.props.match.params.id, {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     bill = bill.data.bill;
@@ -111,7 +111,7 @@ export default class Bill extends Component {
               {bill.orderChanges.map((order1, ind) => {
                 return (
                   <li>
-                    <h5 align="left">At: {new Date(order1.at).toLocaleString()}</h5>
+                    <h5 align="left">At: {new Date(order1.at).toLocaleString("en-GB") + (order1.type === "edit" ? ", By: " + order1.by + ",  Reason: " + order1.reason : "")} </h5>
                     <table className="table table-bordered">
                       <thead>
                         <tr>
@@ -122,7 +122,7 @@ export default class Bill extends Component {
                           <th scope="col">Amount</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody style={{ color: order1.type === "edit" ? "red" : "black" }}>
                         {order1.order.map((order, ind) => {
                           return (
                             <tr>
@@ -159,7 +159,7 @@ export default class Bill extends Component {
                   return (
                     <tr>
                       <th scope="row">{ind + 1}</th>
-                      <td>{new Date(parseInt(trans.at)).toLocaleString()}</td>
+                      <td>{new Date(parseInt(trans.at)).toLocaleString("en-GB")}</td>
                       <td>{trans.type}</td>
                       <td>{trans.by}</td>
                       <td>{trans.amount}</td>

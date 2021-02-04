@@ -55,6 +55,8 @@ router.post("/addAmount", auth_operator, async (req, res) => {
     var operator = await db.collection("operator").doc(req.operator.id).get();
     operator = operator.data();
     operator.balance = operator.balance + req.body.amount;
+    if (!operator.transactions) operator.transactions = [];
+    operator.transactions.unshift({ type: "balanceAdd", amount: req.body.amount, at: Date.now() });
     db.collection("operator").doc(req.operator.id).set(operator);
     cardRef.set(card);
     return res.send("amount added");
@@ -112,6 +114,7 @@ router.post("/deductAmount", auth_operator, async (req, res) => {
       db.collection("table").doc(req.body.table).update({ balance: bill.balance });
     }
     bill.transactions.unshift({ type: "rfid", rfid: req.body.uid, by: req.operator.id, at: now, amount: req.body.amount });
+    operator.transactions.unshift({ type: "rfid", tranId: req.body.uid, at: now, amount: req.body.amount, bill: req.body.bill });
     db.collection("bill").doc(req.body.bill).set(bill);
     cardRef.set(card);
     return res.send("amount deducted sucessfully");
@@ -147,6 +150,8 @@ router.post("/retire", auth_operator, async (req, res) => {
     card.holder = { assigned: false };
     card.transactions.unshift({ type: "retire", by: req.operator.id, at: parseInt(Date.now()), details: { paidAmount: card.balance } });
     operator.balance = operator.balance - card.balance;
+    if (!operator.transactions) operator.transactions = [];
+    operator.transactions.unshift({ type: "retire", amount: card.balance, at: Date.now() });
     db.collection("operator").doc(req.operator.id).set(operator);
     db.collection("card").doc(req.body.uid).set(card);
     return res.send("Retired");

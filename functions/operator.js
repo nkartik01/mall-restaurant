@@ -16,14 +16,17 @@ router.post("/edit", auth_admin, async (req, res) => {
     if (operator.size === 0) {
       return res.status(400).send("Operator doesnt exist");
     }
-    var operator1 = {
-      name: req.body.name,
-      username: username,
-      permissions: req.body.permissions,
-      lastEdited: req.admin.id,
-    };
+    operator = operator.docs[0].data();
+    operator = { ...operator, name: req.body.name, username: username, balance: req.body.balance, permissions: req.body.permissions, lastEdited: req.admin.id };
+    if (!operator.transactions) operator.transactions = [];
+    operator.transactions.unshift({
+      type: "operatorEdit",
+      at: Date.now(),
+      amount: "new balance: " + req.body.balance,
+      bill: "Done By: " + req.admin.id,
+    });
     try {
-      await admin.firestore().collection("operator").doc(username).update(operator1);
+      await admin.firestore().collection("operator").doc(username).update(operator);
       const payload = {
         user: {
           id: username,
@@ -46,7 +49,7 @@ router.post("/edit", auth_admin, async (req, res) => {
   }
 });
 
-router.get("/getOperator/:username", auth_admin, async (req, res) => {
+router.get("/getOperator/:username", async (req, res) => {
   try {
     var operator = await db.collection("operator").doc(req.params.username).get();
     if (operator.data()) {

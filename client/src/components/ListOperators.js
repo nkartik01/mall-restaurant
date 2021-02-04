@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 export default class ListOperators extends Component {
   state = { operators: [] };
   getOperators = async () => {
-    var res = await axios.get("http://"+require("../config.json").ip+":5001/mall-restraunt/us-central1/api/operator/getOperatorList", {
+    var res = await axios.get("http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/operator/getOperatorList", {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     res = res.data;
@@ -31,7 +31,7 @@ export default class ListOperators extends Component {
                 <td>{operator.name}</td>
                 <td>{operator.username}</td>
                 <td>
-                  <Link className="btn btn-primary" to={"/operatorEdit/" + operator.username}>
+                  <Link className="btn btn-primary" to={"/operator/" + operator.username}>
                     Edit Operator
                   </Link>
                 </td>
