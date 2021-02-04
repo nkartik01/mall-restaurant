@@ -417,6 +417,7 @@ export default class OrderSheet extends Component {
                         propsTable.orderHistory.sum = 0;
                         propsTable.balance = 0;
                       }
+                      this.afterDisc();
                       this.setState({});
                     }}
                   />

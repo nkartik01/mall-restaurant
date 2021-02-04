@@ -25,8 +25,9 @@ router.get("/setMenu/:menu", async (req, res) => {
       var worksheet = workbook.Sheets[sheets[i]];
       var ref = worksheet["!ref"];
       ref = ref.split(":");
+      console.log(ref);
       var x1 = ref[1].match(/(\d+)/)[0];
-      console.log(worksheet);
+      // console.log(worksheet);
       menu[sheets[i]] = [];
       for (var j = 1; j <= x1; j++) {
         menu[sheets[i]].push({
@@ -53,10 +54,11 @@ router.get("/getRestaurantMenus", async (req, res) => {
       var rest = rests[k].data();
       var menu = {};
       for (var l = 0; l < rest.menu.length; l++) {
-        menu = await db.collection("menu").doc(rest.menu[l]).get();
-        menu = menu.data();
+        var menu1 = await db.collection("menu").doc(rest.menu[l]).get();
+        menu = { ...menu, ...menu1.data() };
       }
       menus[rests[k].id] = menu;
+      console.log(rests[k].id === "Perry Club" ? menu : null);
     }
     return res.send({ menus });
   } catch (err) {
@@ -110,7 +112,7 @@ router.post("/updateTable", auth_operator, async (req, res) => {
       var bill = await db
         .collection("bill")
         .doc(prefix + (bills.length + 1).toString())
-        .set({ restaurant: table1.restaurant, table: table1.table, orderChanges: [], balance: 0, at });
+        .set({ restaurant: table1.restaurant, table: table1.table, orderChanges: [], balance: 0, at, transactions: [] });
       table1.bill = prefix + (bills.length + 1).toString();
     }
     var bill = await db.collection("bill").doc(table1.bill).get();
