@@ -191,9 +191,17 @@ export default class OrderSheet extends Component {
                         );
                         AlertDiv("green", "Order Added");
                         try {
+                          console.log(propsTable);
                           res = await axios.post(
                             require("../config.json").url + "bill/printOrder",
-                            { order: propsTable.orderChange, table: propsTable.table, bill: res.data.bill, orderId: res.data.orderId, printer: localStorage.getItem("printer") },
+                            {
+                              order: propsTable.orderChange,
+                              table: propsTable.table,
+                              bill: res.data.bill,
+                              orderId: res.data.orderId,
+                              printer: localStorage.getItem("printer"),
+                              restaurant: propsTable.restaurant,
+                            },
                             { headers: { "x-auth-token": localStorage.getItem("token") } }
                           );
                         } catch (err) {

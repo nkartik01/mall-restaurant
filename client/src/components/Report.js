@@ -94,7 +94,7 @@ class Report extends Component {
                 </td>
               </tr>
               <tr>
-                <td colSpan={2}>
+                <td colSpan={3}>
                   <input type="submit" className="btn btn-primary" value="Submit" />
                 </td>
               </tr>
@@ -127,6 +127,7 @@ class Report extends Component {
                 </tr>
               </tbody>
             </table>
+            <h4>Bills</h4>
             <table className="table table-bordered">
               <thead>
                 <tr>
@@ -159,6 +160,7 @@ class Report extends Component {
                 })}
               </tbody>
             </table>
+            <h4>Item Wise Sale</h4>
             <table className="table">
               <thead>
                 <tr>
@@ -185,7 +187,7 @@ class Report extends Component {
                   })}
               </tbody>
             </table>
-
+            <h4>Item wise return</h4>
             <table className="table table-bordered">
               <thead>
                 <tr>

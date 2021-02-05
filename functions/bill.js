@@ -212,23 +212,17 @@ router.post("/printBill", async (req, res) => {
     print.setTextSize(0, 0);
     print.println("City Walk Mall, Hanumangarh Road, Abohar");
     print.println("A Unit of RDESCO City Walk Pvt. Ltd.");
-    print.newLine();
+
     // print.println("Hanumangarh Road, Abohar");
     print.leftRight("GSTIN: 03AAICR8822Q1ZS", "FSSAI: 12119201000010");
-    // print.println("GSTIN: 03AAICR8822Q1ZS");
-    // print.println("FSSAI: 12119201000010");
+    print.newLine();
     if (req.body.preview) {
       print.println("Bill Preview");
     }
     print.newLine();
     print.leftRight("Bill No. :" + req.body.bill, "Date: " + new Date(Date.now()).toLocaleDateString("en-GB"));
-    if (!req.body.preview) print.leftRight("Method: " + req.body.method, "Time: " + new Date(Date.now()).toLocaleTimeString());
-    if (!req.body.preview)
-      if (req.body.method === "rfid") {
-        print.println("Card No.: " + req.body.uid);
-      } else if (req.body.method !== "cash") {
-        print.println("Txn Id: " + req.body.tranId);
-      }
+    if (!req.body.preview) print.leftRight("", "Time: " + new Date(Date.now()).toLocaleTimeString());
+
     print.drawLine();
     print.tableCustom([
       { text: "Sr.", width: 0.08, align: "LEFT" },
@@ -263,11 +257,18 @@ router.post("/printBill", async (req, res) => {
     if (req.body.orderHistory.sum !== req.body.balance) print.leftRight("", "Amount to be paid: " + req.body.balance + " ");
     if (!req.body.preview) {
       print.leftRight("", "Amount Recieved: " + parseInt(req.body.paid) + " ");
+      print.leftRight("", "Method: " + req.body.method);
+      if (!req.body.preview)
+        if (req.body.method === "rfid") {
+          print.leftRight("", "Card No.: " + req.body.uid);
+        } else if (req.body.method !== "cash") {
+          print.leftRight("", "Txn Id: " + req.body.tranId);
+        }
       if (req.body.balance - req.body.paid !== 0) print.leftRight("", "Pending: " + parseInt(parseInt(req.body.balance) - parseInt(req.body.paid)) + " ");
     }
     // print.println("hello");
     print.newLine();
-    print.println("Thanks for visiting. We hope to see you again soon.");
+    print.println("Thanks for your visit.");
     print.cut();
     let execute = await print.execute(); // Executes all the commands. Returns success or throws error
     console.log(execute);
@@ -299,9 +300,9 @@ router.post("/printOrder", async (req, res) => {
     print.println(req.body.restaurant);
     print.setTextSize(0, 0);
     print.println("City Walk Mall, Hanumangarh Road, Abohar");
-    print.newLine();
-    print.leftRight("GSTIN: 03AAICR8822Q1ZS", "FSSAI: 12119201000010");
+
     print.println("A Unit of RDESCO City Walk Pvt. Ltd.");
+    print.leftRight("GSTIN: 03AAICR8822Q1ZS", "FSSAI: 12119201000010");
 
     print.newLine();
 
