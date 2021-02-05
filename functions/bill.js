@@ -208,7 +208,8 @@ router.post("/printBill", async (req, res) => {
     console.log(isConnected);
     print.alignCenter();
     print.setTextSize(1, 1);
-    print.println(req.body.restaurant);
+    if (req.body.restaurant === "Perry Club") print.println("Urban Food Court");
+    else print.println(req.body.restaurant);
     print.setTextSize(0, 0);
     print.println("City Walk Mall, Hanumangarh Road, Abohar");
     print.println("A Unit of RDESCO City Walk Pvt. Ltd.");
