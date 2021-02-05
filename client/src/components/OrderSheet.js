@@ -191,8 +191,7 @@ export default class OrderSheet extends Component {
                         );
                         AlertDiv("green", "Order Added");
                         try {
-                          console.log(propsTable);
-                          res = await axios.post(
+                          var res1 = await axios.post(
                             require("../config.json").url + "bill/printOrder",
                             {
                               order: propsTable.orderChange,
@@ -206,7 +205,25 @@ export default class OrderSheet extends Component {
                           );
                         } catch (err) {
                           console.log(err, err.response);
-                          AlertDiv("red", "Couldn't print bill");
+                          AlertDiv("red", "Couldn't print order");
+                        }
+                        try {
+                          var res1 = await axios.post(
+                            require("../config.json").url + "bill/printOrder",
+                            {
+                              kot: true,
+                              order: propsTable.orderChange,
+                              table: propsTable.table,
+                              bill: res.data.bill,
+                              orderId: res.data.orderId,
+                              printer: localStorage.getItem("kotPrinter"),
+                              restaurant: propsTable.restaurant,
+                            },
+                            { headers: { "x-auth-token": localStorage.getItem("token") } }
+                          );
+                        } catch (err) {
+                          console.log(err, err.response);
+                          AlertDiv("red", "Couldn't print KOT");
                         }
                         propsTable.bill = res.data.bill;
                         propsTable.orderChange.order = [];

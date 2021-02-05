@@ -216,8 +216,9 @@ router.post("/printBill", async (req, res) => {
 
     // print.println("Hanumangarh Road, Abohar");
     print.leftRight("GSTIN: 03AAICR8822Q1ZS", "FSSAI: 12119201000010");
-    print.newLine();
+
     if (req.body.preview) {
+      print.newLine();
       print.println("Bill Preview");
     }
     print.newLine();
@@ -258,7 +259,7 @@ router.post("/printBill", async (req, res) => {
     if (req.body.orderHistory.sum !== req.body.balance) print.leftRight("", "Amount to be paid: " + req.body.balance + " ");
     if (!req.body.preview) {
       print.leftRight("", "Amount Recieved: " + parseInt(req.body.paid) + " ");
-      print.leftRight("", "Method: " + req.body.method);
+      print.leftRight("", "Payment mode: " + req.body.method);
       if (!req.body.preview)
         if (req.body.method === "rfid") {
           print.leftRight("", "Card No.: " + req.body.uid);
@@ -298,13 +299,16 @@ router.post("/printOrder", async (req, res) => {
     print.alignCenter();
 
     print.setTextSize(1, 1);
-    print.println(req.body.restaurant);
+
+    if (req.body.restaurant === "Perry Club") print.println("Urban Food Court");
+    else print.println(req.body.restaurant);
     print.setTextSize(0, 0);
-    print.println("City Walk Mall, Hanumangarh Road, Abohar");
+    if (!req.body.kot) {
+      print.println("City Walk Mall, Hanumangarh Road, Abohar");
 
-    print.println("A Unit of RDESCO City Walk Pvt. Ltd.");
-    print.leftRight("GSTIN: 03AAICR8822Q1ZS", "FSSAI: 12119201000010");
-
+      print.println("A Unit of RDESCO City Walk Pvt. Ltd.");
+      print.leftRight("GSTIN: 03AAICR8822Q1ZS", "FSSAI: 12119201000010");
+    }
     print.newLine();
 
     print.leftRight("Bill No. : " + req.body.bill, "Date: " + new Date(Date.now()).toLocaleDateString("en-GB"));

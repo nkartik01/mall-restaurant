@@ -5,7 +5,13 @@ import AdminLogin from "./AdminLogin";
 import OperatorLogin from "./OperatorLogin";
 
 export default class Landing extends Component {
-  state = { printers: [], printer: localStorage.getItem("printer") ? localStorage.getItem("printer") : "", menus: [], restaurants: [] };
+  state = {
+    printers: [],
+    printer: localStorage.getItem("printer") ? localStorage.getItem("printer") : "",
+    kotPrinter: localStorage.getItem("kotPrinter") ? localStorage.getItem("kotPrinter") : "",
+    menus: [],
+    restaurants: [],
+  };
   getPrinters = async () => {
     var printers = await axios.get(require("../config.json").url + "bill/printers", { headers: { "x-auth-token": localStorage.getItem("token") } });
     this.setState({ printers: printers.data.printers });
@@ -120,6 +126,33 @@ export default class Landing extends Component {
                     }}
                   />
                   <input type="submit" value="Create" />
+                </form>
+              </div>
+              <div className="col-md-4">
+                <h4>Set KOT printer for this browser</h4>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    localStorage.setItem("kotPrinter", this.state.kotPrinter);
+                    AlertDiv("green", "Printer set successfully");
+                  }}
+                >
+                  <select
+                    value={this.state.kotPrinter}
+                    onChange={(e) => {
+                      e.preventDefault();
+                      this.setState({ kotPrinter: e.target.value });
+                    }}
+                  >
+                    {this.state.printers.map((printer, _) => {
+                      return (
+                        <option key={printer.name} id={printer.name}>
+                          {printer.name}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <input type="submit" value="Submit" />
                 </form>
               </div>
             </div>
