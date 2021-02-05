@@ -246,11 +246,19 @@ router.post("/printBill", async (req, res) => {
       // return print.table([i + 1, order.item, order.price, order.quantity, order.price * order.quantity]);
     });
     print.drawLine();
-
-    print.leftRight("", "Total: " + req.body.orderHistory.sum + " ");
-    // logic for tax
     var bill = await db.collection("bill").doc(req.body.bill).get();
     bill = bill.data();
+
+    var orders = [];
+    bill.orderChanges.map((order, _) => {
+      if (order.type === "edit") {
+        return;
+      }
+      orders.push(order.orderNo);
+    });
+    // print.println();
+    print.leftRight(orders.join(", "), "Total: " + req.body.orderHistory.sum + " ");
+    // logic for tax
     if (!bill.discAmount) bill.discAmount = 0;
     if (bill.discAmount && bill.discAmount > 0) print.leftRight("", "Discount: " + bill.discAmount + " ");
     console.log("hi", parseInt(req.body.orderHistory.sum - parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))));
@@ -300,8 +308,12 @@ router.post("/printOrder", async (req, res) => {
 
     print.setTextSize(1, 1);
 
-    if (req.body.restaurant === "Perry Club") print.println("Urban Food Court");
-    else print.println(req.body.restaurant);
+    if (!req.body.kot) {
+      if (req.body.restaurant === "Perry Club") print.println("Urban Food Court");
+      else print.println(req.body.restaurant);
+    } else {
+      print.println("KOT - " + req.body.bill.split("-")[0]);
+    }
     print.setTextSize(0, 0);
     if (!req.body.kot) {
       print.println("City Walk Mall, Hanumangarh Road, Abohar");
