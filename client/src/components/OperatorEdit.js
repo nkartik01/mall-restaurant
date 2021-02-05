@@ -14,7 +14,7 @@ export default class OperatorEdit extends Component {
     changeMenu: false,
   };
   getOperator = async (e) => {
-    var res = await axios.get("http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/operator/getOperator/" + this.props.match.params.username, {
+    var res = await axios.get(require("../config.json").url + "operator/getOperator/" + this.props.match.params.username, {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     res = res.data;
@@ -48,7 +48,7 @@ export default class OperatorEdit extends Component {
         username,
         permissions: { restaurant, wait, edit, changeMenu },
       };
-      await axios.post("http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/operator/edit", data, {
+      await axios.post(require("../config.json").url + "operator/edit", data, {
         headers: { "x-auth-token": localStorage.getItem("token") },
       });
       alert("Operator edited successfully");

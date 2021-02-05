@@ -1,94 +1,64 @@
 import axios from "axios";
 import React, { Component, Fragment } from "react";
+import ReactToPrint from "react-to-print";
 
-export default class Report extends Component {
-  state = { bills: [], sum: 0, sums: {} };
+export default class Example extends React.PureComponent {
   render() {
     return (
-      <div>
+      <div align="center">
+        <div className="col-md-10">
+          <ReactToPrint
+            trigger={() => {
+              // NOTE: could just as easily return <SomeComponent />. Do NOT pass an `onClick` prop
+              // to the root node of the returned component as it will be overwritten.
+              return <button>Print this out!</button>;
+            }}
+            content={() => this.componentRef}
+          />
+          <Report ref={(el) => (this.componentRef = el)} />
+        </div>
+      </div>
+    );
+  }
+}
+class Report extends Component {
+  state = { bills: [], sum: 0, sums: {}, restaurant: "overall", restaurants: [] };
+  getRestaurants = async () => {
+    var res = await axios.get(require("../config.json").url + "menu/restaurants");
+    console.log(res.data);
+
+    this.setState({ restaurants: res.data.restaurants });
+  };
+  componentDidMount() {
+    this.getRestaurants();
+  }
+  render() {
+    return (
+      <div align="center">
         <form
+          align="center"
           onSubmit={async (e) => {
             e.preventDefault();
-            var res = await axios.post("http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/report/sale", {
+            var res = await axios.post(require("../config.json").url + "report/sale", {
               start: new Date(this.state.start).valueOf(),
               end: new Date(this.state.end).valueOf(),
+              restaurant: this.state.restaurant,
             });
             res = res.data;
-            var sum = 0;
-            this.state.bills = res.bills;
-            this.state.bills.map((bill, _) => {
-              sum = sum + bill.finalOrder.sum;
-              return;
-            });
-            var upiSum = 0;
-            var cashSum = 0;
-            var rfidSum = 0;
-            var cardSum = 0;
-
-            var itemwise = {};
-            var itemwiseEdit = {};
-            this.state.bills.map((bill, _) => {
-              try {
-                bill.finalOrder.order.map((item, _) => {
-                  if (!itemwise[item.item]) {
-                    itemwise[item.item] = { quantity: 0, price: item.price };
-                  }
-                  itemwise[item.item].quantity = itemwise[item.item].quantity + item.quantity;
-                });
-              } catch {}
-
-              console.log(
-                bill.orderChanges.filter((order, _) => {
-                  if (order.type === "edit") {
-                    return true;
-                  }
-                  return false;
-                })
-              );
-              //   try {
-              bill.orderChanges
-                .filter((order, _) => {
-                  if (order.type === "edit") {
-                    return true;
-                  }
-                  return false;
-                })
-                .map((order, _) => {
-                  order.order.map((item, _) => {
-                    if (!itemwiseEdit[item.item]) {
-                      itemwiseEdit[item.item] = { quantity: 0, price: item.price };
-                    }
-                    itemwiseEdit[item.item].quantity = itemwiseEdit[item.item].quantity + item.quantity;
-                    console.log(itemwiseEdit[item.item]);
-                    return;
-                  });
-                  return;
-                });
-              //   } catch {}
-              try {
-                bill.transactions.map((tran, _) => {
-                  if (tran.type === "cash") cashSum = cashSum + tran.amount;
-                  if (tran.type === "card") cardSum = cardSum + tran.amount;
-                  if (tran.type === "rfid") rfidSum = rfidSum + tran.amount;
-                  if (tran.type === "upi") upiSum = upiSum + tran.amount;
-
-                  return;
-                });
-              } catch {}
-              return;
-            });
-            console.log(itemwise);
-            console.log(itemwiseEdit);
-            console.log(upiSum, cashSum, cardSum, rfidSum);
-            this.setState({ bills: res.bills, sum });
+            console.log(res);
+            this.setState({ ...res });
             // .toLocaleString("en-GB"));
           }}
         >
           <table className="table table-bordered">
             <tbody>
               <tr>
-                <th scope="row">Start Date</th>
-                <th>
+                <th scope="col">Start Date</th>
+                <th scope="col">End Date</th>
+                <th scope="col">Restaurant</th>
+              </tr>
+              <tr>
+                <td>
                   <input
                     type="date"
                     value={this.state.start}
@@ -97,11 +67,8 @@ export default class Report extends Component {
                       this.setState({ start: e.target.value });
                     }}
                   />
-                </th>
-              </tr>
-              <tr>
-                <th scope="row">End Date</th>
-                <th>
+                </td>
+                <td>
                   <input
                     type="date"
                     value={this.state.end}
@@ -110,17 +77,143 @@ export default class Report extends Component {
                       this.setState({ end: e.target.value });
                     }}
                   />
-                </th>
+                </td>
+                <td>
+                  <select
+                    value={this.state.restaurant}
+                    onChange={(e) => {
+                      e.preventDefault();
+                      this.setState({ restaurant: e.target.value });
+                    }}
+                  >
+                    <option value="overall">Overall</option>
+                    {this.state.restaurants.map((menu, _) => {
+                      return <option value={menu.id}>{menu.id}</option>;
+                    })}
+                  </select>
+                </td>
               </tr>
               <tr>
                 <td colSpan={2}>
-                  <input type="submit" className="btn btn-primary" />
+                  <input type="submit" className="btn btn-primary" value="Submit" />
                 </td>
               </tr>
             </tbody>
           </table>
         </form>
-        {this.state.bills.length !== 0 ? <Fragment>Total Sale: {this.state.sum}</Fragment> : null}
+        {this.state.bills.length !== 0 ? (
+          <Fragment>
+            <table className="table table-bordered">
+              <thead>
+                <tr>
+                  <th scope="col">Total Sale</th>
+                  <th scope="col">Cash Collected</th>
+                  <th scope="col">RFID payments</th>
+                  <th scope="col">Card Payments</th>
+                  <th scope="col">UPI Payments</th>
+                  <th scope="col">Discounts</th>
+                  <th scope="col">Credit</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{this.state.sum}</td>
+                  <td>{this.state.cashSum}</td>
+                  <td>{this.state.rfidSum}</td>
+                  <td>{this.state.cardSum}</td>
+                  <td>{this.state.upiSum}</td>
+                  <td>{this.state.discAmount}</td>
+                  <td>{this.state.balance}</td>
+                </tr>
+              </tbody>
+            </table>
+            <table className="table table-bordered">
+              <thead>
+                <tr>
+                  <th scope="col">Sr. No.</th>
+                  <th scope="col">Bill Id</th>
+                  {/* <th scope="col">To</th> */}
+                  <th scope="col">Amount</th>
+                  {/* <th scope="col">Balance</th> */}
+                  <th scope="col">Generated At</th>
+                  {/* <th scope="col">Go to bill</th> */}
+                </tr>
+              </thead>
+              <tbody>
+                {this.state.bills.map((bill, ind) => {
+                  return (
+                    <tr>
+                      <th scope="row">{ind + 1}</th>
+                      <td>{bill.id}</td>
+                      {/* <td>{bill.to}</td> */}
+                      <td align="right">{bill.finalOrder.sum}</td>
+                      {/* <td>{bill.balance}</td> */}
+                      <td>{new Date(bill.at).toLocaleString("en-GB")}</td>
+                      {/* <td>
+                    <Link to={"/bill/" + bill.id} className="btn btn-primary">
+                      View Bill
+                    </Link>
+                  </td> */}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th scope="col">Sr. No.</th>
+                  <th scope="col">Item Name</th>
+                  <th scope="col">Price</th>
+                  <th scope="col">Quantity</th>
+                  <th scope="col">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.keys(this.state.itemwise)
+                  .sort()
+                  .map((item, ind) => {
+                    return (
+                      <tr>
+                        <th scope="row">{ind + 1}</th>
+                        <td>{item}</td>
+                        <td>{this.state.itemwise[item].price}</td>
+                        <td>{this.state.itemwise[item].quantity}</td>
+                        <td align="right">{this.state.itemwise[item].quantity * this.state.itemwise[item].price}</td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+
+            <table className="table table-bordered">
+              <thead>
+                <tr>
+                  <th scope="col">Sr. No.</th>
+                  <th scope="col">Item Name</th>
+                  <th scope="col">Price</th>
+                  <th scope="col">Quantity</th>
+                  <th scope="col">Amount</th>
+                </tr>
+              </thead>
+              <tbody style={{ color: "red" }}>
+                {Object.keys(this.state.itemwiseEdit)
+                  .sort()
+                  .map((item, ind) => {
+                    return (
+                      <tr>
+                        <th scope="row">{ind + 1}</th>
+                        <td>{item}</td>
+                        <td>{this.state.itemwiseEdit[item].price}</td>
+                        <td>{this.state.itemwiseEdit[item].quantity}</td>
+                        <td align="right">{this.state.itemwiseEdit[item].quantity * this.state.itemwiseEdit[item].price}</td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </Fragment>
+        ) : null}
       </div>
     );
   }

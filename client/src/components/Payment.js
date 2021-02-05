@@ -1,11 +1,12 @@
 import React, { Component, Fragment } from "react";
 import axios from "axios";
 import AlertDiv from "../AlertDiv";
+import { Alert } from "react-bootstrap";
 export default class Payment extends Component {
   state = { partial: false, partialAmount: 0, upiId: "", cardId: "", discType: "none", discReason: "By operator" };
   getBill = async () => {
     try {
-      var bill = await axios.get("http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/getBill/" + this.props.bill, {
+      var bill = await axios.get(require("../config.json").url + "bill/getBill/" + this.props.bill, {
         headers: { "x-auth-token": localStorage.getItem("token") },
       });
       bill = bill.data;
@@ -29,7 +30,7 @@ export default class Payment extends Component {
             console.log(this.props.table);
             e.preventDefault();
             await axios.post(
-              "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/addDiscount",
+              require("../config.json").url + "bill/addDiscount",
               {
                 bill: this.props.bill,
                 discType: this.state.discType,
@@ -99,6 +100,7 @@ export default class Payment extends Component {
                     </td>
                     <td>
                       <input
+                        step={0.1}
                         className="form-control"
                         type="number"
                         id="discAmount"
@@ -213,7 +215,7 @@ export default class Payment extends Component {
               var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
               if (!window.confirm("Are you sure you want to deduct Rs." + tranAmount + " from this card?")) return;
               await axios.post(
-                "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/card/deductAmount",
+                require("../config.json").url + "card/deductAmount",
                 {
                   // amount: this.props.table.partial ? partAmont) : this.props.table.orderHistory.sum,
 
@@ -225,22 +227,28 @@ export default class Payment extends Component {
                 },
                 { headers: { "x-auth-token": localStorage.getItem("token") } }
               );
-              await axios.post(
-                "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/printBill",
-                {
-                  bill: this.props.bill,
-                  balance: this.props.amount,
-                  orderHistory: this.props.orderHistory,
-                  paid: tranAmount,
-                  printer: localStorage.getItem("printer"),
-                  method: "rfid",
-                  uid: this.state.uid,
-                },
-                { headers: { "x-auth-token": localStorage.getItem("token") } }
-              );
+              AlertDiv("green", "Paid");
+              try {
+                await axios.post(
+                  require("../config.json").url + "bill/printBill",
+                  {
+                    restaurant: this.props.restaurant,
+                    bill: this.props.bill,
+                    balance: this.props.amount,
+                    orderHistory: this.props.orderHistory,
+                    paid: tranAmount,
+                    printer: localStorage.getItem("printer"),
+                    method: "rfid",
+                    uid: this.state.uid,
+                  },
+                  { headers: { "x-auth-token": localStorage.getItem("token") } }
+                );
+              } catch (err) {
+                console.log(err);
+                AlertDiv("red", "Couldn't Print Bill");
+              }
               document.getElementById("partial").checked = false;
               this.setState({ partial: false, partialAmount: 0, uid: "" });
-              AlertDiv("green", "Paid");
 
               if (!!this.props.callBack) {
                 this.props.callBack(tranAmount);
@@ -295,7 +303,7 @@ export default class Payment extends Component {
               alert("Return Rs. " + received + " - " + tranAmount + " = " + (received - tranAmount));
               if (!window.confirm("Are you sure you received Rs." + tranAmount + " for this order in Cash?")) return;
               await axios.post(
-                "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/byCash",
+                require("../config.json").url + "bill/byCash",
                 {
                   // amount: this.props.table.partial ? partAmont) : this.props.table.orderHistory.sum,
 
@@ -309,18 +317,24 @@ export default class Payment extends Component {
               document.getElementById("partial").checked = false;
               this.setState({ partial: false, partialAmount: 0, uid: "" });
               AlertDiv("yellow", "Paid");
-              await axios.post(
-                "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/printBill",
-                {
-                  bill: this.props.bill,
-                  balance: this.props.amount,
-                  orderHistory: this.props.orderHistory,
-                  paid: tranAmount,
-                  printer: localStorage.getItem("printer"),
-                  method: "cash",
-                },
-                { headers: { "x-auth-token": localStorage.getItem("token") } }
-              );
+              try {
+                await axios.post(
+                  require("../config.json").url + "bill/printBill",
+                  {
+                    restaurant: this.props.restaurant,
+                    bill: this.props.bill,
+                    balance: this.props.amount,
+                    orderHistory: this.props.orderHistory,
+                    paid: tranAmount,
+                    printer: localStorage.getItem("printer"),
+                    method: "cash",
+                  },
+                  { headers: { "x-auth-token": localStorage.getItem("token") } }
+                );
+              } catch (err) {
+                console.log(err);
+                AlertDiv("red", "Couldn't Print Bill");
+              }
               if (!!this.props.callBack) {
                 this.props.callBack(tranAmount);
               }
@@ -352,7 +366,7 @@ export default class Payment extends Component {
               var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
               if (!window.confirm("Are you sure you received Rs." + tranAmount + " for this order in UPI transaction?")) return;
               await axios.post(
-                "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/byUpi",
+                require("../config.json").url + "bill/byUpi",
                 {
                   // amount: this.props.table.partial ? partAmont) : this.props.table.orderHistory.sum,
                   tranId: this.state.upiId,
@@ -366,19 +380,25 @@ export default class Payment extends Component {
               document.getElementById("partial").checked = false;
               this.setState({ partial: false, partialAmount: 0, uid: "" });
               AlertDiv("green", "Paid");
-              await axios.post(
-                "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/printBill",
-                {
-                  bill: this.props.bill,
-                  balance: this.props.amount,
-                  orderHistory: this.props.orderHistory,
-                  paid: tranAmount,
-                  printer: localStorage.getItem("printer"),
-                  method: "upi",
-                  tranId: this.state.upiId,
-                },
-                { headers: { "x-auth-token": localStorage.getItem("token") } }
-              );
+              try {
+                await axios.post(
+                  require("../config.json").url + "bill/printBill",
+                  {
+                    restaurant: this.props.restaurant,
+                    bill: this.props.bill,
+                    balance: this.props.amount,
+                    orderHistory: this.props.orderHistory,
+                    paid: tranAmount,
+                    printer: localStorage.getItem("printer"),
+                    method: "upi",
+                    tranId: this.state.upiId,
+                  },
+                  { headers: { "x-auth-token": localStorage.getItem("token") } }
+                );
+              } catch (err) {
+                console.log(err);
+                AlertDiv("red", "Couldn't print bill");
+              }
               if (!!this.props.callBack) {
                 this.props.callBack(tranAmount);
               }
@@ -427,7 +447,7 @@ export default class Payment extends Component {
               var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
               if (!window.confirm("Are you sure you received Rs." + tranAmount + " for this order in Card Swipe transaction?")) return;
               await axios.post(
-                "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/byCard",
+                require("../config.json").url + "bill/byCard",
                 {
                   // amount: this.props.table.partial ? partAmont) : this.props.table.orderHistory.sum,
                   tranId: this.state.cardId,
@@ -441,19 +461,25 @@ export default class Payment extends Component {
               document.getElementById("partial").checked = false;
               this.setState({ partial: false, partialAmount: 0, uid: "" });
               AlertDiv("green", "Paid");
-              await axios.post(
-                "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/printBill",
-                {
-                  bill: this.props.bill,
-                  balance: this.props.amount,
-                  orderHistory: this.props.orderHistory,
-                  paid: tranAmount,
-                  printer: localStorage.getItem("printer"),
-                  method: "cardSwipe",
-                  tranId: this.state.cardId,
-                },
-                { headers: { "x-auth-token": localStorage.getItem("token") } }
-              );
+              try {
+                await axios.post(
+                  require("../config.json").url + "bill/printBill",
+                  {
+                    restaurant: this.props.restaurant,
+                    bill: this.props.bill,
+                    balance: this.props.amount,
+                    orderHistory: this.props.orderHistory,
+                    paid: tranAmount,
+                    printer: localStorage.getItem("printer"),
+                    method: "cardSwipe",
+                    tranId: this.state.cardId,
+                  },
+                  { headers: { "x-auth-token": localStorage.getItem("token") } }
+                );
+              } catch (err) {
+                console.log(err);
+                AlertDiv("red", "Couldn't print bill");
+              }
               if (!!this.props.callBack) {
                 this.props.callBack(tranAmount);
               }
@@ -503,8 +529,9 @@ export default class Payment extends Component {
                   onClick={async (e) => {
                     e.preventDefault();
                     await axios.post(
-                      "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/printBill",
+                      require("../config.json").url + "bill/printBill",
                       {
+                        restaurant: this.props.restaurant,
                         bill: this.props.bill,
                         balance: this.props.amount,
                         orderHistory: this.props.orderHistory,

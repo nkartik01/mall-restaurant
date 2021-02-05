@@ -25,8 +25,12 @@ router.post("/sale", async (req, res) => {
       bills[i] = bill;
     }
     var sum = 0;
+    var balance = 0;
+    var discAmount = 0;
     bills.map((bill, _) => {
       sum = sum + bill.finalOrder.sum;
+      balance = balance + bill.balance;
+      if (bill.discAmount) discAmount = discAmount + bill.discAmount;
       return;
     });
     var upiSum = 0;
@@ -45,35 +49,26 @@ router.post("/sale", async (req, res) => {
           itemwise[item.item].quantity = itemwise[item.item].quantity + item.quantity;
         });
       } catch {}
-
-      console.log(
-        bill.orderChanges.filter((order, _) => {
-          if (order.type === "edit") {
-            return true;
-          }
-          return false;
-        })
-      );
-      //   try {
-      bill.orderChanges
-        .filter((order, _) => {
-          if (order.type === "edit") {
-            return true;
-          }
-          return false;
-        })
-        .map((order, _) => {
-          order.order.map((item, _) => {
-            if (!itemwiseEdit[item.item]) {
-              itemwiseEdit[item.item] = { quantity: 0, price: item.price };
+      try {
+        bill.orderChanges
+          .filter((order, _) => {
+            if (order.type === "edit") {
+              return true;
             }
-            itemwiseEdit[item.item].quantity = itemwiseEdit[item.item].quantity + item.quantity;
-            console.log(itemwiseEdit[item.item]);
+            return false;
+          })
+          .map((order, _) => {
+            order.order.map((item, _) => {
+              if (!itemwiseEdit[item.item]) {
+                itemwiseEdit[item.item] = { quantity: 0, price: item.price };
+              }
+              itemwiseEdit[item.item].quantity = itemwiseEdit[item.item].quantity + item.quantity;
+              console.log(itemwiseEdit[item.item]);
+              return;
+            });
             return;
           });
-          return;
-        });
-      //   } catch {}
+      } catch {}
       try {
         bill.transactions.map((tran, _) => {
           if (tran.type === "cash") cashSum = cashSum + tran.amount;
@@ -86,10 +81,7 @@ router.post("/sale", async (req, res) => {
       } catch {}
       return;
     });
-    jsonexport({ bills: bills, itemwise, itemwiseEdit, upiSum, cashSum, cardSum, rfidSum }, (err, csv) => {
-      console.log(csv);
-    });
-    res.send({ bills: bills, itemwise, itemwiseEdit, upiSum, cashSum, cardSum, rfidSum });
+    res.send({ bills: bills, itemwise, itemwiseEdit, upiSum, cashSum, cardSum, rfidSum, sum, balance, discAmount });
   } catch (err) {
     console.log(err);
     res.status(500).send(err);

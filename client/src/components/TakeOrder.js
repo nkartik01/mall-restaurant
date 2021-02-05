@@ -15,19 +15,19 @@ export default class TakeOrder extends Component {
     this.setState(x);
   };
   getMenus = async () => {
-    var res = await axios.get("http://"+require("../config.json").ip+":5001/mall-restraunt/us-central1/api/operator/getPermissions", {
+    var res = await axios.get(require("../config.json").url + "operator/getPermissions", {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     res = res.data;
     this.setState({ permissions: res.permissions });
-    res = await axios.get("http://"+require("../config.json").ip+":5001/mall-restraunt/us-central1/api/menu/getRestaurantMenus", {
+    res = await axios.get(require("../config.json").url + "menu/getRestaurantMenus", {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     res = res.data;
     this.setState({ menus: res.menus });
   };
   getRestaurants = async () => {
-    var res = await axios.get("http://"+require("../config.json").ip+":5001/mall-restraunt/us-central1/api/menu/getTables", {
+    var res = await axios.get(require("../config.json").url + "menu/getTables", {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     res = res.data;

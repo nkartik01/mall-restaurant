@@ -10,7 +10,7 @@ export default withRouter(
     getCard = async (e) => {
       try {
         e.preventDefault();
-        var res = await axios.get("http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/card/getCard/" + this.state.uid, {
+        var res = await axios.get(require("../config.json").url + "card/getCard/" + this.state.uid, {
           headers: { "x-auth-token": localStorage.getItem("token") },
         });
         res = res.data;
@@ -31,7 +31,7 @@ export default withRouter(
       e.preventDefault();
       try {
         await axios.post(
-          "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/card/assign",
+          require("../config.json").url + "card/assign",
           {
             uid: this.state.uid,
             holder: this.state.card.holder,
@@ -49,11 +49,7 @@ export default withRouter(
     retire = async (e) => {
       e.preventDefault();
       try {
-        await axios.post(
-          "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/card/retire",
-          { uid: this.state.uid },
-          { headers: { "x-auth-token": localStorage.getItem("token") } }
-        );
+        await axios.post(require("../config.json").url + "card/retire", { uid: this.state.uid }, { headers: { "x-auth-token": localStorage.getItem("token") } });
         AlertDiv("green", "Retired Successfully");
         this.setState({ card: {}, uid: "" });
       } catch (err) {
@@ -87,7 +83,7 @@ export default withRouter(
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();
-                  var res = await axios.get("http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/card/searchByPhone/" + this.state.phone, {
+                  var res = await axios.get(require("../config.json").url + "card/searchByPhone/" + this.state.phone, {
                     headers: { "x-auth-token": localStorage.getItem("token") },
                   });
                   res = res.data;
@@ -197,7 +193,7 @@ export default withRouter(
                     e.preventDefault();
                     console.log(e.target);
                     var res = await axios.post(
-                      "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/card/addAmount",
+                      require("../config.json").url + "card/addAmount",
                       { amount: this.state.toAdd, uid: this.state.uid },
                       { headers: { "x-auth-token": localStorage.getItem("token") } }
                     );

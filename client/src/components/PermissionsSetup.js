@@ -10,7 +10,7 @@ export default class PermissionsSetup extends Component {
     wait: {},
   };
   // getMenus = async (e) => {
-  //   var res = await axios.get("http://"+require("../config.json").ip+":5001/mall-restraunt/us-central1/api/menu/listMenus");
+  //   var res = await axios.get(require("../config.json").url+"menu/listMenus");
   //   res = res.data;
   //   this.setState({ menus: res.menus });
   // };

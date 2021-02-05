@@ -185,14 +185,14 @@ export default class OrderSheet extends Component {
                         propsTable.orderHistory.sum = propsTable.orderHistory.sum + propsTable.orderChange.sum;
                         propsTable.balance = propsTable.balance + propsTable.orderChange.sum;
                         var res = await axios.post(
-                          "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/menu/updateTable",
+                          require("../config.json").url + "menu/updateTable",
                           { orderHistory: propsTable.orderHistory, orderChange: propsTable.orderChange, table: propsTable },
                           { headers: { "x-auth-token": localStorage.getItem("token") } }
                         );
                         AlertDiv("green", "Order Added");
                         try {
                           res = await axios.post(
-                            "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/printOrder",
+                            require("../config.json").url + "bill/printOrder",
                             { order: propsTable.orderChange, table: propsTable.table, bill: res.data.bill, orderId: res.data.orderId, printer: localStorage.getItem("printer") },
                             { headers: { "x-auth-token": localStorage.getItem("token") } }
                           );
@@ -242,7 +242,7 @@ export default class OrderSheet extends Component {
                           e.preventDefault();
                           console.log(this.state.proposedChanges, this.state.historyCopy);
                           await axios.post(
-                            "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/editBill",
+                            require("../config.json").url + "bill/editBill",
                             { table: propsTable.id, bill: propsTable.bill, orderHistory: this.state.historyCopy, orderChange: this.state.proposedChanges },
                             { headers: { "x-auth-token": localStorage.getItem("token") } }
                           );
@@ -395,6 +395,7 @@ export default class OrderSheet extends Component {
               {propsTable.bill && propsTable.bill !== "" ? (
                 <Fragment>
                   <Payment
+                    restaurant={propsTable.restaurant}
                     amount={propsTable.balance ? propsTable.balance : 0}
                     disable={propsTable.orderChange.sum !== 0 || propsTable.orderHistory.sum === 0 ? true : false}
                     bill={propsTable.bill}
@@ -408,11 +409,7 @@ export default class OrderSheet extends Component {
                       this.setState({});
                       if (propsTable.balance !== 0) return;
                       else {
-                        await axios.post(
-                          "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/menu/freeTable",
-                          { table: propsTable },
-                          { headers: { "x-auth-token": localStorage.getItem("token") } }
-                        );
+                        await axios.post(require("../config.json").url + "menu/freeTable", { table: propsTable }, { headers: { "x-auth-token": localStorage.getItem("token") } });
                         propsTable.orderHistory.order = [];
                         propsTable.orderHistory.sum = 0;
                         propsTable.balance = 0;
@@ -430,11 +427,7 @@ export default class OrderSheet extends Component {
                   e.preventDefault();
 
                   //   Payment logic as needed
-                  await axios.post(
-                    "http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/menu/freeTable",
-                    { table: propsTable },
-                    { headers: { "x-auth-token": localStorage.getItem("token") } }
-                  );
+                  await axios.post(require("../config.json").url + "menu/freeTable", { table: propsTable }, { headers: { "x-auth-token": localStorage.getItem("token") } });
                   propsTable.orderHistory.order = [];
                   propsTable.orderHistory.sum = 0;
                   propsTable.balance = 0;

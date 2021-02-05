@@ -7,7 +7,7 @@ export default class BillList extends Component {
   state = { bills: this.props.store.getState().loadedDataReducer.bills ? this.props.store.getState().loadedDataReducer.bills : [] };
   getBills = async () => {
     console.log(require("../config.json").ip);
-    var bills = await axios.get("http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/listBills/50", {
+    var bills = await axios.get(require("../config.json").url + "bill/listBills/50", {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     bills = bills.data.bills;
@@ -16,7 +16,7 @@ export default class BillList extends Component {
   };
   getPending = async (e) => {
     e.preventDefault();
-    var bills = await axios.get("http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/pendingBills", {
+    var bills = await axios.get(require("../config.json").url + "bill/pendingBills", {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     bills = bills.data.bills;

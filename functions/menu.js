@@ -7,9 +7,24 @@ const auth_operator = require("./middleware/auth_operator");
 const fs = require("fs");
 const XLSX = require("xlsx");
 const { table } = require("console");
-router.get("/listMenus", async (req, res) => {
+
+router.get("/listMenusFromFolder", async (req, res) => {
   try {
     return res.send({ menus: fs.readdirSync("./menus") });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+
+router.get("listMenus", async (req, res) => {
+  try {
+    var menus = await db.collection("menu").get();
+    menus = menus.docs;
+    for (var i = 0; i < menus.length; i++) {
+      menus[i] = menus[i].id;
+    }
+    res.send({ menus: menus });
   } catch (err) {
     console.log(err);
     res.status(500).send(err);
@@ -58,9 +73,39 @@ router.get("/getRestaurantMenus", async (req, res) => {
         menu = { ...menu, ...menu1.data() };
       }
       menus[rests[k].id] = menu;
-      console.log(rests[k].id === "Perry Club" ? menu : null);
     }
     return res.send({ menus });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+
+router.get("/addRestaurant/:name", auth_admin, async (req, res) => {
+  try {
+    var rest = await db.collection("restaurant").doc(req.params.name).get();
+    rest = rest.data();
+    if (!!rest) {
+      return res.status(400).send("Restaurant Already Exists");
+    }
+    db.collection("restaurant").doc(req.params.name).set({ menu: [] });
+    res.send("Added");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+
+router.get("/restaurants", async (req, res) => {
+  try {
+    var rests = await db.collection("restaurant").get();
+    rests = rests.docs;
+    for (var i = 0; i < rests.length; i++) {
+      var rest = rests[i].data();
+      rest.id = rests[i].id;
+      rests[i] = rest;
+    }
+    res.send({ restaurants: rests });
   } catch (err) {
     console.log(err);
     res.status(500).send(err);

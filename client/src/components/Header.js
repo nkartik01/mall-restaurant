@@ -41,6 +41,9 @@ export default class Header extends Component {
             <Fragment></Fragment>
           ) : (
             <Fragment>
+              <Link to={"/report"} className="btn btn-primary">
+                Reports
+              </Link>
               <button
                 onClick={(e) => {
                   e.preventDefault();

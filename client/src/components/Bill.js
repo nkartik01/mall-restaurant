@@ -5,7 +5,7 @@ import Payment from "./Payment";
 export default class Bill extends Component {
   state = { isLoading: true, bill: {} };
   getBill = async () => {
-    var bill = await axios.get("http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/bill/getBill/" + this.props.match.params.id, {
+    var bill = await axios.get(require("../config.json").url + "bill/getBill/" + this.props.match.params.id, {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     bill = bill.data.bill;
@@ -168,8 +168,9 @@ export default class Bill extends Component {
                 })}
               </tbody>
             </table>
-            <div hidden>
+            <div>
               <Payment
+                restaurant={bill.restaurant}
                 disable={bill.balance === 0 ? true : false}
                 amount={bill.balance}
                 bill={bill.id}

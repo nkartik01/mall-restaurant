@@ -113,6 +113,8 @@ router.post("/deductAmount", auth_operator, async (req, res) => {
     if (req.body.table) {
       db.collection("table").doc(req.body.table).update({ balance: bill.balance });
     }
+    var operator = await db.collection("operator").doc(req.operator.id).get();
+    operator = operator.data();
     bill.transactions.unshift({ type: "rfid", rfid: req.body.uid, by: req.operator.id, at: now, amount: req.body.amount });
     operator.transactions.unshift({ type: "rfid", tranId: req.body.uid, at: now, amount: req.body.amount, bill: req.body.bill });
     db.collection("bill").doc(req.body.bill).set(bill);

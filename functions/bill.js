@@ -208,7 +208,7 @@ router.post("/printBill", async (req, res) => {
     console.log(isConnected);
     print.alignCenter();
     print.setTextSize(1, 1);
-    print.println("Urban Food Court");
+    print.println(req.body.restaurant);
     print.setTextSize(0, 0);
     print.println("City Walk Mall, Hanumangarh Road, Abohar");
     print.println("A Unit of RDESCO City Walk Pvt. Ltd.");
@@ -267,7 +267,7 @@ router.post("/printBill", async (req, res) => {
     }
     // print.println("hello");
     print.newLine();
-    print.println("Thanks for coming. We hope to see you again soon.");
+    print.println("Thanks for visiting. We hope to see you again soon.");
     print.cut();
     let execute = await print.execute(); // Executes all the commands. Returns success or throws error
     console.log(execute);
@@ -296,7 +296,7 @@ router.post("/printOrder", async (req, res) => {
     print.alignCenter();
 
     print.setTextSize(1, 1);
-    print.println("Urban Food Court");
+    print.println(req.body.restaurant);
     print.setTextSize(0, 0);
     print.println("City Walk Mall, Hanumangarh Road, Abohar");
     print.newLine();
@@ -396,6 +396,7 @@ router.get("/clearBills", async (req, res) => {
   for (var i = 0; i < bills.length; i++) {
     db.collection("table").doc(bills[i].id).delete();
   }
+  res.send("done");
 });
 
 router.post("/editBill", auth_operator, async (req, res) => {

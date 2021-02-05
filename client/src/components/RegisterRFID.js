@@ -7,11 +7,7 @@ export default class RegisterRFID extends Component {
   onSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(
-        "http://"+require("../config.json").ip+":5001/mall-restraunt/us-central1/api/card/registerCard",
-        { uid: this.state.uid },
-        { headers: { "x-auth-token": localStorage.getItem("token") } }
-      );
+      await axios.post(require("../config.json").url + "card/registerCard", { uid: this.state.uid }, { headers: { "x-auth-token": localStorage.getItem("token") } });
       AlertDiv("green", "Registered Successfully");
     } catch (err) {
       console.log(err, err.response.status);

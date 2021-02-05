@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 export default class ListOperators extends Component {
   state = { operators: [] };
   getOperators = async () => {
-    var res = await axios.get("http://" + require("../config.json").ip + ":5001/mall-restraunt/us-central1/api/operator/getOperatorList", {
+    var res = await axios.get(require("../config.json").url + "operator/getOperatorList", {
       headers: { "x-auth-token": localStorage.getItem("token") },
     });
     res = res.data;
