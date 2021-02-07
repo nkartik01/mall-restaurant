@@ -10,8 +10,6 @@ export default class OrderSheet extends Component {
   };
   state = { proposedChanges: { order: [], sum: 0, reason: "" }, historyCopy: { order: [], sum: 0 } };
   render() {
-    var menu = this.props.menu;
-    var categories = Object.keys(this.props.menu);
     var propsTable = this.props.table;
     propsTable.projectedTotal = propsTable.orderHistory.sum + propsTable.orderChange.sum;
     return (
@@ -21,63 +19,79 @@ export default class OrderSheet extends Component {
             <Col sm={2} style={{ border: "1px solid black", bottom: 0, top: 0, overflow: "auto" }}>
               <h3 style={{ backgroundColor: "red", color: "white" }}>Ordering for {propsTable.table}</h3>
               <Nav varient="pills" className="flex-column">
-                {categories.map((category, i2) => {
+                {this.props.menu.map((menu, _) => {
+                  var categories = Object.keys(menu.menu);
                   return (
-                    <Nav.Item key={i2}>
-                      <Nav.Link className={"activeColor"} style={{ borderBottom: "1px solid black" }} eventKey={"category-" + i2}>
-                        {category}
-                      </Nav.Link>
-                    </Nav.Item>
+                    <Fragment>
+                      {categories.map((category, _) => {
+                        return (
+                          <Nav.Item key={category}>
+                            <Nav.Link className={"activeColor"} style={{ borderBottom: "1px solid black" }} eventKey={"category-" + category}>
+                              {category}
+                            </Nav.Link>
+                          </Nav.Item>
+                        );
+                      })}
+                    </Fragment>
                   );
                 })}
               </Nav>
             </Col>
             <Col sm={6} style={{ border: "1px solid black" }}>
               <Tab.Content>
-                {categories.map((category, i2) => {
+                {this.props.menu.map((menu, _) => {
+                  var categories = Object.keys(menu.menu);
                   return (
-                    <Tab.Pane eventKey={"category-" + i2} title={category} key={i2}>
-                      <div className="row">
-                        {menu[category].map((item, _) => {
-                          return (
-                            <div
-                              key={item.name}
-                              style={{ backgroundColor: "yellow", border: "1px dotted black", verticalAlign: "middle" }}
-                              className="card col-md-3"
-                              id={propsTable.table + "-" + item.name + "-" + item.price + "-" + localStorage.getItem("username")}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (!propsTable.orderChange) {
-                                  propsTable.orderChange = { order: [], sum: 0 };
-                                }
-                                var tabind = -1;
-                                for (var i3 = 0; i3 < propsTable.orderChange.order.length; i3++) {
-                                  if (propsTable.orderChange.order[i3].item === item.name) {
-                                    tabind = 1;
-                                    propsTable.orderChange.order[i3].quantity = propsTable.orderChange.order[i3].quantity + 1;
-                                    break;
-                                  }
-                                }
-                                if (tabind !== 1) {
-                                  propsTable.orderChange.order.push({
-                                    item: item.name,
-                                    category,
-                                    price: parseInt(item.price),
-                                    quantity: 1,
-                                  });
-                                }
-                                propsTable.orderChange.sum = parseInt(propsTable.orderChange.sum) + parseInt(item.price);
-                                propsTable.projectedTotal = propsTable.projectedTotal + parseInt(item.price);
-                                this.setState({});
-                              }}
-                            >
-                              <h5>{item.name}</h5>
-                              {item.price}
+                    <Fragment>
+                      {categories.map((category, _) => {
+                        // console.log(menu[category], category);
+                        return (
+                          <Tab.Pane eventKey={"category-" + category} title={category} key={category}>
+                            <div className="row">
+                              {menu.menu[category].map((item, _) => {
+                                return (
+                                  <div
+                                    key={item.name}
+                                    style={{ backgroundColor: "yellow", border: "1px dotted black", verticalAlign: "middle" }}
+                                    className="card col-md-3"
+                                    id={propsTable.table + "-" + item.name + "-" + item.price + "-" + localStorage.getItem("username")}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      if (!propsTable.orderChange) {
+                                        propsTable.orderChange = { order: [], sum: 0 };
+                                      }
+                                      var tabind = -1;
+                                      for (var i = 0; i < propsTable.orderChange.order.length; i++) {
+                                        if (propsTable.orderChange.order[i].item === item.name) {
+                                          tabind = 1;
+                                          propsTable.orderChange.order[i].quantity = propsTable.orderChange.order[i].quantity + 1;
+                                          break;
+                                        }
+                                      }
+                                      if (tabind !== 1) {
+                                        propsTable.orderChange.order.push({
+                                          disc: menu.disc,
+                                          item: item.name,
+                                          category,
+                                          price: parseInt(item.price),
+                                          quantity: 1,
+                                        });
+                                      }
+                                      propsTable.orderChange.sum = parseInt(propsTable.orderChange.sum) + parseInt(item.price);
+                                      propsTable.projectedTotal = propsTable.projectedTotal + parseInt(item.price);
+                                      this.setState({});
+                                    }}
+                                  >
+                                    <h5>{item.name}</h5>
+                                    {item.price}
+                                  </div>
+                                );
+                              })}
                             </div>
-                          );
-                        })}
-                      </div>
-                    </Tab.Pane>
+                          </Tab.Pane>
+                        );
+                      })}
+                    </Fragment>
                   );
                 })}
               </Tab.Content>
@@ -109,21 +123,21 @@ export default class OrderSheet extends Component {
                         </tr>
                       </thead>
                       <tbody>
-                        {propsTable.orderChange.order.map((item, i1) => {
+                        {propsTable.orderChange.order.map((item, i) => {
                           return (
-                            <tr key={i1}>
-                              <th scope="row">{i1 + 1}</th>
+                            <tr key={i}>
+                              <th scope="row">{i + 1}</th>
                               <td align="left">{item.item}</td>
                               <td> {item.price} </td>
                               <td>
                                 <button
                                   style={{ borderRadius: "100%" }}
                                   onClick={() => {
-                                    var x = propsTable.orderChange.order[i1].quantity;
+                                    var x = propsTable.orderChange.order[i].quantity;
                                     x = x - 1;
-                                    propsTable.orderChange.order[i1].quantity = x;
-                                    if (propsTable.orderChange.order[i1].quantity === 0) {
-                                      propsTable.orderChange.order.splice(i1, 1);
+                                    propsTable.orderChange.order[i].quantity = x;
+                                    if (propsTable.orderChange.order[i].quantity === 0) {
+                                      propsTable.orderChange.order.splice(i, 1);
                                     }
                                     propsTable.orderChange.sum = parseInt(propsTable.orderChange.sum) - parseInt(item.price);
                                     propsTable.projectedTotal = propsTable.projectedTotal - parseInt(item.price);
@@ -137,7 +151,7 @@ export default class OrderSheet extends Component {
                                   style={{ borderRadius: "100%" }}
                                   onClick={() => {
                                     console.log(propsTable.orderHistory);
-                                    propsTable.orderChange.order[i1].quantity = propsTable.orderChange.order[i1].quantity + 1;
+                                    propsTable.orderChange.order[i].quantity = propsTable.orderChange.order[i].quantity + 1;
 
                                     propsTable.orderChange.sum = propsTable.orderChange.sum + parseInt(item.price);
                                     propsTable.projectedTotal = propsTable.projectedTotal + parseInt(item.price);
@@ -295,10 +309,10 @@ export default class OrderSheet extends Component {
                             </tr>
                           </thead>
                           <tbody>
-                            {this.state.historyCopy.order.map((item, i1) => {
+                            {this.state.historyCopy.order.map((item, i) => {
                               return (
-                                <tr key={i1}>
-                                  <th scope="row">{i1 + 1}</th>
+                                <tr key={i}>
+                                  <th scope="row">{i + 1}</th>
                                   <td align="left">{item.item}</td>
                                   <td> {item.price} </td>
                                   <td>
@@ -308,14 +322,14 @@ export default class OrderSheet extends Component {
                                         e.preventDefault();
                                         console.log(this.state.historyCopy);
                                         var { historyCopy, proposedChanges } = this.state;
-                                        var x = historyCopy.order[i1].quantity;
+                                        var x = historyCopy.order[i].quantity;
                                         x = x - 1;
-                                        historyCopy.order[i1].quantity = x;
+                                        historyCopy.order[i].quantity = x;
                                         var c = 0;
 
-                                        for (var i = 0; i < proposedChanges.order.length; i++) {
-                                          if (proposedChanges.order[i].item === historyCopy.order[i1].item) {
-                                            proposedChanges.order[i].quantity = proposedChanges.order[i].quantity + 1;
+                                        for (var j = 0; j < proposedChanges.order.length; j++) {
+                                          if (proposedChanges.order[j].item === historyCopy.order[i].item) {
+                                            proposedChanges.order[j].quantity = proposedChanges.order[i].quantity + 1;
                                             c = 1;
                                             break;
                                           }
@@ -327,8 +341,8 @@ export default class OrderSheet extends Component {
 
                                         historyCopy.sum = parseInt(historyCopy.sum) - parseInt(item.price);
 
-                                        if (historyCopy.order[i1].quantity === 0) {
-                                          historyCopy.order.splice(i1, 1);
+                                        if (historyCopy.order[i].quantity === 0) {
+                                          historyCopy.order.splice(i, 1);
                                         }
                                         proposedChanges.sum = proposedChanges.sum + parseInt(item.price);
                                         this.setState({ historyCopy, proposedChanges });
@@ -395,10 +409,10 @@ export default class OrderSheet extends Component {
                   </tr>
                 </thead>
                 <tbody>
-                  {propsTable.orderHistory.order.map((item, i1) => {
+                  {propsTable.orderHistory.order.map((item, i) => {
                     return (
-                      <tr key={i1}>
-                        <th scope="row">{i1 + 1}</th>
+                      <tr key={i}>
+                        <th scope="row">{i + 1}</th>
                         <td>{item.item}</td>
                         <td>{item.price}</td>
                         <td>{item.quantity}</td>

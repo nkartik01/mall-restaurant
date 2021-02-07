@@ -52,7 +52,7 @@ router.get("/setMenu/:menu", async (req, res) => {
         });
       }
     }
-    db.collection("menu").doc(req.params.menu).set(menu);
+    db.collection("menu").doc(req.params.menu).set({ menu: menu });
     return res.send(menu);
   } catch (err) {
     console.log(err);
@@ -67,10 +67,10 @@ router.get("/getRestaurantMenus", async (req, res) => {
     var menus = {};
     for (var k = 0; k < rests.length; k++) {
       var rest = rests[k].data();
-      var menu = {};
+      var menu = [];
       for (var l = 0; l < rest.menu.length; l++) {
         var menu1 = await db.collection("menu").doc(rest.menu[l]).get();
-        menu = { ...menu, ...menu1.data() };
+        menu.push(menu1.data());
       }
       menus[rests[k].id] = menu;
     }

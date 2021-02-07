@@ -88,7 +88,14 @@ export default class Payment extends Component {
                         autoComplete="off"
                         onChange={(e) => {
                           e.preventDefault();
-                          this.setState({ discPerc: e.target.value, discAmount: (e.target.value * this.props.orderHistory.sum) / 100 });
+                          var sum = 0;
+                          this.props.orderHistory.order.map((item, _) => {
+                            if (item.disc) {
+                              sum = sum + item.price * item.quantity;
+                            }
+                            return null;
+                          });
+                          this.setState({ discPerc: e.target.value, discAmount: (e.target.value * sum) / 100 });
                         }}
                       />
                     </td>

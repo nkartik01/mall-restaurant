@@ -1,5 +1,7 @@
 import React, { Component } from "react";
 import axios from "axios";
+import { setData } from "../redux/action/loadedData";
+
 export default class OperatorLogin extends Component {
   state = { username: "", password: "" };
   onChange = (e) => {
@@ -14,7 +16,7 @@ export default class OperatorLogin extends Component {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("status", "operator");
       localStorage.setItem("username", username);
-      localStorage.setItem("permissions", res.data.permissions);
+      setData({ permissions: res.data.permissions });
       this.setState({});
       window.location.reload();
     } catch (err) {
