@@ -38,17 +38,32 @@ router.post("/sale", async (req, res) => {
     var rfidSum = 0;
     var cardSum = 0;
 
-    var itemwise = {};
-    var itemwiseEdit = {};
+    var itemwise = [];
+    var itemwiseEdit = [];
     bills.map((bill, _) => {
       try {
-        bill.finalOrder.order.map((item, _) => {
-          if (!itemwise[item.item]) {
-            itemwise[item.item] = { quantity: 0, price: item.price };
+        bill.finalOrder.order.map((orderItem, _) => {
+          var c = 0;
+          itemwise.map((item, _) => {
+            if (item.item === orderItem.item && item.price === orderItem.price) {
+              item.quantity = item.quantity + orderItem.quantity;
+              c = 1;
+            }
+          });
+          if (c === 0) {
+            itemwise.push({ ...orderItem });
           }
-          itemwise[item.item].quantity = itemwise[item.item].quantity + item.quantity;
         });
       } catch {}
+      itemwise.sort((a, b) => {
+        if (a.item < b.item) {
+          return -1;
+        }
+        if (a.item > b.item) {
+          return 1;
+        }
+        return 0;
+      });
       try {
         bill.orderChanges
           .filter((order, _) => {
@@ -58,14 +73,8 @@ router.post("/sale", async (req, res) => {
             return false;
           })
           .map((order, _) => {
-            order.order.map((item, _) => {
-              if (!itemwiseEdit[item.item]) {
-                itemwiseEdit[item.item] = { quantity: 0, price: item.price };
-              }
-              itemwiseEdit[item.item].quantity = itemwiseEdit[item.item].quantity + item.quantity;
-              console.log(itemwiseEdit[item.item]);
-              return;
-            });
+            itemwiseEdit.push({ ...order });
+
             return;
           });
       } catch {}

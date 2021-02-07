@@ -83,7 +83,7 @@ export default class TakeOrder extends Component {
                 return false;
               });
               return (
-                <Tab eventKey={rest} title={rest} disabled={!this.state.permissions.wait[rest] ? true : false} style={{ fontWeight: "bold" }}>
+                <Tab eventKey={rest} key={rest} title={rest} disabled={!this.state.permissions.wait[rest] ? true : false} style={{ fontWeight: "bold" }}>
                   <Tab.Container id="left-tabs-example" defaultActiveKey="table-0">
                     <Row>
                       {/* Tables */}
@@ -92,7 +92,7 @@ export default class TakeOrder extends Component {
                           {tables.map((table, i) => {
                             var status = table.orderHistory.sum === 0 ? "free" : "occupied";
                             return (
-                              <Nav.Item>
+                              <Nav.Item key={i}>
                                 <Nav.Link className={"activeColor " + status} style={{ fontWeight: "bold" }} eventKey={"table-" + i}>
                                   {table.table}
                                 </Nav.Link>
@@ -107,7 +107,7 @@ export default class TakeOrder extends Component {
 
                           {tables.map((table, ii) => {
                             return (
-                              <Tab.Pane eventKey={"table-" + ii} id="left-tabs-example">
+                              <Tab.Pane eventKey={"table-" + ii} id="left-tabs-example" key={ii}>
                                 <OrderSheet menu={this.state.menus[rest]} table={table} getRestaurants={this.getRestaurants} />
                               </Tab.Pane>
                             );

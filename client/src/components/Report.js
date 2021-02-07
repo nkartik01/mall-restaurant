@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { Component, Fragment } from "react";
+import React, { Component } from "react";
 import ReactToPrint from "react-to-print";
 
 export default class Example extends React.PureComponent {
@@ -7,15 +7,7 @@ export default class Example extends React.PureComponent {
     return (
       <div align="center">
         <div className="col-md-10">
-          <ReactToPrint
-            trigger={() => {
-              // NOTE: could just as easily return <SomeComponent />. Do NOT pass an `onClick` prop
-              // to the root node of the returned component as it will be overwritten.
-              return <button>Print this out!</button>;
-            }}
-            content={() => this.componentRef}
-          />
-          <Report ref={(el) => (this.componentRef = el)} />
+          <Report />
         </div>
       </div>
     );
@@ -31,10 +23,23 @@ class Report extends Component {
   };
   componentDidMount() {
     this.getRestaurants();
+    var date = new Date();
+    this.setState({
+      start: date.getFullYear().toString() + "-" + (date.getMonth() + 1).toString().padStart(2, 0) + "-" + date.getDate().toString().padStart(2, 0),
+      end: date.getFullYear().toString() + "-" + (date.getMonth() + 1).toString().padStart(2, 0) + "-" + date.getDate().toString().padStart(2, 0),
+    });
   }
   render() {
     return (
       <div align="center">
+        <ReactToPrint
+          trigger={() => {
+            // NOTE: could just as easily return <SomeComponent />. Do NOT pass an `onClick` prop
+            // to the root node of the returned component as it will be overwritten.
+            return <button>Print this out!</button>;
+          }}
+          content={() => this.componentRef}
+        />
         <form
           align="center"
           onSubmit={async (e) => {
@@ -102,7 +107,7 @@ class Report extends Component {
           </table>
         </form>
         {this.state.bills.length !== 0 ? (
-          <Fragment>
+          <div ref={(el) => (this.componentRef = el)} className="col-md-10" style={{ paddingLeft: "75px", paddingRight: "50px" }}>
             <table className="table table-bordered">
               <thead>
                 <tr>
@@ -161,33 +166,6 @@ class Report extends Component {
               </tbody>
             </table>
             <h4>Item Wise Sale</h4>
-            <table className="table">
-              <thead>
-                <tr>
-                  <th scope="col">Sr. No.</th>
-                  <th scope="col">Item Name</th>
-                  <th scope="col">Price</th>
-                  <th scope="col">Quantity</th>
-                  <th scope="col">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.keys(this.state.itemwise)
-                  .sort()
-                  .map((item, ind) => {
-                    return (
-                      <tr>
-                        <th scope="row">{ind + 1}</th>
-                        <td>{item}</td>
-                        <td>{this.state.itemwise[item].price}</td>
-                        <td>{this.state.itemwise[item].quantity}</td>
-                        <td align="right">{this.state.itemwise[item].quantity * this.state.itemwise[item].price}</td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-            <h4>Item wise return</h4>
             <table className="table table-bordered">
               <thead>
                 <tr>
@@ -198,23 +176,60 @@ class Report extends Component {
                   <th scope="col">Amount</th>
                 </tr>
               </thead>
-              <tbody style={{ color: "red" }}>
-                {Object.keys(this.state.itemwiseEdit)
-                  .sort()
-                  .map((item, ind) => {
-                    return (
-                      <tr>
-                        <th scope="row">{ind + 1}</th>
-                        <td>{item}</td>
-                        <td>{this.state.itemwiseEdit[item].price}</td>
-                        <td>{this.state.itemwiseEdit[item].quantity}</td>
-                        <td align="right">{this.state.itemwiseEdit[item].quantity * this.state.itemwiseEdit[item].price}</td>
-                      </tr>
-                    );
-                  })}
+              <tbody>
+                {this.state.itemwise.map((item, ind) => {
+                  return (
+                    <tr>
+                      <th scope="row">{ind + 1}</th>
+                      <td>{item.item}</td>
+                      <td>{item.price}</td>
+                      <td>{item.quantity}</td>
+                      <td align="right">{item.quantity * item.price}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
-          </Fragment>
+            <h4>Order Return Details</h4>
+            <ol>
+              {this.state.itemwiseEdit.map((order1, ind) => {
+                return (
+                  <li>
+                    <h5 align="left">At: {new Date(order1.at).toLocaleString("en-GB") + (order1.type === "edit" ? ", By: " + order1.by + ",  Reason: " + order1.reason : "")} </h5>
+                    <table className="table table-bordered">
+                      <thead>
+                        <tr>
+                          <th scope="col">Sr. No.</th>
+                          <th scope="col">Item Name</th>
+                          <th scope="col">Price</th>
+                          <th scope="col">Quantity</th>
+                          <th scope="col">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {order1.order.map((order, ind) => {
+                          return (
+                            <tr>
+                              <th scope="row">{ind + 1}</th>
+                              <td>{order.item}</td>
+                              <td>{order.price}</td>
+                              <td>{order.quantity}</td>
+                              <td>{order.quantity * order.price}</td>
+                            </tr>
+                          );
+                        })}
+                        <td />
+                        <td />
+                        <td />
+                        <td />
+                        <th>{order1.sum}</th>
+                      </tbody>
+                    </table>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
         ) : null}
       </div>
     );
