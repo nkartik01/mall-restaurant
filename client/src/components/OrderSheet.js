@@ -459,7 +459,6 @@ export default class OrderSheet extends Component {
                 </Fragment>
               ) : null}
               <button
-                hidden
                 className="btn btn-primary"
                 onClick={async (e) => {
                   e.preventDefault();
@@ -469,8 +468,10 @@ export default class OrderSheet extends Component {
                   propsTable.orderHistory.order = [];
                   propsTable.orderHistory.sum = 0;
                   propsTable.balance = 0;
+                  this.props.getRestaurants();
                   this.setState({});
                 }}
+                hidden={propsTable.bill === "" || propsTable.balance !== 0 ? true : false}
                 // disabled={propsTable.orderChange.sum !== 0 || propsTable.orderHistory.sum === 0 ? true : false}
               >
                 Free Table
