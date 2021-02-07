@@ -5,9 +5,6 @@ import AlertDiv from "../AlertDiv";
 import Payment from "./Payment";
 
 export default class OrderSheet extends Component {
-  constructor(props) {
-    super(props);
-  }
   afterDisc = () => {
     this.props.getRestaurants();
   };
@@ -26,7 +23,7 @@ export default class OrderSheet extends Component {
               <Nav varient="pills" className="flex-column">
                 {categories.map((category, i2) => {
                   return (
-                    <Nav.Item>
+                    <Nav.Item key={i2}>
                       <Nav.Link className={"activeColor"} style={{ borderBottom: "1px solid black" }} eventKey={"category-" + i2}>
                         {category}
                       </Nav.Link>
@@ -39,11 +36,12 @@ export default class OrderSheet extends Component {
               <Tab.Content>
                 {categories.map((category, i2) => {
                   return (
-                    <Tab.Pane eventKey={"category-" + i2} title={category}>
+                    <Tab.Pane eventKey={"category-" + i2} title={category} key={i2}>
                       <div className="row">
                         {menu[category].map((item, _) => {
                           return (
                             <div
+                              key={item.name}
                               style={{ backgroundColor: "yellow", border: "1px dotted black", verticalAlign: "middle" }}
                               className="card col-md-3"
                               id={propsTable.table + "-" + item.name + "-" + item.price + "-" + localStorage.getItem("username")}
@@ -113,7 +111,7 @@ export default class OrderSheet extends Component {
                       <tbody>
                         {propsTable.orderChange.order.map((item, i1) => {
                           return (
-                            <tr>
+                            <tr key={i1}>
                               <th scope="row">{i1 + 1}</th>
                               <td align="left">{item.item}</td>
                               <td> {item.price} </td>
@@ -191,7 +189,7 @@ export default class OrderSheet extends Component {
                         );
                         AlertDiv("green", "Order Added");
                         try {
-                          var res1 = await axios.post(
+                          await axios.post(
                             require("../config.json").url + "bill/printOrder",
                             {
                               order: propsTable.orderChange,
@@ -208,7 +206,7 @@ export default class OrderSheet extends Component {
                           AlertDiv("red", "Couldn't print order");
                         }
                         try {
-                          var res1 = await axios.post(
+                          await axios.post(
                             require("../config.json").url + "bill/printOrder",
                             {
                               kot: true,
@@ -251,11 +249,10 @@ export default class OrderSheet extends Component {
                         var order = [];
                         propsTable.orderHistory.order.map((ord, _) => {
                           order.push({ ...ord });
-                          return;
+                          return null;
                         });
-                        this.state.historyCopy = { order, sum: propsTable.orderHistory.sum };
-                        console.log(this.state.historyCopy);
-                        this.setState({ edit: true });
+
+                        this.setState({ edit: true, historyCopy: { order, sum: propsTable.orderHistory.sum } });
                       }}
                     >
                       Edit Order
@@ -300,7 +297,7 @@ export default class OrderSheet extends Component {
                           <tbody>
                             {this.state.historyCopy.order.map((item, i1) => {
                               return (
-                                <tr>
+                                <tr key={i1}>
                                   <th scope="row">{i1 + 1}</th>
                                   <td align="left">{item.item}</td>
                                   <td> {item.price} </td>
@@ -310,30 +307,31 @@ export default class OrderSheet extends Component {
                                       onClick={(e) => {
                                         e.preventDefault();
                                         console.log(this.state.historyCopy);
-                                        var x = this.state.historyCopy.order[i1].quantity;
+                                        var { historyCopy, proposedChanges } = this.state;
+                                        var x = historyCopy.order[i1].quantity;
                                         x = x - 1;
-                                        this.state.historyCopy.order[i1].quantity = x;
+                                        historyCopy.order[i1].quantity = x;
                                         var c = 0;
 
-                                        for (var i = 0; i < this.state.proposedChanges.order.length; i++) {
-                                          if (this.state.proposedChanges.order[i].item === this.state.historyCopy.order[i1].item) {
-                                            this.state.proposedChanges.order[i].quantity = this.state.proposedChanges.order[i].quantity + 1;
+                                        for (var i = 0; i < proposedChanges.order.length; i++) {
+                                          if (proposedChanges.order[i].item === historyCopy.order[i1].item) {
+                                            proposedChanges.order[i].quantity = proposedChanges.order[i].quantity + 1;
                                             c = 1;
                                             break;
                                           }
                                         }
 
                                         if (c === 0) {
-                                          this.state.proposedChanges.order.push({ item: item.item, price: parseInt(item.price), quantity: 1 });
+                                          proposedChanges.order.push({ item: item.item, price: parseInt(item.price), quantity: 1 });
                                         }
 
-                                        this.state.historyCopy.sum = parseInt(this.state.historyCopy.sum) - parseInt(item.price);
+                                        historyCopy.sum = parseInt(historyCopy.sum) - parseInt(item.price);
 
-                                        if (this.state.historyCopy.order[i1].quantity === 0) {
-                                          this.state.historyCopy.order.splice(i1, 1);
+                                        if (historyCopy.order[i1].quantity === 0) {
+                                          historyCopy.order.splice(i1, 1);
                                         }
-                                        this.state.proposedChanges.sum = this.state.proposedChanges.sum + parseInt(item.price);
-                                        this.setState({});
+                                        proposedChanges.sum = proposedChanges.sum + parseInt(item.price);
+                                        this.setState({ historyCopy, proposedChanges });
                                       }}
                                     >
                                       -
@@ -375,8 +373,9 @@ export default class OrderSheet extends Component {
                           value={this.state.proposedChanges.reason}
                           onChange={(e) => {
                             e.preventDefault();
-                            this.state.proposedChanges.reason = e.target.value;
-                            this.setState({});
+                            const { proposedChanges } = this.state;
+                            proposedChanges.reason = e.target.value;
+                            this.setState({ proposedChanges });
                           }}
                         />
                         <input type="submit" className="btn" value="Done" />
@@ -398,7 +397,7 @@ export default class OrderSheet extends Component {
                 <tbody>
                   {propsTable.orderHistory.order.map((item, i1) => {
                     return (
-                      <tr>
+                      <tr key={i1}>
                         <th scope="row">{i1 + 1}</th>
                         <td>{item.item}</td>
                         <td>{item.price}</td>

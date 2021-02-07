@@ -286,8 +286,7 @@ export default withRouter(
                     return (
                       <tr
                         onClick={(e) => {
-                          this.state.uid = card.id;
-                          this.state.phone = "";
+                          this.setState({ uid: card.id, phone: "" });
                           this.getCard(e);
                         }}
                       >
