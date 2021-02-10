@@ -2,7 +2,6 @@ import axios from "axios";
 import React, { Component, Fragment } from "react";
 import { withRouter } from "react-router-dom";
 import AlertDiv from "../AlertDiv";
-import { setData } from "../redux/action/loadedData";
 
 export default withRouter(
   class ManipulateRFID extends Component {
@@ -22,8 +21,6 @@ export default withRouter(
       }
     };
     onChange = (e) => {
-      console.log(this.props);
-      this.props.store.dispatch(setData({ hi: "bye" }));
       e.preventDefault();
       this.setState({ [e.target.id]: e.target.value });
     };
@@ -285,8 +282,13 @@ export default withRouter(
                   {this.state.cards.map((card, _) => {
                     return (
                       <tr
-                        onClick={(e) => {
-                          this.setState({ uid: card.id, phone: "" });
+                        onClick={async (e) => {
+                          this.setState({ uid: card.uid, phone: "" });
+                          const delay = (millis) =>
+                            new Promise((resolve, reject) => {
+                              setTimeout((_) => resolve(), millis);
+                            });
+                          await delay(100);
                           this.getCard(e);
                         }}
                       >

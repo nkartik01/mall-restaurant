@@ -7,7 +7,11 @@ const auth_operator = require("./middleware/auth_operator");
 const fs = require("fs");
 const XLSX = require("xlsx");
 const { table } = require("console");
-
+const Menu = require("./models/Menu");
+const Restaurant = require("./models/Restaurant");
+const Table = require("./models/Table");
+const Bill = require("./models/Bill");
+const ChefSide = require("./models/ChefSide");
 router.get("/listMenusFromFolder", async (req, res) => {
   try {
     return res.send({ menus: fs.readdirSync("./menus") });
@@ -19,10 +23,9 @@ router.get("/listMenusFromFolder", async (req, res) => {
 
 router.get("listMenus", async (req, res) => {
   try {
-    var menus = await db.collection("menu").get();
-    menus = menus.docs;
+    var menus = await Menu.find({});
     for (var i = 0; i < menus.length; i++) {
-      menus[i] = menus[i].id;
+      menus[i] = menus[i].menuId;
     }
     res.send({ menus: menus });
   } catch (err) {
@@ -31,7 +34,7 @@ router.get("listMenus", async (req, res) => {
   }
 });
 
-router.get("/setMenu/:menu", async (req, res) => {
+router.post("/setMenu/:menu", async (req, res) => {
   try {
     var workbook = XLSX.readFile("./menus/" + req.params.menu);
     var menu = {};
@@ -42,7 +45,9 @@ router.get("/setMenu/:menu", async (req, res) => {
       ref = ref.split(":");
       console.log(ref);
       var x1 = ref[1].match(/(\d+)/)[0];
-      // console.log(worksheet);
+      console.log(sheets[i]);
+      sheets[i] = sheets[i].replace(/"."/g, "");
+      console.log(sheets[i]);
       menu[sheets[i]] = [];
       for (var j = 1; j <= x1; j++) {
         menu[sheets[i]].push({
@@ -52,7 +57,10 @@ router.get("/setMenu/:menu", async (req, res) => {
         });
       }
     }
-    db.collection("menu").doc(req.params.menu).set({ menu: menu });
+    var id = req.params.menu;
+    var x = await Menu.findOne({ menuId: id });
+    if (!x) new Menu({ menuId: id, menu, order: sheets, kot: req.body.kot, disc: req.body.disc }).save();
+    else (await Menu.findOneAndUpdate({ menuId: id }, { menuId: id, menu, order: sheets, kot: req.body.kot, disc: req.body.disc }, { useFindAndModify: false })).save();
     return res.send(menu);
   } catch (err) {
     console.log(err);
@@ -62,17 +70,17 @@ router.get("/setMenu/:menu", async (req, res) => {
 
 router.get("/getRestaurantMenus", async (req, res) => {
   try {
-    var rests = await db.collection("restaurant").get();
-    rests = rests.docs;
+    var rests = await Restaurant.find({});
     var menus = {};
-    for (var k = 0; k < rests.length; k++) {
-      var rest = rests[k].data();
+    for (var i = 0; i < rests.length; i++) {
+      var rest = rests[i].toObject();
       var menu = [];
-      for (var l = 0; l < rest.menu.length; l++) {
-        var menu1 = await db.collection("menu").doc(rest.menu[l]).get();
-        menu.push(menu1.data());
+      for (var j = 0; j < rest.menu.length; j++) {
+        var menu1 = (await Menu.findOne({ menuId: rest.menu[j] })).toObject();
+        menu1.id = menu1.menuId;
+        menu.push(menu1);
       }
-      menus[rests[k].id] = menu;
+      menus[rest.restaurantId] = menu;
     }
     return res.send({ menus });
   } catch (err) {
@@ -83,12 +91,11 @@ router.get("/getRestaurantMenus", async (req, res) => {
 
 router.get("/addRestaurant/:name", auth_admin, async (req, res) => {
   try {
-    var rest = await db.collection("restaurant").doc(req.params.name).get();
-    rest = rest.data();
+    var rest = await Restaurant.findOne({ restaurantId: req.params.name });
     if (!!rest) {
       return res.status(400).send("Restaurant Already Exists");
     }
-    db.collection("restaurant").doc(req.params.name).set({ menu: [] });
+    new Restaurant({ restaurantId: req.params.name, menu: [] }).save();
     res.send("Added");
   } catch (err) {
     console.log(err);
@@ -98,12 +105,9 @@ router.get("/addRestaurant/:name", auth_admin, async (req, res) => {
 
 router.get("/restaurants", async (req, res) => {
   try {
-    var rests = await db.collection("restaurant").get();
-    rests = rests.docs;
+    var rests = await Restaurant.find({});
     for (var i = 0; i < rests.length; i++) {
-      var rest = rests[i].data();
-      rest.id = rests[i].id;
-      rests[i] = rest;
+      rests[i].id = rests[i].restaurantId;
     }
     res.send({ restaurants: rests });
   } catch (err) {
@@ -114,12 +118,11 @@ router.get("/restaurants", async (req, res) => {
 
 router.get("/getTables", async (req, res) => {
   try {
-    var tables = await db.collection("table").orderBy("table", "asc").orderBy("restaurant", "asc").get();
-    tables = tables.docs;
+    // var tables = await db.collection("table").orderBy("table", "asc").orderBy("restaurant", "asc").get();
+    var tables = await Table.find({}).sort("table").sort("restaurant");
     for (var i = 0; i < tables.length; i++) {
-      var table = tables[i].data();
-      table.id = tables[i].id;
-      tables[i] = table;
+      tables[i] = tables[i].toObject();
+      tables[i].id = tables[i].tableId;
     }
     return res.send({ tables: tables });
   } catch (err) {
@@ -130,8 +133,8 @@ router.get("/getTables", async (req, res) => {
 
 router.post("/updateTable", auth_operator, async (req, res) => {
   try {
-    var table1 = await db.collection("table").doc(req.body.table.id).get();
-    table1 = table1.data();
+    console.log(req.body);
+    var table1 = (await Table.findOne({ tableId: req.body.table.id })).toObject();
     var at = Date.now();
     req.body.orderChange.at = at;
     table1.orderHistory = req.body.orderHistory;
@@ -149,19 +152,24 @@ router.post("/updateTable", auth_operator, async (req, res) => {
         : table1.restaurant === "Umega Hotel"
         ? "UH-"
         : null;
-
+    console.log(table1, table1.restaurant);
     if (!table1.orderSnippets || table1.orderSnippets.length === 0) {
       table1.orderSnippets = [];
-      var bills = await db.collection("bill").where("restaurant", "==", table1.restaurant).get();
-      bills = bills.docs;
-      var bill = await db
-        .collection("bill")
-        .doc(prefix + (bills.length + 1).toString())
-        .set({ restaurant: table1.restaurant, table: table1.table, orderChanges: [], balance: 0, at, transactions: [], finalOrder: { order: [], sum: 0 } });
+      var bills = await Bill.find({ restaurant: table1.restaurant });
+      var bill = await new Bill({
+        billId: prefix + (bills.length + 1).toString(),
+        restaurant: table1.restaurant,
+        table: table1.table,
+        orderChanges: [],
+        balance: 0,
+        at,
+        transactions: [],
+        finalOrder: { order: [], sum: 0 },
+      }).save();
       table1.bill = prefix + (bills.length + 1).toString();
     }
-    var bill = await db.collection("bill").doc(table1.bill).get();
-    bill = bill.data();
+    console.log(table1.bill);
+    var bill = (await Bill.findOne({ billId: table1.bill })).toObject();
     bill.balance = bill.balance + req.body.orderChange.sum;
     table1.balance = bill.balance;
     var start = new Date();
@@ -170,19 +178,21 @@ router.post("/updateTable", auth_operator, async (req, res) => {
     var end = new Date();
     end.setHours(23, 59, 59, 999);
     end = end.valueOf();
-    var orders = await db.collection("chefSide").where("at", ">=", start).where("at", "<=", end).where("restaurant", "==", table1.restaurant).get();
-    orders = orders.docs;
+    var orders = await ChefSide.find({ at: { $gte: start, $lt: end }, restaurant: table1.restaurant });
     req.body.orderChange.orderNo = (orders.length + 1).toString();
     bill.orderChanges.push(req.body.orderChange);
     bill.finalOrder = req.body.orderHistory;
-    db.collection("bill").doc(table1.bill).set(bill);
+    (await Bill.findOneAndReplace({ billId: table1.bill }, bill)).save();
     table1.orderSnippets.push(req.body.orderChange);
-    db.collection("table").doc(req.body.table.id).set(table1);
+    (await Table.findOneAndReplace({ tableId: req.body.table.id }, table1)).save();
     //add oorder to chef side with timer and stuff
-
-    db.collection("chefSide")
-      .doc(prefix + (orders.length + 1).toString())
-      .set({ ...req.body.orderChange, restaurant: table1.restaurant, bill: table1.bill, orderNo: (orders.length + 1).toString() });
+    new ChefSide({
+      chefSideId: prefix + (orders.length + 1).toString(),
+      ...req.body.orderChange,
+      restaurant: table1.restaurant,
+      bill: table1.bill,
+      orderNo: (orders.length + 1).toString(),
+    }).save();
     res.send({ bill: table1.bill, orderId: (orders.length + 1).toString() });
   } catch (err) {
     console.log(err);
@@ -203,10 +213,13 @@ router.post("/freeTable", auth_operator, async (req, res) => {
     // ) {
     //   return res.status(400).send("Order not completed from kitchen");
     // }
-    await db
-      .collection("table")
-      .doc(req.body.table.id)
-      .update({ orderHistory: { order: [], sum: 0 }, orderSnippets: [], bill: "", balance: 0, discType: false, discAmount: 0 });
+    (
+      await Table.findOneAndUpdate(
+        { tableId: req.body.table.id },
+        { orderHistory: { order: [], sum: 0 }, orderSnippets: [], bill: "", balance: 0, discType: false, discAmount: 0 },
+        { useFindAndModify: false }
+      )
+    ).save();
     res.send("Done");
   } catch (err) {
     console.log(err);
@@ -222,18 +235,19 @@ router.get("/createTables", async (req, res) => {
   // for (var i = 0; i < tables.length; i++) {
   //   db.collection("table").doc(tables[i].id).delete();
   // }
-  // for (var i = 0; i < 3; i++) /{
-  for (var j = 0; j < 25; j++) {
-    db.collection("table").add({
-      orderHistory: { order: [], sum: 0 },
-      orderSnippets: [],
-      balance: 0,
-      bill: "",
-      restaurant: restaurants[1],
-      table: "Table" + ("0" + (j + 1)).slice(-2),
-    });
+  for (var i = 0; i < 2; i++) {
+    for (var j = 0; j < 15; j++) {
+      new Table({
+        orderHistory: { order: [], sum: 0 },
+        orderSnippets: [],
+        balance: 0,
+        bill: "",
+        restaurant: restaurants[i],
+        table: "Table" + ("0" + (j + 1)).slice(-2),
+        tableId: restaurants[i] + "-" + "Table" + ("0" + (j + 1)).slice(-2),
+      }).save();
+    }
   }
-  // /}
   res.send("done");
 });
 

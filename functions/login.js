@@ -7,16 +7,12 @@ const auth_operator = require("./middleware/auth_operator");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const config = require("config");
-
+const Admin = require("./models/Admin");
 router.post("/admin", async (req, res) => {
   try {
     const { username, password } = req.body;
     try {
-      const adminRef = db.collection("admin").doc(username);
-      var admin = await adminRef.get();
-      console.log(admin);
-      admin = admin.data();
-
+      var admin = (await Admin.findOne({ username })).toObject();
       const isMatch = await bcryptjs.compare(password, admin.password);
       if (!isMatch) {
         return res.status(400).send("Wrong Password");
@@ -46,13 +42,11 @@ router.post("/admin", async (req, res) => {
 router.post("/operator", async (req, res) => {
   try {
     const { username, password } = req.body;
-    var operator = await db.collection("operator").doc(username).get();
-    try {
-      operator = operator.data();
-    } catch (err) {
-      console.log(err);
+    var operator = await Operator.findOne({ username });
+    if (!operator) {
       return res.status(400).send("Operator not found");
     }
+    operator = operator.toObject();
     const isMatch = await bcryptjs.compare(password, operator.password);
     if (!isMatch) {
       return res.status(400).send("Wrong Password");

@@ -4,14 +4,14 @@ const admin = require("firebase-admin");
 const db = admin.firestore();
 const auth_admin = require("./middleware/auth_admin");
 const auth_operator = require("./middleware/auth_operator");
+const ChefSide = require("./models/ChefSide");
 
 router.get("/getPendingOrders", auth_operator, async (req, res) => {
   try {
-    var orders = db.collection("chefSide").get();
-    orders = (await orders).docs;
+    var orders = await ChefSide.find({});
     for (var i = 0; i < orders.length; i++) {
-      var order = orders[i].data();
-      order.id = orders[i].id;
+      var order = orders[i].toObject();
+      order.id = orders[i].chefSideId;
       orders[i] = order;
     }
     orders.map((order, i) => {

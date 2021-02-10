@@ -7,21 +7,24 @@ const auth_operator = require("./middleware/auth_operator");
 const ThermalPrinter = require("node-thermal-printer").printer;
 const PrinterTypes = require("node-thermal-printer").types;
 const printer = require("printer");
+const Bill = require("./models/Bill");
+const Table = require("./models/Table");
 router.get("/listBills/:x", async (req, res) => {
   try {
     var x = parseInt(req.params.x);
-    var bills = await db.collection("bill").orderBy("at", "desc").limit(x).get();
-    bills = bills.docs;
-    bills = bills.filter((bill, ind) => {
-      if (ind < x) {
-        return true;
-      }
-      return false;
-    });
+    var bills = await Bill.find({}).sort({ at: -1 }).limit(x);
+    // var bills = await db.collection("bill").orderBy("at", "desc").limit(x).get();
+    // bills = bills.docs;
+    // bills = bills.filter((bill, ind) => {
+    //   if (ind < x) {
+    //     return true;
+    //   }
+    //   return false;
+    // });
     for (ind = 0; ind < bills.length; ind++) {
-      var bill1 = bills[ind].data();
-      bill1.id = bills[ind].id;
-      bills[ind] = bill1;
+      bills[ind] = bills[ind].toObject();
+      bills[ind].id = bills[ind].billId;
+      console.log(bills[ind]);
     }
     res.send({ bills: bills });
   } catch (err) {
@@ -32,12 +35,14 @@ router.get("/listBills/:x", async (req, res) => {
 
 router.get("/getBill/:id", async (req, res) => {
   try {
-    var bill = await db.collection("bill").doc(req.params.id).get();
-    bill = bill.data();
-    bill.id = req.params.id;
+    var bill = await Bill.findOne({ billId: req.params.id });
+    // var bill = await db.collection("bill").doc(req.params.id).get();
+    // bill = bill.data();
     if (!bill) {
       return res.status(400).send("Bill not found");
     }
+    bill = bill.toObject();
+    bill.id = req.params.id;
     res.send({ bill });
   } catch (err) {
     console.log(err);
@@ -48,11 +53,10 @@ router.get("/getBill/:id", async (req, res) => {
 router.get("/pendingBills", auth_operator, async (req, res) => {
   try {
     var x = parseInt(req.params.x);
-    var bills = await db.collection("bill").where("balance", "!=", 0).orderBy("balance", "desc").orderBy("at", "desc").get();
-    bills = bills.docs;
+    var bills = await Bill.find({ balance: { $ne: 0 } }).sort({ balance: -1, at: -1 });
     for (ind = 0; ind < bills.length; ind++) {
-      var bill1 = bills[ind].data();
-      bill1.id = bills[ind].id;
+      var bill1 = bills[ind].toObject();
+      bill1.id = bills[ind].billId;
       bills[ind] = bill1;
     }
     res.send({ bills: bills });
@@ -68,12 +72,11 @@ router.post("/byCash", auth_operator, async (req, res) => {
       return res.status(400).send("Negetive amount not allowed.");
     }
     var now = Date.now();
-    var bill = await db.collection("bill").doc(req.body.bill).get();
-    bill = bill.data();
-
+    var bill = await Bill.findOne({ billId: req.body.bill });
     if (!bill) {
       return res.status(400).send("Issue with Bill");
     }
+    bill = bill.toObject();
     if (!bill.transactions) {
       bill.transactions = [];
     }
@@ -82,12 +85,11 @@ router.post("/byCash", auth_operator, async (req, res) => {
     }
     bill.balance = bill.balance - req.body.amount;
     if (req.body.table) {
-      db.collection("table").doc(req.body.table).update({ balance: bill.balance });
+      (await Table.findOneAndUpdate({ tableId: req.body.table }, { balance: bill.balance }, { useFindAndModify: false })).save();
     }
     bill.transactions.unshift({ type: "cash", by: req.operator.id, at: now, amount: req.body.amount });
-
-    var operator = await db.collection("operator").doc(req.operator.id).get();
-    operator = operator.data();
+    var operator = (await Operator.findOne({ operatorId: req.operator.id })).toObject();
+    console.log(operator);
     if (!operator.balance) {
       operator.balance = 0;
     }
@@ -96,8 +98,8 @@ router.post("/byCash", auth_operator, async (req, res) => {
       operator.transactions = [];
     }
     operator.transactions.unshift({ type: "cash", bill: req.body.bill, at: now, amount: req.body.amount });
-    db.collection("bill").doc(req.body.bill).set(bill);
-    db.collection("operator").doc(req.operator.id).set(operator);
+    (await Bill.findOneAndUpdate({ billId: req.body.bill }, bill, { useFindAndModify: false })).save();
+    (await Operator.findOneAndReplace({ operatorId: req.operator.id }, { ...operator }, { useFindAndModify: false })).save();
     res.send("Paid");
   } catch (err) {
     console.log(err);
@@ -111,12 +113,12 @@ router.post("/byCard", auth_operator, async (req, res) => {
       return res.status(400).send("Negetive amount not allowed.");
     }
     var now = Date.now();
-    var bill = await db.collection("bill").doc(req.body.bill).get();
-    bill = bill.data();
+    var bill = await Bill.findOne({ billId: req.body.bill });
 
     if (!bill) {
       return res.status(400).send("Issue with Bill");
     }
+    bill = bill.toObject();
     if (!bill.transactions) {
       bill.transactions = [];
     }
@@ -125,12 +127,11 @@ router.post("/byCard", auth_operator, async (req, res) => {
     }
     bill.balance = bill.balance - req.body.amount;
     if (req.body.table) {
-      db.collection("table").doc(req.body.table).update({ balance: bill.balance });
+      Table.findOneAndUpdate({ tableId: req.body.table }, { balance: bill.balance }, { useFindAndModify: false });
     }
     bill.transactions.unshift({ type: "card", by: req.operator.id, at: now, amount: req.body.amount, tranId: req.body.tranId });
 
-    var operator = await db.collection("operator").doc(req.operator.id).get();
-    operator = operator.data();
+    var operator = (await Operator.findOne({ operatorId: req.operator.id })).toObject();
     if (!operator.balance) {
       operator.balance = 0;
     }
@@ -139,8 +140,8 @@ router.post("/byCard", auth_operator, async (req, res) => {
     }
 
     operator.transactions.unshift({ at: now, tranId: req.body.tranId, amount: req.body.amount, bill: req.body.bill, type: "Card" });
-    db.collection("bill").doc(req.body.bill).set(bill);
-    db.collection("operator").doc(req.operator.id).set(operator);
+    (await Bill.findOneAndUpdate({ billId: req.body.bill }, bill, { useFindAndModify: false })).save();
+    (await Operator.findOneAndReplace({ operatorId: req.operator.id }, { ...operator }, { useFindAndModify: false })).save();
     res.send("Paid");
   } catch (err) {
     console.log(err);
@@ -154,12 +155,12 @@ router.post("/byUpi", auth_operator, async (req, res) => {
       return res.status(400).send("Negetive amount not allowed.");
     }
     var now = Date.now();
-    var bill = await db.collection("bill").doc(req.body.bill).get();
-    bill = bill.data();
+    var bill = await Bill.findOne({ billId: req.body.bill });
 
     if (!bill) {
       return res.status(400).send("Issue with Bill");
     }
+    bill.toObject();
     if (!bill.transactions) {
       bill.transactions = [];
     }
@@ -168,12 +169,11 @@ router.post("/byUpi", auth_operator, async (req, res) => {
     }
     bill.balance = bill.balance - req.body.amount;
     if (req.body.table) {
-      db.collection("table").doc(req.body.table).update({ balance: bill.balance });
+      Table.findOneAndUpdate({ tableId: req.body.table }, { balance: bill.balance }, { useFindAndModify: false });
     }
     bill.transactions.unshift({ type: "upi", by: req.operator.id, at: now, amount: req.body.amount, tranId: req.body.tranId });
 
-    var operator = await db.collection("operator").doc(req.operator.id).get();
-    operator = operator.data();
+    var operator = (await Operator.findOne({ operatorId: req.operator.id })).toObject();
     if (!operator.balance) {
       operator.balance = 0;
     }
@@ -182,8 +182,8 @@ router.post("/byUpi", auth_operator, async (req, res) => {
     }
 
     operator.transactions.unshift({ at: now, tranId: req.body.tranId, amount: req.body.amount, bill: req.body.bill, type: "UPI" });
-    db.collection("bill").doc(req.body.bill).set(bill);
-    db.collection("operator").doc(req.operator.id).set(operator);
+    (await Bill.findOneAndUpdate({ billId: req.body.bill }, bill, { useFindAndModify: false })).save();
+    (await Operator.findOneAndReplace({ operatorId: req.operator.id }, { ...operator }, { useFindAndModify: false })).save();
     res.send("Paid");
   } catch (err) {
     console.log(err);
@@ -246,8 +246,7 @@ router.post("/printBill", async (req, res) => {
       // return print.table([i + 1, order.item, order.price, order.quantity, order.price * order.quantity]);
     });
     print.drawLine();
-    var bill = await db.collection("bill").doc(req.body.bill).get();
-    bill = bill.data();
+    var bill = (await Bill.findOne({ billId: req.body.bill })).toObject();
 
     var orders = [];
     bill.orderChanges.map((order, _) => {
@@ -366,11 +365,11 @@ router.post("/printOrder", async (req, res) => {
 
 router.post("/addDiscount", auth_operator, async (req, res) => {
   try {
-    var bill = await db.collection("bill").doc(req.body.bill).get();
-    bill = bill.data();
+    var bill = await Bill.findOne({ billId: req.body.bill });
     if (!bill) {
       return res.status(400), send("Bill not found");
     }
+    bill = bill.toObject();
     if (bill.discType && bill.discType !== "none") {
       bill.balance = bill.balance + bill.discAmount;
     }
@@ -381,9 +380,7 @@ router.post("/addDiscount", auth_operator, async (req, res) => {
     bill.discAmount = req.body.discAmount;
     if (req.body.table) {
       console.log(req.body.table);
-      var table = await db.collection("table").doc(req.body.table).get();
-
-      table = table.data();
+      var table = (await Table.findOne({ tableId: req.body.table })).toObject();
       if (table.discType && table.discType !== "none") {
         table.balance = table.balance + table.discAmount;
       }
@@ -392,9 +389,9 @@ router.post("/addDiscount", auth_operator, async (req, res) => {
       table.balance = table.balance - req.body.discAmount;
       table.discReason = req.body.discReason;
       table.discAmount = req.body.discAmount;
-      db.collection("table").doc(req.body.table).set(table);
+      (await Table.findOneAndUpdate({ tableId: req.body.table }, table, { useFindAndModify: false })).save();
     }
-    db.collection("bill").doc(req.body.bill).set(bill);
+    (await Bill.findOneAndUpdate({ billId: req.body.bill }, bill, { useFindAndModify: false })).save();
     res.send("Discount Applied");
   } catch (err) {
     console.log(err, err.response);
@@ -409,29 +406,27 @@ router.get("/printers", auth_admin, async (req, res) => {
 });
 
 router.get("/clearBills", async (req, res) => {
-  var bills = await db.collection("table").where("restaurant", "==", "Perry Club").get();
-  bills = bills.docs;
-  for (var i = 0; i < bills.length; i++) {
-    db.collection("table").doc(bills[i].id).delete();
-  }
+  // var bills = await db.collection("table").where("restaurant", "==", "Perry Club").get();
+  // bills = bills.docs;
+  // for (var i = 0; i < bills.length; i++) {
+  //   db.collection("table").doc(bills[i].id).delete();
+  // }
   res.send("done");
 });
 
 router.post("/editBill", auth_operator, async (req, res) => {
   try {
-    var bill = await db.collection("bill").doc(req.body.bill).get();
-    bill = bill.data();
+    var bill = (await Bill.findOne({ billId: req.body.bill })).toObject();
     console.log(req.body.orderHistory);
     bill.finalOrder = req.body.orderHistory;
     bill.balance = bill.balance - req.body.orderChange.sum;
-    var table = await db.collection("table").doc(req.body.table).get();
-    table = table.data();
+    var table = (await Table.findOne({ tableId: req.body.table })).toObject();
     table.balance = table.balance - req.body.orderChange.sum;
     table.orderHistory = req.body.orderHistory;
     req.body.orderChange.sum = req.body.orderChange.sum * -1;
     bill.orderChanges.push({ ...req.body.orderChange, type: "edit", by: req.operator.id, at: Date.now() });
-    db.collection("bill").doc(req.body.bill).set(bill);
-    db.collection("table").doc(req.body.table).set(table);
+    (await Table.findOneAndUpdate({ tableId: req.body.table }, table, { useFindAndModify: false })).save();
+    (await Bill.findOneAndUpdate({ billId: req.body.bill }, bill, { useFindAndModify: false })).save();
     res.send("done");
   } catch (err) {
     console.log(err);

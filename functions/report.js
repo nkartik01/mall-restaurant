@@ -13,15 +13,14 @@ router.post("/sale", async (req, res) => {
     var end = new Date(parseInt(req.body.end));
     end.setHours(23, 59, 59, 999);
     end = end.valueOf();
-    var bills = db.collection("bill").where("at", ">=", start).where("at", "<=", end);
+
+    var bills = await Bill.find({ at: { $gt: start, $lte: end } });
     if (req.body.restaurant !== "overall") {
       bills = bills.where("restaurant", "==", req.body.restaurant);
     }
-    bills = await bills.get();
-    bills = bills.docs;
     for (var i = 0; i < bills.length; i++) {
-      var bill = bills[i].data();
-      bill.id = bills[i].id;
+      var bill = bills[i].toObject();
+      bill.id = bills[i].billId;
       bills[i] = bill;
     }
     var sum = 0;

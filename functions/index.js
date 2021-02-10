@@ -1,6 +1,7 @@
 const functions = require("firebase-functions");
 const express = require("express");
 const admin = require("firebase-admin");
+const connectDB = require("./config/db");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 var serviceAccount = require("./mall-restraunt-firebase-adminsdk-qdvnt-161a87ebf0");
@@ -10,6 +11,7 @@ admin.initializeApp({
   storageBucket: "https://mall-restaurant.appspot.com",
 });
 var app = express();
+
 app.use(bodyParser.json());
 app.use(express.json({ extended: false }));
 // app.use(cors(corsOpts));
@@ -25,4 +27,9 @@ app.use("/report", require("./report"));
 // Create and Deploy Your First Cloud Functions
 // https://firebase.google.com/docs/functions/write-firebase-functions
 
-exports.api = functions.https.onRequest(app);
+// exports.api = functions.https.onRequest(app);
+connectDB().then(async () =>
+  app.listen(5000, () => {
+    console.log("Listening");
+  })
+);

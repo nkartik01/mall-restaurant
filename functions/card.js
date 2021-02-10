@@ -4,17 +4,18 @@ const admin = require("firebase-admin");
 const db = admin.firestore();
 const auth_admin = require("./middleware/auth_admin");
 const auth_operator = require("./middleware/auth_operator");
+const Card = require("./models/Card");
+const Table = require("./models/Table");
 // router.post("/registerCard", auth_admin, async (req, res) => {
 router.post("/registerCard", auth_admin, async (req, res) => {
   try {
     var uid = req.body.uid;
     console.log(uid);
-    var card = await db.collection("card").doc(uid).get();
-    card = card.data();
+    var card = await Card.findOne({ uid });
     if (card) {
       return res.status(400).send("Already Registered");
     }
-    db.collection("card").doc(uid).set({ uid, balance: 0, transactions: [], category: "regular", holder: {}, registerdBy: req.admin.id });
+    new Card({ uid, balance: 0, transactions: [], category: "regular", holder: { assigned: false }, registerdBy: req.admin.id, cardId: uid }).save();
     return res.send("Card Created");
   } catch (err) {
     console.log(err);
@@ -24,11 +25,11 @@ router.post("/registerCard", auth_admin, async (req, res) => {
 
 router.get("/getCard/:uid", auth_operator, async (req, res) => {
   try {
-    var card = await db.collection("card").doc(req.params.uid).get();
-    card = card.data();
+    var card = await Card.findOne({ uid: req.params.uid });
     if (!card) {
       return res.status(400).send("card not found");
     }
+    card = card.toObject();
     res.send({ card });
   } catch (err) {
     console.log(err);
@@ -42,9 +43,8 @@ router.post("/addAmount", auth_operator, async (req, res) => {
       return res.status(400).send("Negetive amount not allowed.");
     }
     var uid = req.body.uid;
-    var cardRef = db.collection("card").doc(uid);
-    var card = await cardRef.get();
-    card = card.data();
+    var card = await Card.findOne({ uid });
+    card = card.toObject();
     card.balance = card.balance + req.body.amount;
     card.transactions.unshift({
       by: req.operator.id,
@@ -52,13 +52,13 @@ router.post("/addAmount", auth_operator, async (req, res) => {
       details: { prevBalance: card.balance - req.body.amount, newBalance: card.balance, amount: req.body.amount },
       at: Date.now(),
     });
-    var operator = await db.collection("operator").doc(req.operator.id).get();
-    operator = operator.data();
+    var operator = await Operator.findOne({ operatorId: req.operator.id });
+    operator = operator.toObject();
     operator.balance = operator.balance + req.body.amount;
     if (!operator.transactions) operator.transactions = [];
     operator.transactions.unshift({ type: "balanceAdd", amount: req.body.amount, at: Date.now() });
-    db.collection("operator").doc(req.operator.id).set(operator);
-    cardRef.set(card);
+    (await Operator.findOneAndUpdate({ operatorId: req.operator.id }, operator, { useFindAndModify: false })).save();
+    (await Card.findOneAndUpdate({ uid }, card, { useFindAndModify: false })).save();
     return res.send("amount added");
   } catch (err) {
     console.log(err);
@@ -72,9 +72,8 @@ router.post("/deductAmount", auth_operator, async (req, res) => {
       return res.status(400).send("Negetive amount not allowed.");
     }
     var uid = req.body.uid;
-    var cardRef = db.collection("card").doc(uid);
-    var card = await cardRef.get();
-    card = card.data();
+    var card = await Card.findOne({ uid });
+    card = card.toObject();
     if (!card) {
       return res.status(400).send("Card not recognized");
     }
@@ -97,8 +96,8 @@ router.post("/deductAmount", auth_operator, async (req, res) => {
     });
     console.log(card);
 
-    var bill = await db.collection("bill").doc(req.body.bill).get();
-    bill = bill.data();
+    var bill = await Bill.findOne({ billId: req.body.bill });
+    bill = bill.toObject();
 
     if (!bill) {
       return res.status(400).send("Issue with Bill");
@@ -111,14 +110,15 @@ router.post("/deductAmount", auth_operator, async (req, res) => {
     }
     bill.balance = bill.balance - req.body.amount;
     if (req.body.table) {
-      db.collection("table").doc(req.body.table).update({ balance: bill.balance });
+      (await Table.findOneAndUpdate({ tableId: req.body.table }, { balance: bill.balance }, { useFindAndModify: false })).save();
     }
-    var operator = await db.collection("operator").doc(req.operator.id).get();
-    operator = operator.data();
+    var operator = await Operator.findOne({ operatorId: req.operator.id });
+    operator = operator.toObject();
     bill.transactions.unshift({ type: "rfid", rfid: req.body.uid, by: req.operator.id, at: now, amount: req.body.amount });
     operator.transactions.unshift({ type: "rfid", tranId: req.body.uid, at: now, amount: req.body.amount, bill: req.body.bill });
-    db.collection("bill").doc(req.body.bill).set(bill);
-    cardRef.set(card);
+    (await Bill.findOneAndUpdate({ billId: req.body.bill }, bill, { useFindAndModify: false })).save();
+    (await Card.findOneAndUpdate({ cardId: uid }, card, { useFindAndModify: false })).save();
+    (await Operator.findOneAndUpdate({ operatorId: req.operator.id }, operator, { useFindAndModify: false })).save();
     return res.send("amount deducted sucessfully");
   } catch (err) {
     console.log(err);
@@ -128,13 +128,20 @@ router.post("/deductAmount", auth_operator, async (req, res) => {
 
 router.post("/assign", auth_operator, async (req, res) => {
   try {
-    var card = await db.collection("card").doc(req.body.uid).get();
-    card = card.data();
+    var card = await Card.findOne({ uid: req.body.uid });
+    card = card.toObject();
     card.holder = req.body.holder;
     card.holder.assigned = true;
     card.balance = parseInt(req.body.balance);
     card.transactions.unshift({ type: "assign", by: req.operator.id, details: { to: card.holder }, at: parseInt(Date.now()) });
-    await db.collection("card").doc(req.body.uid).set(card);
+    var operator = await Operator.findOne({ operatorId: req.operator.id });
+    operator = operator.toObject();
+    operator.balance = parseInt(operator.balance) + parseInt(req.body.balance);
+    if (!operator.transactions) operator.transactions = [];
+    operator.transactions.unshift({ type: "assign", amount: req.body.balance, at: Date.now(), details: { to: card.holder } });
+    (await Operator.findOneAndUpdate({ operatorId: req.operator.id }, operator, { useFindAndModify: false })).save();
+
+    (await Card.findOneAndUpdate({ uid: req.body.uid }, card, { useFindAndModify: false })).save();
     return res.send("Assigned");
   } catch (err) {
     console.log(err);
@@ -144,18 +151,17 @@ router.post("/assign", auth_operator, async (req, res) => {
 
 router.post("/retire", auth_operator, async (req, res) => {
   try {
-    var card = await db.collection("card").doc(req.body.uid).get();
-    var operator = await db.collection("operator").doc(req.operator.id).get();
-    operator = operator.data();
-
-    card = card.data();
+    var card = await Card.findOne({ uid: req.body.uid });
+    var operator = await Operator.findOne({ operatorId: req.operator.id });
+    operator = operator.toObject();
+    card = card.toObject();
     card.holder = { assigned: false };
     card.transactions.unshift({ type: "retire", by: req.operator.id, at: parseInt(Date.now()), details: { paidAmount: card.balance } });
     operator.balance = operator.balance - card.balance;
     if (!operator.transactions) operator.transactions = [];
     operator.transactions.unshift({ type: "retire", amount: card.balance, at: Date.now() });
-    db.collection("operator").doc(req.operator.id).set(operator);
-    db.collection("card").doc(req.body.uid).set(card);
+    (await Operator.findOneAndUpdate({ operatorId: req.operator.id }, operator, { useFindAndModify: false })).save();
+    (await Card.findOneAndUpdate({ uid: req.body.uid }, card, { useFindAndModify: false })).save();
     return res.send("Retired");
   } catch (err) {
     console.log(err);
@@ -165,13 +171,12 @@ router.post("/retire", auth_operator, async (req, res) => {
 
 router.get("/searchByPhone/:phone", auth_operator, async (req, res) => {
   try {
-    var cards = await db.collection("card").where("holder.mobile", "==", req.params.phone).get();
+    var cards = await Card.find({ "holder.mobile": req.params.phone });
     // console.log(cards);
-    cards = cards.docs;
 
     for (var i = 0; i < cards.length; i++) {
-      var card = cards[i].data();
-      card.id = cards[i].id;
+      var card = cards[i].toObject();
+      card.id = cards[i].cardId;
       cards[i] = card;
     }
     res.send({ cards: cards });
