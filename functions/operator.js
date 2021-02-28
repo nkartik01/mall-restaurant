@@ -7,17 +7,15 @@ const auth_operator = require("./middleware/auth_operator");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const config = require("config");
-
 router.post("/edit", auth_admin, async (req, res) => {
   const { username, password } = req.body;
   try {
-    var operator = await db.collection("operator").where("username", "==", username).get();
-    console.log(operator.size, operator.docs.length);
-    if (operator.size === 0) {
+    var operator = await Operator.findOne({ username });
+    if (!operator) {
       return res.status(400).send("Operator doesnt exist");
     }
-    operator = operator.docs[0].data();
-    operator = { ...operator, name: req.body.name, username: username, balance: req.body.balance, permissions: req.body.permissions, lastEdited: req.admin.id };
+    operator = operator.toObject();
+    operator = { ...operator, name: req.body.name, username: username, balance: parseInt(req.body.balance), permissions: req.body.permissions, lastEdited: req.admin.id };
     if (!operator.transactions) operator.transactions = [];
     operator.transactions.unshift({
       type: "operatorEdit",
@@ -26,19 +24,8 @@ router.post("/edit", auth_admin, async (req, res) => {
       bill: "Done By: " + req.admin.id,
     });
     try {
-      await admin.firestore().collection("operator").doc(username).update(operator);
-      const payload = {
-        user: {
-          id: username,
-        },
-      };
-      jwt.sign(payload, config.get("JWTSecretOperator"), (err, token) => {
-        if (err) throw err;
-        return res.status(200).json({
-          token: token,
-          id: username,
-        });
-      });
+      (await Operator.findOneAndReplace({ username }, operator, { useFindAndModify: false })).save();
+      res.send("Done");
     } catch (err) {
       console.log(err);
       return res.status(400).json(err);
@@ -51,10 +38,11 @@ router.post("/edit", auth_admin, async (req, res) => {
 
 router.get("/getOperator/:username", async (req, res) => {
   try {
-    var operator = await db.collection("operator").doc(req.params.username).get();
-    if (operator.data()) {
-      return res.send(operator.data());
+    var operator = await Operator.findOne({ username: req.params.username });
+    if (operator) {
+      return res.send(operator);
     }
+    operator = operator.toObject();
     return res.status(400).send("No operator found");
   } catch (err) {
     console.log(err);
@@ -64,11 +52,9 @@ router.get("/getOperator/:username", async (req, res) => {
 
 router.get("/getOperatorList", auth_admin, async (req, res) => {
   try {
-    var operators = await db.collection("operator").get();
-
-    operators = operators.docs;
+    var operators = await Operator.find({});
     for (var i = 0; i < operators.length; i++) {
-      operators[i] = operators[i].data();
+      operators[i] = operators[i].toObject();
       operators[i] = {
         name: operators[i].name,
         username: operators[i].username,
@@ -83,8 +69,7 @@ router.get("/getOperatorList", auth_admin, async (req, res) => {
 
 router.get("/getPermissions", auth_operator, async (req, res) => {
   try {
-    var operator = await db.collection("operator").doc(req.operator.id).get();
-    operator = operator.data();
+    var operator = (await Operator.findOne({ username: req.operator.id })).toObject();
     res.send({ permissions: operator.permissions });
   } catch (err) {
     console.log(err);

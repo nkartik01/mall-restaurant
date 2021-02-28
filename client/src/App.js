@@ -21,7 +21,7 @@ function App(props) {
     <div className="App" style={{ height: "100%" }}>
       <Router align="center">
         <Header />
-        <div id="alertDiv" style={{ left: "2.5%", position: "fixed", zIndex: 20, width: "95%", top: 20 }} align="center"></div>
+        <div id="alertDiv" style={{ left: "2.5%", position: "fixed", zIndex: 99999999, width: "95%", top: 20 }} align="center"></div>
         <Switch>
           <Route path="/report" component={Report} />
           <Route path="/booking" component={Booking} />

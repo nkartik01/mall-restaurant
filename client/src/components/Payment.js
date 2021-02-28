@@ -217,7 +217,7 @@ export default class Payment extends Component {
           onSubmit={async (e) => {
             e.preventDefault();
             try {
-              // console.log()
+              if (this.state.partial) document.getElementById("partialForm").submit();
               var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
               if (!window.confirm("Are you sure you want to deduct Rs." + tranAmount + " from this card?")) return;
               await axios.post(
@@ -303,6 +303,7 @@ export default class Payment extends Component {
 
             try {
               // console.log()
+              if (this.state.partial) document.getElementById("partialForm").submit();
               var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
               var received = parseInt(prompt("Cash Tendered by Customer"));
               if (!received || received === 0) return;

@@ -20,7 +20,7 @@ export default class OrderSheet extends Component {
               <h3 style={{ backgroundColor: "red", color: "white" }}>Ordering for {propsTable.table}</h3>
               <Nav varient="pills" className="flex-column">
                 {this.props.menu.map((menu, _) => {
-                  var categories = Object.keys(menu.menu);
+                  var categories = menu.order;
                   return (
                     <Fragment>
                       {categories.map((category, _) => {
@@ -40,7 +40,7 @@ export default class OrderSheet extends Component {
             <Col sm={6} style={{ border: "1px solid black" }}>
               <Tab.Content>
                 {this.props.menu.map((menu, _) => {
-                  var categories = Object.keys(menu.menu);
+                  var categories = menu.order;
                   return (
                     <Fragment>
                       {categories.map((category, _) => {
@@ -57,6 +57,7 @@ export default class OrderSheet extends Component {
                                     id={propsTable.table + "-" + item.name + "-" + item.price + "-" + localStorage.getItem("username")}
                                     onClick={(e) => {
                                       e.preventDefault();
+                                      if (this.state.edit) return;
                                       if (!propsTable.orderChange) {
                                         propsTable.orderChange = { order: [], sum: 0 };
                                       }
@@ -72,6 +73,7 @@ export default class OrderSheet extends Component {
                                         propsTable.orderChange.order.push({
                                           disc: menu.disc,
                                           item: item.name,
+                                          kot: menu.kot,
                                           category,
                                           price: parseInt(item.price),
                                           quantity: 1,
@@ -131,6 +133,7 @@ export default class OrderSheet extends Component {
                               <td> {item.price} </td>
                               <td>
                                 <button
+                                  disabled={this.state.edit}
                                   style={{ borderRadius: "100%" }}
                                   onClick={() => {
                                     var x = propsTable.orderChange.order[i].quantity;
@@ -148,6 +151,7 @@ export default class OrderSheet extends Component {
                                 </button>
                                 {" " + item.quantity + " "}
                                 <button
+                                  disabled={this.state.edit}
                                   style={{ borderRadius: "100%" }}
                                   onClick={() => {
                                     console.log(propsTable.orderHistory);
@@ -202,6 +206,39 @@ export default class OrderSheet extends Component {
                           { headers: { "x-auth-token": localStorage.getItem("token") } }
                         );
                         AlertDiv("green", "Order Added");
+                        var orders = {};
+                        propsTable.orderChange.order.map((item, _) => {
+                          if (!orders[item.kot]) {
+                            orders[item.kot] = { order: [], sum: 0 };
+                          }
+                          orders[item.kot].order.push(item);
+                          orders[item.kot].sum = orders[item.kot].sum + item.price * item.quantity;
+                          return null;
+                        });
+                        console.log(orders);
+                        Object.keys(orders)
+                          .sort()
+                          .map(async (order, _) => {
+                            try {
+                              await axios.post(
+                                require("../config.json").url + "bill/printOrder",
+                                {
+                                  kot: true,
+                                  order: orders[order],
+                                  table: propsTable.table,
+                                  bill: res.data.bill,
+                                  orderId: res.data.orderId,
+                                  printer: order,
+                                  restaurant: propsTable.restaurant,
+                                },
+                                { headers: { "x-auth-token": localStorage.getItem("token") } }
+                              );
+                            } catch (err) {
+                              console.log(err, err.response);
+                              AlertDiv("red", "Couldn't print KOT");
+                            }
+                            return null;
+                          });
                         try {
                           await axios.post(
                             require("../config.json").url + "bill/printOrder",
@@ -219,24 +256,6 @@ export default class OrderSheet extends Component {
                           console.log(err, err.response);
                           AlertDiv("red", "Couldn't print order");
                         }
-                        try {
-                          await axios.post(
-                            require("../config.json").url + "bill/printOrder",
-                            {
-                              kot: true,
-                              order: propsTable.orderChange,
-                              table: propsTable.table,
-                              bill: res.data.bill,
-                              orderId: res.data.orderId,
-                              printer: localStorage.getItem("kotPrinter"),
-                              restaurant: propsTable.restaurant,
-                            },
-                            { headers: { "x-auth-token": localStorage.getItem("token") } }
-                          );
-                        } catch (err) {
-                          console.log(err, err.response);
-                          AlertDiv("red", "Couldn't print KOT");
-                        }
                         propsTable.bill = res.data.bill;
                         propsTable.orderChange.order = [];
                         propsTable.orderChange.sum = 0;
@@ -244,7 +263,7 @@ export default class OrderSheet extends Component {
                         this.setState({});
                         this.props.getRestaurants();
                       }}
-                      disabled={propsTable.orderChange.sum === 0 ? true : false}
+                      disabled={this.state.edit || propsTable.orderChange.sum === 0 ? true : false}
                     >
                       Add to Order
                     </button>
@@ -256,7 +275,7 @@ export default class OrderSheet extends Component {
                 <Fragment>
                   {!this.state.edit ? (
                     <button
-                      disabled={propsTable.orderHistory.sum === 0}
+                      disabled={propsTable.orderHistory.sum === 0 || propsTable.orderChange.sum === 0}
                       className="btn btn-primary"
                       onClick={(e) => {
                         e.preventDefault();
@@ -320,7 +339,7 @@ export default class OrderSheet extends Component {
                                       style={{ borderRadius: "100%" }}
                                       onClick={(e) => {
                                         e.preventDefault();
-                                        console.log(this.state.historyCopy);
+                                        console.log(this.state);
                                         var { historyCopy, proposedChanges } = this.state;
                                         var x = historyCopy.order[i].quantity;
                                         x = x - 1;
@@ -329,7 +348,7 @@ export default class OrderSheet extends Component {
 
                                         for (var j = 0; j < proposedChanges.order.length; j++) {
                                           if (proposedChanges.order[j].item === historyCopy.order[i].item) {
-                                            proposedChanges.order[j].quantity = proposedChanges.order[i].quantity + 1;
+                                            proposedChanges.order[j].quantity = proposedChanges.order[j].quantity + 1;
                                             c = 1;
                                             break;
                                           }
@@ -392,7 +411,16 @@ export default class OrderSheet extends Component {
                             this.setState({ proposedChanges });
                           }}
                         />
-                        <input type="submit" className="btn" value="Done" />
+                        <button
+                          className="btn btn-secondary"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            this.setState({ edit: false });
+                          }}
+                        >
+                          Cancel
+                        </button>
+                        <input type="submit" className="btn btn-secondary" value="Done" />
                       </form>
                     </Fragment>
                   )}

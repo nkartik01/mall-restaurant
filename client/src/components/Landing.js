@@ -3,12 +3,13 @@ import React, { Component, Fragment } from "react";
 import AlertDiv from "../AlertDiv";
 import AdminLogin from "./AdminLogin";
 import OperatorLogin from "./OperatorLogin";
-
+import Availability from "./Availability";
 export default class Landing extends Component {
   state = {
     printers: [],
     printer: localStorage.getItem("printer") ? localStorage.getItem("printer") : "",
-    kotPrinter: localStorage.getItem("kotPrinter") ? localStorage.getItem("kotPrinter") : "",
+    kotPrinter: "",
+    disc: true,
     menus: [],
     restaurants: [],
   };
@@ -78,7 +79,7 @@ export default class Landing extends Component {
                   onSubmit={(e) => {
                     e.preventDefault();
                     try {
-                      axios.get(require("../config.json").url + "menu/setMenu/" + this.state.menu);
+                      axios.post(require("../config.json").url + "menu/setMenu/" + this.state.menu, { kot: this.state.kot, disc: this.state.disc });
                       AlertDiv("green", "Menu Updated");
                     } catch {
                       AlertDiv("red", "Excel Format not correct, Check server console");
@@ -86,6 +87,7 @@ export default class Landing extends Component {
                   }}
                 >
                   <select
+                    required
                     value={this.state.menu}
                     onChange={(e) => {
                       e.preventDefault();
@@ -95,6 +97,35 @@ export default class Landing extends Component {
                     <option value={null}></option>
                     {this.state.menus.map((menu, _) => {
                       return <option value={menu}>{menu}</option>;
+                    })}
+                  </select>
+                  <label>Discount: </label>
+                  <select
+                    required
+                    value={this.state.disc}
+                    onChange={(e) => {
+                      e.preventDefault();
+                      this.setState({ disc: e.target.value === "true" ? true : false });
+                    }}
+                  >
+                    <option value={true}>True</option>
+                    <option value={false}>False</option>
+                  </select>
+                  <label>Printer: </label>
+                  <select
+                    required
+                    value={this.state.kot}
+                    onChange={(e) => {
+                      e.preventDefault();
+                      this.setState({ kot: e.target.value });
+                    }}
+                  >
+                    {this.state.printers.map((printer, _) => {
+                      return (
+                        <option key={printer.name} id={printer.name}>
+                          {printer.name}
+                        </option>
+                      );
                     })}
                   </select>
                   <input type="submit" value="Submit" />
@@ -158,7 +189,11 @@ export default class Landing extends Component {
             </div>
           </Fragment>
         ) : null}
-        {status === "operator" ? <Fragment></Fragment> : null}
+        {status === "operator" ? (
+          <Fragment>
+            <Availability />
+          </Fragment>
+        ) : null}
       </div>
     );
   }

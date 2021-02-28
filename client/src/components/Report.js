@@ -150,7 +150,7 @@ class Report extends Component {
                   return (
                     <tr>
                       <th scope="row">{ind + 1}</th>
-                      <td>{bill.id}</td>
+                      <td>{bill.billId}</td>
                       {/* <td>{bill.to}</td> */}
                       <td align="right">{bill.finalOrder.sum}</td>
                       {/* <td>{bill.balance}</td> */}
