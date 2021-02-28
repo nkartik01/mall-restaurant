@@ -77,6 +77,9 @@ router.post("/deductAmount", auth_operator, async (req, res) => {
     if (!card) {
       return res.status(400).send("Card not recognized");
     }
+    if (!card.assigned) {
+      return res.status(400).send("Alert!!!! Card not assigned");
+    }
     if (card.balance < req.body.amount) {
       return res.status(400).send("Insufficient Balance. Current Balance: " + card.balance + ", Need " + (req.body.amount - card.balance) + " more");
     }
@@ -158,6 +161,7 @@ router.post("/retire", auth_operator, async (req, res) => {
     card.holder = { assigned: false };
     card.transactions.unshift({ type: "retire", by: req.operator.id, at: parseInt(Date.now()), details: { paidAmount: card.balance } });
     operator.balance = operator.balance - card.balance;
+    card.balance = 0;
     if (!operator.transactions) operator.transactions = [];
     operator.transactions.unshift({ type: "retire", amount: card.balance, at: Date.now() });
     (await Operator.findOneAndUpdate({ operatorId: req.operator.id }, operator, { useFindAndModify: false })).save();

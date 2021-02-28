@@ -9,10 +9,12 @@ const PrinterTypes = require("node-thermal-printer").types;
 const printer = require("printer");
 const Bill = require("./models/Bill");
 const Table = require("./models/Table");
-router.get("/listBills/:x", async (req, res) => {
+router.post("/listBills", async (req, res) => {
   try {
-    var x = parseInt(req.params.x);
-    var bills = await Bill.find({}).sort({ at: -1 }).limit(x);
+    console.log(new Date(req.body.start).setHours(0, 0, 0, 0).valueOf(), new Date(req.body.end).setHours(23, 59, 59, 999).valueOf());
+    var bills = await Bill.find({ at: { $gte: new Date(req.body.start).setHours(0, 0, 0, 0).valueOf(), $lt: new Date(req.body.end).setHours(23, 59, 59, 999).valueOf() } }).sort({
+      at: -1,
+    });
     // var bills = await db.collection("bill").orderBy("at", "desc").limit(x).get();
     // bills = bills.docs;
     // bills = bills.filter((bill, ind) => {

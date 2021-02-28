@@ -3,7 +3,7 @@ import React, { Component, Fragment } from "react";
 import AlertDiv from "../AlertDiv";
 import AdminLogin from "./AdminLogin";
 import OperatorLogin from "./OperatorLogin";
-
+import Availability from "./Availability";
 export default class Landing extends Component {
   state = {
     printers: [],
@@ -105,7 +105,7 @@ export default class Landing extends Component {
                     value={this.state.disc}
                     onChange={(e) => {
                       e.preventDefault();
-                      this.setState({ disc: eval(e.target.value) });
+                      this.setState({ disc: e.target.value === "true" ? true : false });
                     }}
                   >
                     <option value={true}>True</option>
@@ -189,7 +189,11 @@ export default class Landing extends Component {
             </div>
           </Fragment>
         ) : null}
-        {status === "operator" ? <Fragment></Fragment> : null}
+        {status === "operator" ? (
+          <Fragment>
+            <Availability />
+          </Fragment>
+        ) : null}
       </div>
     );
   }

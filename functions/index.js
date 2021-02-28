@@ -24,6 +24,7 @@ app.use("/operator", require("./operator"));
 app.use("/chef", require("./chef"));
 app.use("/bill", require("./bill"));
 app.use("/report", require("./report"));
+app.use("/booking", require("./booking"));
 // Create and Deploy Your First Cloud Functions
 // https://firebase.google.com/docs/functions/write-firebase-functions
 

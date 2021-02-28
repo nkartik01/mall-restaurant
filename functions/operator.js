@@ -15,7 +15,7 @@ router.post("/edit", auth_admin, async (req, res) => {
       return res.status(400).send("Operator doesnt exist");
     }
     operator = operator.toObject();
-    operator = { ...operator, name: req.body.name, username: username, balance: req.body.balance, permissions: req.body.permissions, lastEdited: req.admin.id };
+    operator = { ...operator, name: req.body.name, username: username, balance: parseInt(req.body.balance), permissions: req.body.permissions, lastEdited: req.admin.id };
     if (!operator.transactions) operator.transactions = [];
     operator.transactions.unshift({
       type: "operatorEdit",
@@ -24,7 +24,7 @@ router.post("/edit", auth_admin, async (req, res) => {
       bill: "Done By: " + req.admin.id,
     });
     try {
-      Operator.findOneAndReplace({ username }, operator, { useFindAndModify: false });
+      (await Operator.findOneAndReplace({ username }, operator, { useFindAndModify: false })).save();
       res.send("Done");
     } catch (err) {
       console.log(err);
