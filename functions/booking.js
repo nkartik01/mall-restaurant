@@ -3,6 +3,7 @@ const router = express.Router();
 const Booking = require("./models/Booking");
 const fs = require("fs");
 const moment = require("moment");
+const Room = require("./models/Room");
 router.post("/editBooking", async (req, res) => {
   try {
     console.log(req.body.bookingId);
@@ -166,6 +167,47 @@ router.post("/room", async (req, res) => {
       dates[i + 1] = bookings;
     }
     return res.send({ dates });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+
+router.get("/rooms", async (req, res) => {
+  try {
+    var rooms = await Room.find({});
+    for (var i = 0; i < rooms.length; i++) {
+      rooms[i] = rooms[i].toObject().roomId;
+    }
+    res.send({ rooms });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+
+router.post("/addRoom", async (req, res) => {
+  try {
+    var room = await Room.findOne({ roomId: req.body.room });
+    if (room) {
+      return res.status(400).send("Room already exists");
+    }
+    new Room({ roomId: req.body.room }).save();
+    res.send("Room Created");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+
+router.delete("/deleteRoom", async (req, res) => {
+  try {
+    var room = await Room.findOne({ roomId: req.body.room });
+    if (!room) {
+      return res.status(400).send("Room doesn't exist");
+    }
+    (await Room.findOneAndDelete({ roomId: req.body.room })).save();
+    res.send("Room Created");
   } catch (err) {
     console.log(err);
     res.status(500).send(err);

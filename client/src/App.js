@@ -15,6 +15,7 @@ import BillList from "./components/BillList";
 import Bill from "./components/Bill";
 import Booking from "./components/Booking";
 import Report from "./components/Report";
+import Availability from "./components/Availability";
 
 function App(props) {
   return (
@@ -35,6 +36,7 @@ function App(props) {
           <Route path="/manipulateRFID" component={() => <ManipulateRFID store={props.store} />} />
           <Route path="/bill/:id" component={Bill} />
           <Route path="/billList" component={() => <BillList store={props.store} />} />
+          <Route path="/availability" component={Availability} />
           <Route path="/" component={Landing} />
         </Switch>
       </Router>

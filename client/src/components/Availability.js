@@ -1,13 +1,19 @@
 import React, { Component, Fragment } from "react";
 import { Col, Row, Tab, Nav } from "react-bootstrap";
 import Calendar from "./Calendar";
+import axios from "axios";
 
 export default class Availability extends Component {
-  state = { rooms: [301, 302, 303, 304], selected: 301 };
+  state = { rooms: [] };
+  getRooms = async () => {
+    var res = await axios.get(require("../config.json").url + "booking/rooms");
+    res = res.data;
+    this.setState({ rooms: res.rooms });
+  };
+  componentDidMount() {
+    this.getRooms();
+  }
   render() {
-    // var selected = <Calendar room={this.state.selected} />;
-
-    // console.log(selected);
     return (
       <div>
         <Tab.Container id="left-tabs-example" defaultActiveKey="room-0">

@@ -1,7 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const admin = require("firebase-admin");
-const db = admin.firestore();
 const auth_admin = require("./middleware/auth_admin");
 const auth_operator = require("./middleware/auth_operator");
 const fs = require("fs");
@@ -21,7 +19,7 @@ router.get("/listMenusFromFolder", async (req, res) => {
   }
 });
 
-router.get("listMenus", async (req, res) => {
+router.get("/listMenus", async (req, res) => {
   try {
     var menus = await Menu.find({});
     for (var i = 0; i < menus.length; i++) {
@@ -202,17 +200,6 @@ router.post("/updateTable", auth_operator, async (req, res) => {
 
 router.post("/freeTable", auth_operator, async (req, res) => {
   try {
-    // var chefSide = await db.collection("chefSide").doc(req.body.table.restaurant).get();
-    // chefSide = chefSide.data();
-    // if (
-    //   !!chefSide &&
-    //   chefSide.order.filter((obj, i) => {
-    //     if (obj.status === "made") return false;
-    //     return true;
-    //   }).length !== 0
-    // ) {
-    //   return res.status(400).send("Order not completed from kitchen");
-    // }
     (
       await Table.findOneAndUpdate(
         { tableId: req.body.table.id },
@@ -249,6 +236,70 @@ router.get("/createTables", async (req, res) => {
     }
   }
   res.send("done");
+});
+
+router.post("/addTable", async (req, res) => {
+  try {
+    var table = await Table.findOne({ tableId: req.body.restaurant + "-" + req.body.table });
+    if (table) {
+      return res.status(400).send("Table already exists");
+    }
+
+    new Table({
+      orderHistory: { order: [], sum: 0 },
+      orderSnippets: [],
+      balance: 0,
+      bill: "",
+      restaurant: req.body.restaurant,
+      table: req.body.table,
+      tableId: req.body.restaurant + "-" + req.body.table,
+    }).save();
+    return res.send("Done");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+
+router.delete("/table", async (req, res) => {
+  try {
+    console.log(req.body);
+    var table = await Table.findOne({ tableId: req.body.restaurant + "-" + req.body.table });
+    console.log(table);
+    if (!table) {
+      return res.status(400).send("Table doesn't exist");
+    }
+
+    (await table.remove()).save();
+    return res.send("Done");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+
+router.post("/toggleMenu", async (req, res) => {
+  try {
+    var restaurant = await Restaurant.findOne({ restaurantId: req.body.restaurant });
+    if (!restaurant) {
+      return res.status(400).send("Restaurant Not Found");
+    }
+    restaurant = restaurant.toObject();
+    var index = restaurant.menu.indexOf(req.body.menu);
+    if (index === -1) {
+      restaurant.menu.push(req.body.menu);
+      (await Restaurant.findOneAndUpdate({ restaurantId: req.body.restaurant }, restaurant, { useFindAndModify: false })).save();
+      return res.send("Added " + req.body.menu + " to " + req.body.restaurant);
+    } else {
+      restaurant.menu.splice(index, 1);
+      console.log(restaurant);
+      (await Restaurant.findOneAndUpdate({ restaurantId: req.body.restaurant }, restaurant, { useFindAndModify: false })).save();
+      return res.send("Removed " + req.body.menu + " from " + req.body.restaurant);
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
 });
 
 module.exports = router;

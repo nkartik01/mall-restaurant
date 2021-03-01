@@ -44,6 +44,10 @@ export default class Header extends Component {
               <Link to="/booking" className="btn btn-primary">
                 Booking
               </Link>
+
+              <Link to="/availability" className="btn btn-primary">
+                Availability
+              </Link>
               <Link to={"/report"} className="btn btn-primary">
                 Reports
               </Link>

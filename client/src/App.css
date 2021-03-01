@@ -13,6 +13,16 @@
   }
 }
 
+.row {
+  margin: 0px;
+}
+
+.landingDiv {
+  border: 2px solid black;
+  border-radius: 5px;
+  margin-bottom: 5px;
+}
+
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
