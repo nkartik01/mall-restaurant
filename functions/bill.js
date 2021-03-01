@@ -1,7 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const admin = require("firebase-admin");
-const db = admin.firestore();
 const auth_admin = require("./middleware/auth_admin");
 const auth_operator = require("./middleware/auth_operator");
 const ThermalPrinter = require("node-thermal-printer").printer;
