@@ -6,7 +6,7 @@ const path = require("path");
 var app = express();
 
 app.use(bodyParser.json());
-app.use(express.json({ extended: false }));
+app.use(express.json({ extended: false, limit: "100mb" }));
 // app.use(cors(corsOpts));
 app.use(cors());
 app.use("/card", require("./card"));

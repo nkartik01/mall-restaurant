@@ -15,7 +15,7 @@ router.get("/listMenusFromFolder", async (req, res) => {
     return res.send({ menus: fs.readdirSync("./menus") });
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -28,7 +28,7 @@ router.get("/listMenus", async (req, res) => {
     res.send({ menus: menus });
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -62,7 +62,7 @@ router.post("/setMenu/:menu", async (req, res) => {
     return res.send(menu);
   } catch (err) {
     console.log(err);
-    return res.status(500).send(err);
+    return res.status(500).send(err.toString());
   }
 });
 
@@ -83,7 +83,7 @@ router.get("/getRestaurantMenus", async (req, res) => {
     return res.send({ menus });
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -97,7 +97,7 @@ router.get("/addRestaurant/:name", auth_admin, async (req, res) => {
     res.send("Added");
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -110,7 +110,7 @@ router.get("/restaurants", async (req, res) => {
     res.send({ restaurants: rests });
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -125,7 +125,7 @@ router.get("/getTables", async (req, res) => {
     return res.send({ tables: tables });
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -194,7 +194,7 @@ router.post("/updateTable", auth_operator, async (req, res) => {
     res.send({ bill: table1.bill, orderId: (orders.length + 1).toString() });
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -210,7 +210,7 @@ router.post("/freeTable", auth_operator, async (req, res) => {
     res.send("Done");
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -257,7 +257,7 @@ router.post("/addTable", async (req, res) => {
     return res.send("Done");
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -274,7 +274,7 @@ router.delete("/table", async (req, res) => {
     return res.send("Done");
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -298,7 +298,7 @@ router.post("/toggleMenu", async (req, res) => {
     }
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 

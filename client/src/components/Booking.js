@@ -11,7 +11,7 @@ export default class Booking extends React.Component {
     today: new Date(),
     tomorrow: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
     isLoading: true,
-    newRooms: [],
+    newRooms: [{}],
   };
   getBookings = async () => {
     var res1 = await axios.get(require("../config.json").url + "booking/rooms");

@@ -29,7 +29,7 @@ router.post("/listBills", async (req, res) => {
     res.send({ bills: bills });
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -46,7 +46,7 @@ router.get("/getBill/:id", async (req, res) => {
     res.send({ bill });
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -62,7 +62,7 @@ router.get("/pendingBills", auth_operator, async (req, res) => {
     res.send({ bills: bills });
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -83,11 +83,20 @@ router.post("/byCash", auth_operator, async (req, res) => {
     if (req.body.to) {
       bill.to = req.body.to;
     }
+    var table = await Table.findOne({ bill: req.body.bill });
+    if (!!table) {
+      table = table.toObject();
+      table.bill = "";
+      table.orderHistory = { sum: 0, order: [] };
+      table.orderSnippet = [];
+      table.balance = 0;
+      (await Table.findOneAndReplace({ bill: req.body.bill }, table)).save();
+    }
     bill.balance = bill.balance - req.body.amount;
     if (req.body.table) {
       (await Table.findOneAndUpdate({ tableId: req.body.table }, { balance: bill.balance }, { useFindAndModify: false })).save();
     }
-    bill.transactions.unshift({ type: "cash", by: req.operator.id, at: now, amount: req.body.amount });
+    bill.transactions.unshift({ type: "cash", by: req.operator.id, at: now, amount: req.body.amount, gstin: req.body.gstin });
     var operator = (await Operator.findOne({ operatorId: req.operator.id })).toObject();
     console.log(operator);
     if (!operator.balance) {
@@ -97,13 +106,13 @@ router.post("/byCash", auth_operator, async (req, res) => {
     if (!operator.transactions) {
       operator.transactions = [];
     }
-    operator.transactions.unshift({ type: "cash", bill: req.body.bill, at: now, amount: req.body.amount });
+    operator.transactions.unshift({ type: "cash", bill: req.body.bill, at: now, amount: req.body.amount, gstin: req.body.gstin });
     (await Bill.findOneAndUpdate({ billId: req.body.bill }, bill, { useFindAndModify: false })).save();
     (await Operator.findOneAndReplace({ operatorId: req.operator.id }, { ...operator }, { useFindAndModify: false })).save();
     res.send("Paid");
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -126,10 +135,19 @@ router.post("/byCard", auth_operator, async (req, res) => {
       bill.to = req.body.to;
     }
     bill.balance = bill.balance - req.body.amount;
+    var table = await Table.findOne({ bill: req.body.bill });
+    if (!!table) {
+      table = table.toObject();
+      table.bill = "";
+      table.orderHistory = { sum: 0, order: [] };
+      table.orderSnippet = [];
+      table.balance = 0;
+      (await Table.findOneAndReplace({ bill: req.body.bill }, table)).save();
+    }
     if (req.body.table) {
       Table.findOneAndUpdate({ tableId: req.body.table }, { balance: bill.balance }, { useFindAndModify: false });
     }
-    bill.transactions.unshift({ type: "card", by: req.operator.id, at: now, amount: req.body.amount, tranId: req.body.tranId });
+    bill.transactions.unshift({ type: "card", by: req.operator.id, at: now, amount: req.body.amount, tranId: req.body.tranId, gstin: req.body.gstin });
 
     var operator = (await Operator.findOne({ operatorId: req.operator.id })).toObject();
     if (!operator.balance) {
@@ -139,13 +157,13 @@ router.post("/byCard", auth_operator, async (req, res) => {
       operator.transactions = [];
     }
 
-    operator.transactions.unshift({ at: now, tranId: req.body.tranId, amount: req.body.amount, bill: req.body.bill, type: "Card" });
+    operator.transactions.unshift({ at: now, tranId: req.body.tranId, amount: req.body.amount, bill: req.body.bill, type: "card", gstin: req.body.gstin });
     (await Bill.findOneAndUpdate({ billId: req.body.bill }, bill, { useFindAndModify: false })).save();
     (await Operator.findOneAndReplace({ operatorId: req.operator.id }, { ...operator }, { useFindAndModify: false })).save();
     res.send("Paid");
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -160,19 +178,32 @@ router.post("/byUpi", auth_operator, async (req, res) => {
     if (!bill) {
       return res.status(400).send("Issue with Bill");
     }
-    bill.toObject();
-    if (!bill.transactions) {
+    bill = bill.toObject();
+    if (!bill.transactions || bill.transactions.length === 0) {
       bill.transactions = [];
     }
+    // } else {
+    //   bill.transactions = new Array(bill.transactions);
+    // }
+    console.log(bill.transactions);
     if (req.body.to) {
       bill.to = req.body.to;
     }
     bill.balance = bill.balance - req.body.amount;
-    if (req.body.table) {
-      Table.findOneAndUpdate({ tableId: req.body.table }, { balance: bill.balance }, { useFindAndModify: false });
+    var table = await Table.findOne({ bill: req.body.bill });
+    if (!!table) {
+      table = table.toObject();
+      table.bill = "";
+      table.orderHistory = { sum: 0, order: [] };
+      table.orderSnippet = [];
+      table.balance = 0;
+      (await Table.findOneAndReplace({ bill: req.body.bill }, table)).save();
     }
-    bill.transactions.unshift({ type: "upi", by: req.operator.id, at: now, amount: req.body.amount, tranId: req.body.tranId });
-
+    if (req.body.table) {
+      (await Table.findOneAndUpdate({ tableId: req.body.table }, { balance: bill.balance }, { useFindAndModify: false })).save();
+    }
+    bill.transactions.unshift({ type: "upi", by: req.operator.id, at: now, amount: req.body.amount, tranId: req.body.tranId, gstin: req.body.gstin });
+    console.log(bill.transactions);
     var operator = (await Operator.findOne({ operatorId: req.operator.id })).toObject();
     if (!operator.balance) {
       operator.balance = 0;
@@ -181,13 +212,16 @@ router.post("/byUpi", auth_operator, async (req, res) => {
       operator.transactions = [];
     }
 
-    operator.transactions.unshift({ at: now, tranId: req.body.tranId, amount: req.body.amount, bill: req.body.bill, type: "UPI" });
-    (await Bill.findOneAndUpdate({ billId: req.body.bill }, bill, { useFindAndModify: false })).save();
-    (await Operator.findOneAndReplace({ operatorId: req.operator.id }, { ...operator }, { useFindAndModify: false })).save();
+    operator.transactions.unshift({ at: now, tranId: req.body.tranId, amount: req.body.amount, bill: req.body.bill, type: "upi", gstin: req.body.gstin });
+
+    // delete bill["_id"];
+    console.log({ ...bill });
+    (await Bill.findOneAndReplace({ billId: req.body.bill }, { ...bill })).save();
+    (await Operator.findOneAndReplace({ operatorId: req.operator.id }, { ...operator })).save();
     res.send("Paid");
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -284,7 +318,7 @@ router.post("/printBill", async (req, res) => {
     return res.send({ execute });
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -359,7 +393,7 @@ router.post("/printOrder", async (req, res) => {
     return res.send({ execute });
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -395,7 +429,7 @@ router.post("/addDiscount", auth_operator, async (req, res) => {
     res.send("Discount Applied");
   } catch (err) {
     console.log(err, err.response);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -430,7 +464,107 @@ router.post("/editBill", auth_operator, async (req, res) => {
     res.send("done");
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
+  }
+});
+const isEqual = function (obj1, obj2) {
+  const obj1Keys = Object.keys(obj1);
+  const obj2Keys = Object.keys(obj2);
+
+  if (obj1Keys.length !== obj2Keys.length) {
+    return false;
+  }
+
+  for (let objKey of obj1Keys) {
+    if (obj1[objKey] !== obj2[objKey]) {
+      if (typeof obj1[objKey] == "object" && typeof obj2[objKey] == "object") {
+        if (!isEqual(obj1[objKey], obj2[objKey])) {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    }
+  }
+
+  return true;
+};
+router.post("/editTransaction", auth_operator, async (req, res) => {
+  try {
+    var bill = await Bill.findOne({ billId: req.body.bill });
+    if (!bill) {
+      res.status(400).send("Bill not found");
+    }
+    bill = bill.toObject();
+    console.log(bill.transactions[req.body.index], req.body.transaction);
+    if (!isEqual(bill.transactions[req.body.index], req.body.transaction)) {
+      return res.status(400).send("Transaction Doesn't Match");
+    }
+    bill.transactions.splice(req.body.index, 1);
+    bill.balance = bill.balance + req.body.transaction.amount;
+    var operator = await Operator.findOne({ operatorId: req.operator.id });
+    if (!operator) {
+      return res.status(400).send("Operator not found");
+    }
+    operator = operator.toObject();
+    operator.transactions.unshift({
+      at: Date.now(),
+      tranId: req.body.reason,
+      amount: req.body.transaction.amount,
+      bill: req.body.bill,
+      type: req.body.transaction.type + " Transaction cancel",
+    });
+    if (req.body.transaction.type === "cash") {
+      operator.balance = operator.balance - req.body.transaction.amount;
+    }
+    (await Operator.findOneAndReplace({ operatorId: req.operator.id }, operator)).save();
+    (await Bill.findOneAndReplace({ billId: req.body.bill }, bill)).save();
+    return res.send("Done");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.toString());
+  }
+});
+
+router.post("/addToBooking", auth_operator, async (req, res) => {
+  try {
+    var now = Date.now();
+    var bill = await Bill.findOne({ billId: req.body.bill });
+    if (!bill) {
+      return res.status(400).send("Bill not found");
+    }
+    bill = bill.toObject();
+    try {
+      if (bill.transactions[0].type === "moved to booking") {
+        return res.status(400).send("Already moved to a booking");
+      }
+    } catch {}
+    var booking = await Booking.findOne({ bookingId: req.body.bookingId });
+    if (!booking) {
+      return res.status(400).send("Booking not found");
+    }
+    booking = booking.toObject();
+    bill.transactions.unshift({ type: "moved to booking", amount: bill.balance, tranId: req.body.bookingId, at: now, by: req.operator.id });
+    if (!booking.bills) {
+      booking.bills = [];
+    }
+    booking.bills.push({ bill: req.body.bill, at: now, amount: bill.balance, by: req.operator.id });
+    var table = await Table.findOne({ bill: req.body.bill });
+    if (!!table) {
+      table = table.toObject();
+      table.bill = "";
+      table.orderHistory = { sum: 0, order: [] };
+      table.orderSnippet = [];
+      table.balance = 0;
+      (await Table.findOneAndReplace({ bill: req.body.bill }, table)).save();
+    }
+    bill.balance = 0;
+    (await Booking.findOneAndReplace({ bookingId: req.body.bookingId }, booking)).save();
+    (await Bill.findOneAndReplace({ billId: req.body.bill }, bill)).save();
+    res.send("Done");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.toString());
   }
 });
 

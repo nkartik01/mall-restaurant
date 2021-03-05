@@ -17,7 +17,7 @@ router.post("/registerCard", auth_admin, async (req, res) => {
     return res.send("Card Created");
   } catch (err) {
     console.log(err);
-    return res.status(500).send(err);
+    return res.status(500).send(err.toString());
   }
 });
 
@@ -31,7 +31,7 @@ router.get("/getCard/:uid", auth_operator, async (req, res) => {
     res.send({ card });
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -60,7 +60,7 @@ router.post("/addAmount", auth_operator, async (req, res) => {
     return res.send("amount added");
   } catch (err) {
     console.log(err);
-    return res.status(500).send(err);
+    return res.status(500).send(err.toString());
   }
 });
 
@@ -123,7 +123,7 @@ router.post("/deductAmount", auth_operator, async (req, res) => {
     return res.send("amount deducted sucessfully");
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -146,7 +146,7 @@ router.post("/assign", auth_operator, async (req, res) => {
     return res.send("Assigned");
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -167,7 +167,7 @@ router.post("/retire", auth_operator, async (req, res) => {
     return res.send("Retired");
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -184,7 +184,7 @@ router.get("/searchByPhone/:phone", auth_operator, async (req, res) => {
     res.send({ cards: cards });
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
