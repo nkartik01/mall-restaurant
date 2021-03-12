@@ -83,6 +83,9 @@ router.post("/byCash", auth_operator, async (req, res) => {
     if (req.body.to) {
       bill.to = req.body.to;
     }
+    if(req.body.gstin){
+      bill.gstin=req.body.gstin
+    }
     var table = await Table.findOne({ bill: req.body.bill });
     if (!!table) {
       table = table.toObject();
@@ -98,7 +101,7 @@ router.post("/byCash", auth_operator, async (req, res) => {
     }
     bill.transactions.unshift({ type: "cash", by: req.operator.id, at: now, amount: req.body.amount, gstin: req.body.gstin });
     var operator = (await Operator.findOne({ operatorId: req.operator.id })).toObject();
-    console.log(operator);
+    // console.log(operator);
     if (!operator.balance) {
       operator.balance = 0;
     }
@@ -133,6 +136,9 @@ router.post("/byCard", auth_operator, async (req, res) => {
     }
     if (req.body.to) {
       bill.to = req.body.to;
+    }
+    if(req.body.gstin){
+      bill.gstin=req.body.gstin
     }
     bill.balance = bill.balance - req.body.amount;
     var table = await Table.findOne({ bill: req.body.bill });
@@ -185,9 +191,12 @@ router.post("/byUpi", auth_operator, async (req, res) => {
     // } else {
     //   bill.transactions = new Array(bill.transactions);
     // }
-    console.log(bill.transactions);
+    // console.log(bill.transactions);
     if (req.body.to) {
       bill.to = req.body.to;
+    }
+    if(req.body.gstin){
+      bill.gstin=req.body.gstin
     }
     bill.balance = bill.balance - req.body.amount;
     var table = await Table.findOne({ bill: req.body.bill });
@@ -203,7 +212,7 @@ router.post("/byUpi", auth_operator, async (req, res) => {
       (await Table.findOneAndUpdate({ tableId: req.body.table }, { balance: bill.balance }, { useFindAndModify: false })).save();
     }
     bill.transactions.unshift({ type: "upi", by: req.operator.id, at: now, amount: req.body.amount, tranId: req.body.tranId, gstin: req.body.gstin });
-    console.log(bill.transactions);
+    // console.log(bill.transactions);
     var operator = (await Operator.findOne({ operatorId: req.operator.id })).toObject();
     if (!operator.balance) {
       operator.balance = 0;
@@ -260,7 +269,11 @@ router.post("/printBill", async (req, res) => {
     if (!req.body.preview) print.leftRight("", "Time: " + new Date(Date.now()).toLocaleTimeString());
     var bill = (await Bill.findOne({ billId: req.body.bill })).toObject();
     if (bill.to && bill.to !== "") {
+      print.newLine()
+      print.bold(true)
       print.leftRight("Customer Details", "");
+      print.bold(false)
+      print.newLine()
       print.leftRight("Name: " + bill.to, "");
       if (bill.gstin && bill.gstin !== "") {
         print.leftRight("GSTIN: " + bill.gstin, "");
@@ -312,12 +325,12 @@ router.post("/printBill", async (req, res) => {
     if (req.body.orderHistory.sum !== req.body.balance) print.leftRight("", "Amount to be paid: " + req.body.balance + " ");
     if (!req.body.preview) {
       print.leftRight("", "Amount Recieved: " + parseInt(req.body.paid) + " ");
-      print.leftRight("", "Payment mode: " + req.body.method);
+      print.leftRight("", "Payment mode: " + req.body.method+" ");
       if (!req.body.preview)
         if (req.body.method === "rfid") {
-          print.leftRight("", "Card No.: " + req.body.uid);
+          print.leftRight("", "Card No.: " + req.body.uid+" ");
         } else if (req.body.method !== "cash") {
-          print.leftRight("", "Txn Id: " + req.body.tranId);
+          print.leftRight("", "Txn Id: " + req.body.tranId+" ");
         }
       if (req.body.balance - req.body.paid !== 0) print.leftRight("", "Pending: " + parseInt(parseInt(req.body.balance) - parseInt(req.body.paid)) + " ");
     }

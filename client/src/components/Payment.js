@@ -201,7 +201,7 @@ export default class Payment extends Component {
                     disabled={!this.state.partial || this.props.disable ? true : false}
                     type="text"
                     required
-                    placeholder="Partial privalage given to"
+                    placeholder="Customer Name"
                     id="to"
                     name="to"
                     value={this.state.to}
@@ -221,13 +221,13 @@ export default class Payment extends Component {
                     disabled={!this.state.partial || this.props.disable ? true : false}
                     type="text"
                     required
-                    placeholder="Partial privalage given to"
-                    id="gstIN"
-                    name="gstIN"
-                    value={this.state.gstIN}
+                    placeholder="GSTIN"
+                    id="gstin"
+                    name="gstin"
+                    value={this.state.gstin}
                     onChange={(e) => {
                       e.preventDefault();
-                      this.setState({ gstIN: e.target.value });
+                      this.setState({ gstin: e.target.value });
                     }}
                     hidden={!this.state.partial || this.props.disable ? true : false}
                   />
@@ -250,6 +250,7 @@ export default class Payment extends Component {
 
                   amount: tranAmount,
                   to: this.state.partial ? this.state.to : undefined,
+                  gstin:this.state.partial?this.state.gstin:undefined,
                   uid: this.state.uid,
                   bill: this.props.bill,
                   table: !this.props.table ? false : this.props.table,
@@ -339,6 +340,7 @@ export default class Payment extends Component {
 
                   amount: tranAmount,
                   to: this.state.partial ? this.state.to : undefined,
+                  gstin:this.state.partial?this.state.gstin:undefined,
                   bill: this.props.bill,
                   table: !this.props.table ? false : this.props.table,
                 },
@@ -402,6 +404,7 @@ export default class Payment extends Component {
                   tranId: this.state.upiId,
                   amount: tranAmount,
                   to: this.state.partial ? this.state.to : undefined,
+                  gstin:this.state.partial?this.state.gstin:undefined,
                   bill: this.props.bill,
                   table: !this.props.table ? false : this.props.table,
                 },
@@ -483,6 +486,7 @@ export default class Payment extends Component {
                   tranId: this.state.cardId,
                   amount: tranAmount,
                   to: this.state.partial ? this.state.to : undefined,
+                  gstin:this.state.partial?this.state.gstin:undefined,
                   bill: this.props.bill,
                   table: !this.props.table ? false : this.props.table,
                 },

@@ -110,6 +110,7 @@ export default class BillList extends Component {
             <tr>
               <th scope="col">Sr. No.</th>
               <th scope="col">Bill Id</th>
+              <th scope="col">Table</th>
               <th scope="col">To</th>
               <th scope="col">Amount</th>
               <th scope="col">Balance</th>
@@ -123,6 +124,7 @@ export default class BillList extends Component {
                 <tr style={{ color: bill.cancelled ? "red" : "black" }}>
                   <td>{ind + 1}</td>
                   <td>{bill.id}</td>
+                  <td>{bill.table}</td>
                   <td>{bill.to}</td>
                   <td>{bill.finalOrder.sum}</td>
                   <td>{bill.balance}</td>
