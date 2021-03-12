@@ -8,8 +8,8 @@ import BookingModal from "./BookingModal";
 export default class Booking extends React.Component {
   state = {
     date: new Date(),
-    today: new Date(),
-    tomorrow: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
+    // today: new Date(),
+    // tomorrow: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
     isLoading: true,
     newRooms: [{}],
   };
@@ -30,9 +30,20 @@ export default class Booking extends React.Component {
     }
     this.setState({ rooms, isLoading: false });
   };
-  componentDidMount() {
+  componentDidMount = () => {
+    var x = new URLSearchParams(this.props.history.location.search);
+    if (!x.get("date")) {
+      this.props.history.push({
+        pathname: "/booking",
+        search: "?" + new URLSearchParams({ date: this.state.date }).toString(),
+      });
+    } else {
+      this.setState({ date: new Date(x.get("date")) });
+    }
+    // console.log(x.get("b"));
+    console.log(this.props.history.location.search);
     this.getBookings();
-  }
+  };
   changeDate = async (e) => {
     this.setState({ date: e });
     const delay = (millis) =>
@@ -40,6 +51,11 @@ export default class Booking extends React.Component {
         setTimeout((_) => resolve(), millis);
       });
     await delay(100);
+
+    this.props.history.push({
+      pathname: "/booking",
+      search: "?" + new URLSearchParams({ date: this.state.date }).toString(),
+    });
     this.getBookings();
   };
   render() {

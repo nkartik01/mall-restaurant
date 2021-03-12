@@ -258,7 +258,14 @@ router.post("/printBill", async (req, res) => {
     print.newLine();
     print.leftRight("Bill No. :" + req.body.bill, "Date: " + new Date(Date.now()).toLocaleDateString("en-GB"));
     if (!req.body.preview) print.leftRight("", "Time: " + new Date(Date.now()).toLocaleTimeString());
-
+    var bill = (await Bill.findOne({ billId: req.body.bill })).toObject();
+    if (bill.to && bill.to !== "") {
+      print.leftRight("Customer Details", "");
+      print.leftRight("Name: " + bill.to, "");
+      if (bill.gstin && bill.gstin !== "") {
+        print.leftRight("GSTIN: " + bill.gstin, "");
+      }
+    }
     print.drawLine();
     print.tableCustom([
       { text: "Sr.", width: 0.08, align: "LEFT" },
@@ -270,17 +277,22 @@ router.post("/printBill", async (req, res) => {
     // print.table(["Sr. No.", "Item", "Price", "Quantity", "Amount"]);
     print.drawLine();
     req.body.orderHistory.order.map((order, i) => {
-      return print.tableCustom([
+      print.tableCustom([
         { text: i + 1, width: 0.08 },
         { text: order.item, width: 0.4 },
         { text: order.price, width: 0.13, align: "RIGHT" },
         { text: order.quantity, width: 0.1, align: "RIGHT" },
         { text: order.price * order.quantity, width: 0.19, align: "RIGHT" },
       ]);
+      if (order.detail && order.detail !== "") {
+        print.tableCustom([
+          { text: "", width: 0.08 },
+          { text: order.detail, width: 0.9 },
+        ]);
+      }
       // return print.table([i + 1, order.item, order.price, order.quantity, order.price * order.quantity]);
     });
     print.drawLine();
-    var bill = (await Bill.findOne({ billId: req.body.bill })).toObject();
 
     var orders = [];
     bill.orderChanges.map((order, _) => {

@@ -4,6 +4,7 @@ const Booking = require("./models/Booking");
 const fs = require("fs");
 const moment = require("moment");
 const Room = require("./models/Room");
+const auth_operator = require("./middleware/auth_operator");
 router.post("/editBooking", async (req, res) => {
   try {
     console.log(req.body.bookingId);
@@ -208,6 +209,19 @@ router.delete("/deleteRoom", async (req, res) => {
     }
     (await Room.findOneAndDelete({ roomId: req.body.room })).save();
     res.send("Room Created");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.toString());
+  }
+});
+
+router.post("/generateBill", auth_operator, async (req, res) => {
+  try {
+    var booking = await Booking.findOne({ bookingId: req.body.bookingId });
+    booking = booking.toJSON();
+    if (!booking.bill || booking.bill === "") {
+      var bills = await Bill.find({ restaurant: "Umega Hotel" });
+    }
   } catch (err) {
     console.log(err);
     res.status(500).send(err.toString());
