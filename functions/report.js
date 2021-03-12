@@ -11,9 +11,11 @@ router.post("/sale", async (req, res) => {
     end.setHours(23, 59, 59, 999);
     end = end.valueOf();
 
-    var bills = await Bill.find({ at: { $gt: start, $lte: end }, cancelled: { $ne: true } });
+    var bills;
     if (req.body.restaurant !== "overall") {
-      bills = bills.where("restaurant", "==", req.body.restaurant);
+      bills = await Bill.find({ at: { $gt: start, $lte: end }, cancelled: { $ne: true }, restaurant: req.body.restaurant });
+    } else {
+      bills = await Bill.find({ at: { $gt: start, $lte: end }, cancelled: { $ne: true } });
     }
     for (var i = 0; i < bills.length; i++) {
       var bill = bills[i].toObject();
@@ -89,7 +91,7 @@ router.post("/sale", async (req, res) => {
     res.send({ bills: bills, itemwise, itemwiseEdit, upiSum, cashSum, cardSum, rfidSum, sum, balance, discAmount });
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 

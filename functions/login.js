@@ -33,7 +33,7 @@ router.post("/admin", async (req, res) => {
     });
   } catch (err) {
     console.log(err);
-    return res.status(500).send(err);
+    return res.status(500).send(err.toString());
   }
 });
 
@@ -64,7 +64,7 @@ router.post("/operator", async (req, res) => {
     });
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 

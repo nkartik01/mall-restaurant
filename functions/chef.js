@@ -28,7 +28,7 @@ router.get("/getPendingOrders", auth_operator, async (req, res) => {
     return res.send(orders);
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -36,7 +36,7 @@ router.post("/setAsDone", auth_operator, async (req, res) => {
   try {
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 

@@ -87,7 +87,7 @@ export default class RoomModal extends Component {
                 >
                   <div>
                     <h5>Booking Id: {booking.bookingId}</h5>
-                    <p>Customer Name: {booking.name}</p>
+                    <p>Customer Name: {booking.rooms[0].name}</p>
                   </div>
                 </button>
                 <BookingModal

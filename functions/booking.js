@@ -4,6 +4,7 @@ const Booking = require("./models/Booking");
 const fs = require("fs");
 const moment = require("moment");
 const Room = require("./models/Room");
+const auth_operator = require("./middleware/auth_operator");
 router.post("/editBooking", async (req, res) => {
   try {
     console.log(req.body.bookingId);
@@ -106,7 +107,7 @@ router.post("/date", async (req, res) => {
     return res.send({ rooms });
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -169,7 +170,7 @@ router.post("/room", async (req, res) => {
     return res.send({ dates });
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -182,7 +183,7 @@ router.get("/rooms", async (req, res) => {
     res.send({ rooms });
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -196,7 +197,7 @@ router.post("/addRoom", async (req, res) => {
     res.send("Room Created");
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 
@@ -210,7 +211,121 @@ router.delete("/deleteRoom", async (req, res) => {
     res.send("Room Created");
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
+  }
+});
+
+router.post("/generateBill", auth_operator, async (req, res) => {
+  try {
+    var booking = await Booking.findOne({ bookingId: req.body.bookingId });
+    booking = booking.toJSON();
+    if (!booking.bill || booking.bill === "") {
+      var bills = await Bill.find({ restaurant: "Umega Hotel" });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.toString());
+  }
+});
+
+router.post("/printBill", async (req, res) => {
+  try {
+    const ThermalPrinter = require("node-thermal-printer").printer;
+    const PrinterTypes = require("node-thermal-printer").types;
+    const electron = typeof process !== "undefined" && process.versions && !!process.versions.electro;
+    console.log(req.body.printer);
+    let print = new ThermalPrinter({
+      type: PrinterTypes.EPSON, // Printer type: 'star' or 'epson'
+      interface: "printer:" + req.body.printer, // Printer interface
+      // interface: "printer:Microsoft Print to PDF",
+      driver: require(electron ? "electron-printer" : "printer"),
+    });
+    console.log(1);
+    let isConnected = await print.isPrinterConnected(); // Check if print is connected, return bool of status
+    console.log(isConnected);
+    print.alignCenter();
+    print.setTextSize(1, 1);
+    if (req.body.restaurant === "Perry Club") print.println("Urban Food Court");
+    else print.println(req.body.restaurant);
+    print.setTextSize(0, 0);
+    print.println("City Walk Mall, Hanumangarh Road, Abohar");
+    print.println("A Unit of RDESCO City Walk Pvt. Ltd.");
+
+    // print.println("Hanumangarh Road, Abohar");
+    print.leftRight("GSTIN: 03AAICR8822Q1ZS", "FSSAI: 12119201000010");
+
+    if (req.body.preview) {
+      print.newLine();
+      print.println("Bill Preview");
+    }
+    print.newLine();
+    print.leftRight("Bill No. :" + req.body.bill, "Date: " + new Date(Date.now()).toLocaleDateString("en-GB"));
+    if (!req.body.preview) print.leftRight("", "Time: " + new Date(Date.now()).toLocaleTimeString());
+
+    print.drawLine();
+    print.tableCustom([
+      { text: "Sr.", width: 0.08, align: "LEFT" },
+      { text: "Item", width: 0.4, align: "LEFT" },
+      { width: 0.13, text: "Price", align: "RIGHT" },
+      { text: "Qty", width: 0.1, align: "RIGHT" },
+      { text: "Amount", width: 0.19, align: "RIGHT" },
+    ]);
+    // print.table(["Sr. No.", "Item", "Price", "Quantity", "Amount"]);
+    print.drawLine();
+    req.body.orderHistory.order.map((order, i) => {
+      print.tableCustom([
+        { text: (i + 1).toString() + ".", width: 0.08, align: "LEFT" },
+        { text: order.item, width: 0.4, align: "LEFT" },
+        { text: order.price, width: 0.13, align: "RIGHT" },
+        { text: order.quantity, width: 0.1, align: "RIGHT" },
+        { text: order.price * order.quantity, width: 0.19, align: "RIGHT" },
+      ]);
+      print.tableCustom([
+        { text: "", width: 0.08 },
+        { text: order.detail, width: 0.9 },
+      ]);
+      // return print.table([i + 1, order.item, order.price, order.quantity, order.price * order.quantity]);
+    });
+    // print.drawLine();
+    // var bill = (await Bill.findOne({ billId: req.body.bill })).toObject();
+
+    // var orders = [];
+    // bill.orderChanges.map((order, _) => {
+    //   if (order.type === "edit") {
+    //     return;
+    //   }
+    //   orders.push(order.orderNo);
+    // });
+    // // print.println();
+    // print.leftRight(orders.join(", "), "Total: " + req.body.orderHistory.sum + " ");
+    // // logic for tax
+    // if (!bill.discAmount) bill.discAmount = 0;
+    // if (bill.discAmount && bill.discAmount > 0) print.leftRight("", "Discount: " + bill.discAmount + " ");
+    // console.log("hi", parseInt(req.body.orderHistory.sum - parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))));
+    // if (parseInt(req.body.orderHistory.sum - parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))) !== 0)
+    //   print.leftRight("", "Already Paid: " + parseInt(req.body.orderHistory.sum - parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))).toString() + " ");
+    if (req.body.orderHistory.sum !== req.body.balance) print.leftRight("", "Amount to be paid: " + req.body.balance + " ");
+    if (!req.body.preview) {
+      print.leftRight("", "Amount Recieved: " + parseInt(req.body.paid) + " ");
+      print.leftRight("", "Payment mode: " + req.body.method);
+      if (!req.body.preview)
+        if (req.body.method === "rfid") {
+          print.leftRight("", "Card No.: " + req.body.uid);
+        } else if (req.body.method !== "cash") {
+          print.leftRight("", "Txn Id: " + req.body.tranId);
+        }
+      if (req.body.balance - req.body.paid !== 0) print.leftRight("", "Pending: " + parseInt(parseInt(req.body.balance) - parseInt(req.body.paid)) + " ");
+    }
+    // print.println("hello");
+    print.newLine();
+    print.println("Thanks for your visit.");
+    print.cut();
+    let execute = await print.execute(); // Executes all the commands. Returns success or throws error
+    console.log(execute);
+    return res.send({ execute });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.toString());
   }
 });
 

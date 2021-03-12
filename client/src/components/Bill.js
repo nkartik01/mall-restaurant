@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { Component, Fragment } from "react";
+import AlertDiv from "../AlertDiv";
 import Payment from "./Payment";
 // const printer = require("printer");
 export default class Bill extends Component {
@@ -163,6 +164,27 @@ export default class Bill extends Component {
                       <td>{trans.type}</td>
                       <td>{trans.by}</td>
                       <td>{trans.amount}</td>
+                      <td>
+                        <button
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            try {
+                              await axios.post(
+                                require("../config.json").url + "bill/editTransaction",
+                                { transaction: trans, index: ind, bill: this.props.match.params.id },
+                                { headers: { "x-auth-token": localStorage.getItem("token") } }
+                              );
+                              AlertDiv("green", "Canceled Transaction");
+                              this.getBill();
+                            } catch (err) {
+                              console.log(err, err.response);
+                              AlertDiv("red", err.response.data);
+                            }
+                          }}
+                        >
+                          X
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}

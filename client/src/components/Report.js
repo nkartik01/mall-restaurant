@@ -92,8 +92,8 @@ class Report extends Component {
                     }}
                   >
                     <option value="overall">Overall</option>
-                    {this.state.restaurants.map((menu, _) => {
-                      return <option value={menu.id}>{menu.id}</option>;
+                    {this.state.restaurants.map((restaurant, _) => {
+                      return <option value={restaurant.restaurantId}>{restaurant.restaurantId}</option>;
                     })}
                   </select>
                 </td>

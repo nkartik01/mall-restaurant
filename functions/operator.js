@@ -44,7 +44,7 @@ router.get("/getOperator/:username", async (req, res) => {
     return res.status(400).send("No operator found");
   } catch (err) {
     console.log(err);
-    return res.status(500).send(err);
+    return res.status(500).send(err.toString());
   }
 });
 
@@ -61,7 +61,7 @@ router.get("/getOperatorList", auth_admin, async (req, res) => {
     return res.send({ operators });
   } catch (err) {
     console.log(err);
-    return res.status(500).send(err);
+    return res.status(500).send(err.toString());
   }
 });
 
@@ -71,7 +71,7 @@ router.get("/getPermissions", auth_operator, async (req, res) => {
     res.send({ permissions: operator.permissions });
   } catch (err) {
     console.log(err);
-    res.status(500).send(err);
+    res.status(500).send(err.toString());
   }
 });
 

@@ -1,15 +1,18 @@
 import React, { Component, Fragment } from "react";
 import axios from "axios";
 import AlertDiv from "../AlertDiv";
+import { Modal } from "react-bootstrap";
 export default class Payment extends Component {
-  state = { partial: false, partialAmount: 0, upiId: "", cardId: "", discType: "none", discReason: "By operator" };
+  state = { partial: false, partialAmount: 0, upiId: "", cardId: "", discType: "none", discReason: "By operator", rooms: {} };
   getBill = async () => {
     try {
       var bill = await axios.get(require("../config.json").url + "bill/getBill/" + this.props.bill, {
         headers: { "x-auth-token": localStorage.getItem("token") },
       });
       bill = bill.data;
-      this.setState({ bill });
+      var bookings = await axios.post(require("../config.json").url + "booking/date", { date: Date.now() });
+      bookings = bookings.data;
+      this.setState({ bill, rooms: bookings.rooms });
       if (bill.discType && bill.discType !== "none") {
         this.setState({ discType: bill.discType, discAmount: bill.discAmount, discPerc: bill.discPerc });
       }
@@ -205,6 +208,26 @@ export default class Payment extends Component {
                     onChange={(e) => {
                       e.preventDefault();
                       this.setState({ to: e.target.value });
+                    }}
+                    hidden={!this.state.partial || this.props.disable ? true : false}
+                  />
+                </td>
+              </tr>
+
+              <tr>
+                <td colSpan={2}>
+                  <input
+                    className="form-control"
+                    disabled={!this.state.partial || this.props.disable ? true : false}
+                    type="text"
+                    required
+                    placeholder="Partial privalage given to"
+                    id="gstIN"
+                    name="gstIN"
+                    value={this.state.gstIN}
+                    onChange={(e) => {
+                      e.preventDefault();
+                      this.setState({ gstIN: e.target.value });
                     }}
                     hidden={!this.state.partial || this.props.disable ? true : false}
                   />
@@ -525,6 +548,81 @@ export default class Payment extends Component {
                 </td>
               </tr>
             </tbody>
+          </table>
+        </form>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!window.confirm("Are you sure you want to add this bill to a booking? ")) {
+              return;
+            }
+            this.setState({ show: true });
+          }}
+        >
+          <Modal
+            size="xl"
+            show={this.state.show}
+            onHide={() => {
+              this.setState({ show: false });
+            }}
+          >
+            <Modal.Header closeButton>Choose the room</Modal.Header>
+            <Modal.Body>
+              <div className="row">
+                {Object.keys(this.state.rooms)
+                  .sort()
+                  .map((roomName) => {
+                    return (
+                      <Fragment>
+                        {this.state.rooms[roomName].map((room) => {
+                          var name;
+                          try {
+                            name = room.rooms.filter((x) => {
+                              console.log(x.room.value.toString(), roomName, new Date(x.arrivalTime).valueOf(), Date.now(), new Date(x.checkoutTime).valueOf(), Date.now());
+                              if (x.room.value.toString() === roomName && new Date(x.arrivalTime).valueOf() < Date.now() && new Date(x.checkoutTime).valueOf() > Date.now())
+                                return true;
+                            })[0].name;
+                          } catch {}
+                          return (
+                            <div
+                              className="col-md-3 btn btn-secondary"
+                              // style={{ padding: "5px" }}
+                              onClick={async (e) => {
+                                e.preventDefault();
+                                if (!window.confirm("Are you sure, you want to add this bill to " + roomName + " registered under " + name)) {
+                                  return;
+                                }
+                                try {
+                                  await axios.post(
+                                    require("../config.json").url + "bill/addToBooking",
+                                    { bill: this.props.bill, bookingId: room.bookingId },
+                                    { headers: { "x-auth-token": localStorage.getItem("token") } }
+                                  );
+                                  AlertDiv("green", "Added bill to booking");
+                                } catch (err) {
+                                  console.log(err, err.response);
+                                  AlertDiv("red", err.response.data);
+                                }
+                              }}
+                            >
+                              Room: {roomName}
+                              <br />
+                              Customer Name: {name}
+                            </div>
+                          );
+                        })}
+                      </Fragment>
+                    );
+                  })}
+              </div>
+            </Modal.Body>
+          </Modal>
+          <table align="center" className="table table-bordered">
+            <tr>
+              <td colSpan={2}>
+                <input type="submit" value="Move to Booking" className="form-control" />
+              </td>
+            </tr>
           </table>
         </form>
         <table align="center" className="table table-bordered">
