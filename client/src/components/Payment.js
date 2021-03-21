@@ -240,7 +240,7 @@ export default class Payment extends Component {
           onSubmit={async (e) => {
             e.preventDefault();
             try {
-              if (this.state.partial) document.getElementById("partialForm").submit();
+              // if (this.state.partial) document.getElementById("partialForm").submit();
               var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
               if (!window.confirm("Are you sure you want to deduct Rs." + tranAmount + " from this card?")) return;
               await axios.post(
@@ -250,7 +250,7 @@ export default class Payment extends Component {
 
                   amount: tranAmount,
                   to: this.state.partial ? this.state.to : undefined,
-                  gstin:this.state.partial?this.state.gstin:undefined,
+                  gstin: this.state.partial ? this.state.gstin : undefined,
                   uid: this.state.uid,
                   bill: this.props.bill,
                   table: !this.props.table ? false : this.props.table,
@@ -324,10 +324,9 @@ export default class Payment extends Component {
           id="cashForm"
           onSubmit={async (e) => {
             e.preventDefault();
-
             try {
               // console.log()
-              if (this.state.partial) document.getElementById("partialForm").submit();
+              // if (this.state.partial) document.getElementById("partialForm").submit();
               var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
               var received = parseInt(prompt("Cash Tendered by Customer"));
               if (!received || received === 0) return;
@@ -340,7 +339,7 @@ export default class Payment extends Component {
 
                   amount: tranAmount,
                   to: this.state.partial ? this.state.to : undefined,
-                  gstin:this.state.partial?this.state.gstin:undefined,
+                  gstin: this.state.partial ? this.state.gstin : undefined,
                   bill: this.props.bill,
                   table: !this.props.table ? false : this.props.table,
                 },
@@ -404,7 +403,7 @@ export default class Payment extends Component {
                   tranId: this.state.upiId,
                   amount: tranAmount,
                   to: this.state.partial ? this.state.to : undefined,
-                  gstin:this.state.partial?this.state.gstin:undefined,
+                  gstin: this.state.partial ? this.state.gstin : undefined,
                   bill: this.props.bill,
                   table: !this.props.table ? false : this.props.table,
                 },
@@ -486,7 +485,7 @@ export default class Payment extends Component {
                   tranId: this.state.cardId,
                   amount: tranAmount,
                   to: this.state.partial ? this.state.to : undefined,
-                  gstin:this.state.partial?this.state.gstin:undefined,
+                  gstin: this.state.partial ? this.state.gstin : undefined,
                   bill: this.props.bill,
                   table: !this.props.table ? false : this.props.table,
                 },
@@ -582,8 +581,19 @@ export default class Payment extends Component {
                           var name;
                           try {
                             name = room.rooms.filter((x) => {
-                              console.log(x.room.value.toString(), roomName, new Date(x.arrivalTime).valueOf(), Date.now(), new Date(x.checkoutTime).valueOf(), Date.now());
-                              if (x.room.value.toString() === roomName && new Date(x.arrivalTime).valueOf() < Date.now() && new Date(x.checkoutTime).valueOf() > Date.now())
+                              console.log(
+                                x.room.value.toString(),
+                                roomName,
+                                new Date(x.arrivalTime).valueOf(),
+                                Date.now(),
+                                new Date(x.checkoutTime).valueOf(),
+                                Date.now()
+                              );
+                              if (
+                                x.room.value.toString() === roomName &&
+                                new Date(x.arrivalTime).valueOf() < Date.now() &&
+                                new Date(x.checkoutTime).valueOf() > Date.now()
+                              )
                                 return true;
                             })[0].name;
                           } catch {}
