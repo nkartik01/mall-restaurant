@@ -358,21 +358,21 @@ router.post("/printBill", auth_operator, async (req, res) => {
     // print.println("hello");
     print.newLine();
     print.println("Thanks for your visit.");
-    print.drawLine();
-    print.println("Facilities at City Walk Mall");
-    // print.println("")
-    print.setTextSize(1, 1);
-    print.leftRight("Garden Cafe", "Level-0");
-    print.leftRight("Shops & Offices", "Level-0,1");
-    print.leftRight("Perry Club", "Level-2");
-    print.leftRight("Crystal Banquet Hall", "Level-2");
-    print.leftRight("Orient Conference Hall", "Level-2");
-    print.leftRight("Hotel Grand Umega", "Level-3");
-    print.leftRight("Urban Food Court", "Level-4");
-    print.leftRight("Party & Kitty Halls", "Level-4");
-    print.leftRight("City Cinema", "Level-4");
-    print.setTextSize(0, 0);
-    print.println("is now open at Level-4");
+    // print.drawLine();
+    // print.println("Facilities at City Walk Mall");
+    // // print.println("")
+    // print.setTextSize(1, 1);
+    // print.leftRight("Garden Cafe", "Level-0");
+    // print.leftRight("Shops & Offices", "Level-0,1");
+    // print.leftRight("Perry Club", "Level-2");
+    // print.leftRight("Crystal Banquet Hall", "Level-2");
+    // print.leftRight("Orient Conference Hall", "Level-2");
+    // print.leftRight("Hotel Grand Umega", "Level-3");
+    // print.leftRight("Urban Food Court", "Level-4");
+    // print.leftRight("Party & Kitty Halls", "Level-4");
+    // print.leftRight("City Cinema", "Level-4");
+    // print.setTextSize(0, 0);
+    // print.println("is now open at Level-4");
     print.cut();
     let execute = await print.execute(); // Executes all the commands. Returns success or throws error
     // console.log(execute);
@@ -385,6 +385,7 @@ router.post("/printBill", auth_operator, async (req, res) => {
 
 router.post("/printOrder", async (req, res) => {
   try {
+    return res.status(400).send("Order Slip has been turned off. Contact Tech.")
     const ThermalPrinter = require("node-thermal-printer").printer;
     const PrinterTypes = require("node-thermal-printer").types;
     const electron = typeof process !== "undefined" && process.versions && !!process.versions.electro;
