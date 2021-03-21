@@ -138,7 +138,6 @@ router.get("/getTables", async (req, res) => {
 
 router.post("/updateTable", auth_operator, async (req, res) => {
   try {
-    console.log(req.body);
     var table1 = (await Table.findOne({ tableId: req.body.table.id })).toJSON();
     var at = Date.now();
     req.body.orderChange.at = at;
@@ -157,8 +156,8 @@ router.post("/updateTable", auth_operator, async (req, res) => {
         : table1.restaurant === "Umega Hotel"
         ? "UH-"
         : null;
-    console.log(table1, table1.restaurant);
-    if (!table1.orderSnippets || table1.orderSnippets.length === 0) {
+    // console.log(table1, table1.restaurant);
+    if (!table1.bill || table1.bill === "") {
       table1.orderSnippets = [];
       var bills = await Bill.find({ restaurant: table1.restaurant });
       var bill = await new Bill({
@@ -173,7 +172,7 @@ router.post("/updateTable", auth_operator, async (req, res) => {
       }).save();
       table1.bill = prefix + (bills.length + 1).toString();
     }
-    console.log(table1.bill);
+    // console.log(table1.bill);
     var bill = (await Bill.findOne({ billId: table1.bill })).toJSON();
     bill.balance = bill.balance + req.body.orderChange.sum;
     table1.balance = bill.balance;
