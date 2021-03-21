@@ -27,21 +27,40 @@ export default class OperatorLogin extends Component {
   render() {
     const { username, password } = this.state;
     return (
-      <div>
-        <form onSubmit={(e) => this.onSubmit(e)}>
-          <h3>Operator Login</h3>
-          <div className="form-group">
-            <input className="form-control" type="text" name="username" id="username" value={username} onChange={(e) => this.onChange(e)} placeholder="Operator Username" />
-          </div>
-          <div className="form-group">
-            <input className="form-control" type="password" name="password" id="password" value={password} onChange={(e) => this.onChange(e)} placeholder="Password" />
-          </div>
-          <p style={{ color: "red" }} id="error"></p>
-          <div className="form-group">
-            <input className="btn btn-primary" type="submit" value="Log in as operator" />
-          </div>
-        </form>
-      </div>
+      <center>
+        <div className="col-md-3" style={{ border: "2px solid black" }}>
+          <form onSubmit={(e) => this.onSubmit(e)}>
+            <h3>Operator Login</h3>
+            <div className="form-group">
+              <input
+                className="form-control"
+                type="text"
+                name="username"
+                id="username"
+                value={username}
+                onChange={(e) => this.onChange(e)}
+                placeholder="Operator Username"
+              />
+            </div>
+            <div className="form-group">
+              <input
+                className="form-control"
+                type="password"
+                name="password"
+                id="password"
+                value={password}
+                onChange={(e) => this.onChange(e)}
+                placeholder="Password"
+              />
+            </div>
+            <p style={{ color: "red" }} id="error"></p>
+            <div className="form-group">
+              <input className="btn btn-primary" type="submit" value="Log in as operator" />
+            </div>
+          </form>
+        </div>
+        <br />
+      </center>
     );
   }
 }

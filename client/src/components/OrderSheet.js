@@ -189,7 +189,8 @@ export default class OrderSheet extends Component {
                           var c = 0;
                           for (var j = 0; j < propsTable.orderHistory.order.length; j++) {
                             if (propsTable.orderChange.order[i].item === propsTable.orderHistory.order[j].item) {
-                              propsTable.orderHistory.order[j].quantity = propsTable.orderHistory.order[j].quantity + propsTable.orderChange.order[i].quantity;
+                              propsTable.orderHistory.order[j].quantity =
+                                propsTable.orderHistory.order[j].quantity + propsTable.orderChange.order[i].quantity;
                               c = 1;
                               break;
                             }
@@ -275,7 +276,7 @@ export default class OrderSheet extends Component {
                 <Fragment>
                   {!this.state.edit ? (
                     <button
-                      disabled={propsTable.orderHistory.sum === 0 || propsTable.orderChange.sum === 0}
+                      disabled={!(propsTable.orderHistory.sum === 0 || propsTable.orderChange.sum === 0)}
                       className="btn btn-primary"
                       onClick={(e) => {
                         e.preventDefault();
@@ -298,7 +299,12 @@ export default class OrderSheet extends Component {
                           console.log(this.state.proposedChanges, this.state.historyCopy);
                           await axios.post(
                             require("../config.json").url + "bill/editBill",
-                            { table: propsTable.id, bill: propsTable.bill, orderHistory: this.state.historyCopy, orderChange: this.state.proposedChanges },
+                            {
+                              table: propsTable.id,
+                              bill: propsTable.bill,
+                              orderHistory: this.state.historyCopy,
+                              orderChange: this.state.proposedChanges,
+                            },
                             { headers: { "x-auth-token": localStorage.getItem("token") } }
                           );
                           propsTable.orderHistory = this.state.historyCopy;
@@ -475,7 +481,11 @@ export default class OrderSheet extends Component {
                       this.setState({});
                       if (propsTable.balance !== 0) return;
                       else {
-                        await axios.post(require("../config.json").url + "menu/freeTable", { table: propsTable }, { headers: { "x-auth-token": localStorage.getItem("token") } });
+                        await axios.post(
+                          require("../config.json").url + "menu/freeTable",
+                          { table: propsTable },
+                          { headers: { "x-auth-token": localStorage.getItem("token") } }
+                        );
                         propsTable.orderHistory.order = [];
                         propsTable.orderHistory.sum = 0;
                         propsTable.balance = 0;
@@ -492,7 +502,11 @@ export default class OrderSheet extends Component {
                   e.preventDefault();
 
                   //   Payment logic as needed
-                  await axios.post(require("../config.json").url + "menu/freeTable", { table: propsTable }, { headers: { "x-auth-token": localStorage.getItem("token") } });
+                  await axios.post(
+                    require("../config.json").url + "menu/freeTable",
+                    { table: propsTable },
+                    { headers: { "x-auth-token": localStorage.getItem("token") } }
+                  );
                   propsTable.orderHistory.order = [];
                   propsTable.orderHistory.sum = 0;
                   propsTable.balance = 0;

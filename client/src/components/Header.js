@@ -6,33 +6,33 @@ export default class Header extends Component {
     var status = localStorage.getItem("status");
     return (
       <div>
-        Urban Food Cafe, CityWalk Mall, Abohar.
+        <p style={{ fontSize: "40px" }}>City Walk Mall, Abohar</p>
         <div style={{ display: "inline-block" }}>
           {status === "admin" ? (
             <Fragment>
-              <Link className="btn btn-primary" to="/operatorSignup">
+              <Link className="btn btn-primary navBtn" to="/operatorSignup">
                 Add Operator
               </Link>
-              <Link className="btn btn-primary" to="/listOperators">
+              <Link className="btn btn-primary navBtn" to="/listOperators">
                 Operator List
               </Link>
-              <Link className="btn btn-primary" to="/registerRFID">
+              <Link className="btn btn-primary navBtn" to="/registerRFID">
                 Register RFID Cards
               </Link>
             </Fragment>
           ) : null}
           {status === "operator" ? (
             <Fragment>
-              <Link to="/takeOrder" className="btn btn-primary">
+              <Link to="/takeOrder" className="btn btn-primary navBtn">
                 Take Orders
               </Link>
-              <Link to="/manipulateRFID" className="btn btn-primary">
+              <Link to="/manipulateRFID" className="btn btn-primary navBtn">
                 Manipulate RFID
               </Link>
-              <Link to="/billList" className="btn btn-primary">
+              <Link to="/billList" className="btn btn-primary navBtn">
                 Bill List
               </Link>
-              <Link to={"/operator/" + localStorage.getItem("username")} className={"btn btn-primary"}>
+              <Link to={"/operator/" + localStorage.getItem("username")} className={"btn btn-primary navBtn"}>
                 Profile
               </Link>
             </Fragment>
@@ -41,17 +41,18 @@ export default class Header extends Component {
             <Fragment></Fragment>
           ) : (
             <Fragment>
-              <Link to="/booking" className="btn btn-primary">
+              <Link to="/booking" className="btn btn-primary navBtn">
                 Booking
               </Link>
 
-              <Link to="/availability" className="btn btn-primary">
+              <Link to="/availability" className="btn btn-primary navBtn">
                 Availability
               </Link>
-              <Link to={"/report"} className="btn btn-primary">
+              <Link to={"/report"} className="btn btn-primary navBtn">
                 Reports
               </Link>
               <button
+                className="btn btn-primary navBtn"
                 onClick={(e) => {
                   e.preventDefault();
                   localStorage.removeItem("status");

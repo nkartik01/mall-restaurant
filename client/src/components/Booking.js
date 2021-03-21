@@ -63,7 +63,7 @@ export default class Booking extends React.Component {
       <Fragment>
         {!this.state.isLoading ? (
           <Row>
-            <Col sm={3}>
+            <Col sm={2}>
               <Calendar value={this.state.date} onChange={this.changeDate} />
               <button
                 onClick={(e) => {
@@ -75,7 +75,7 @@ export default class Booking extends React.Component {
               </button>
               <BookingModal setShow={() => this.setState({ show: false })} booking={{ rooms: this.state.newRooms }} show={this.state.show} />
             </Col>
-            <Col sm={8}>
+            <Col sm={10}>
               <Fragment>
                 <div className="row">
                   {this.state.rooms.map((room, roomInd) => {
@@ -116,10 +116,10 @@ export default class Booking extends React.Component {
                     }
 
                     return (
-                      <div className="col-md-3" style={{ border: "2px solid black" }} key={room.room}>
-                        <table style={{ width: "100%" }}>
-                          <tbody style={{ width: "100%" }}>
-                            <tr style={{ height: "35px", width: "100%" }}>{a}</tr>
+                      <div className="col-md-3" style={{ border: "2px solid black", margin: "5px", padding: "0px" }} key={room.room}>
+                        <table style={{ width: "100%", margin: "0px", padding: "0px" }}>
+                          <tbody style={{ width: "100%", margin: "0px", padding: "0px" }}>
+                            <tr style={{ height: "35px", width: "100%", margin: "0px", padding: "0px" }}>{a}</tr>
                           </tbody>
                         </table>
                         <button

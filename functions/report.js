@@ -18,7 +18,7 @@ router.post("/sale", async (req, res) => {
       bills = await Bill.find({ at: { $gt: start, $lte: end }, cancelled: { $ne: true } });
     }
     for (var i = 0; i < bills.length; i++) {
-      var bill = bills[i].toObject();
+      var bill = bills[i].toJSON();
       bill.id = bills[i].billId;
       bills[i] = bill;
     }

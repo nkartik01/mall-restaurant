@@ -8,7 +8,7 @@ router.get("/getPendingOrders", auth_operator, async (req, res) => {
   try {
     var orders = await ChefSide.find({});
     for (var i = 0; i < orders.length; i++) {
-      var order = orders[i].toObject();
+      var order = orders[i].toJSON();
       order.id = orders[i].chefSideId;
       orders[i] = order;
     }

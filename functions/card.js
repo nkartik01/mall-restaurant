@@ -27,7 +27,7 @@ router.get("/getCard/:uid", auth_operator, async (req, res) => {
     if (!card) {
       return res.status(400).send("card not found");
     }
-    card = card.toObject();
+    card = card.toJSON();
     res.send({ card });
   } catch (err) {
     console.log(err);
@@ -42,7 +42,7 @@ router.post("/addAmount", auth_operator, async (req, res) => {
     }
     var uid = req.body.uid;
     var card = await Card.findOne({ uid });
-    card = card.toObject();
+    card = card.toJSON();
     card.balance = card.balance + req.body.amount;
     card.transactions.unshift({
       by: req.operator.id,
@@ -51,10 +51,9 @@ router.post("/addAmount", auth_operator, async (req, res) => {
       at: Date.now(),
     });
     var operator = await Operator.findOne({ operatorId: req.operator.id });
-    operator = operator.toObject();
+    operator = operator.toJSON();
     operator.balance = operator.balance + req.body.amount;
-    if (!operator.transactions) operator.transactions = [];
-    operator.transactions.unshift({ type: "balanceAdd", amount: req.body.amount, at: Date.now() });
+    await new OperatorTransaction({ operatorId: req.operator.id, type: "balanceAdd", amount: req.body.amount, at: Date.now() }).save();
     (await Operator.findOneAndUpdate({ operatorId: req.operator.id }, operator, { useFindAndModify: false })).save();
     (await Card.findOneAndUpdate({ uid }, card, { useFindAndModify: false })).save();
     return res.send("amount added");
@@ -71,12 +70,12 @@ router.post("/deductAmount", auth_operator, async (req, res) => {
     }
     var uid = req.body.uid;
     var card = await Card.findOne({ uid });
-    card = card.toObject();
+    card = card.toJSON();
     if (!card) {
       return res.status(400).send("Card not recognized");
     }
-    if (!card.assigned) {
-      return res.status(400).send("Alert!!!! Card not assigned");
+    if (!card.holder.assigned) {
+      return res.status(400).send("Card not assigned");
     }
     if (card.balance < req.body.amount) {
       return res.status(400).send("Insufficient Balance. Current Balance: " + card.balance + ", Need " + (req.body.amount - card.balance) + " more");
@@ -98,7 +97,7 @@ router.post("/deductAmount", auth_operator, async (req, res) => {
     console.log(card);
 
     var bill = await Bill.findOne({ billId: req.body.bill });
-    bill = bill.toObject();
+    bill = bill.toJSON();
 
     if (!bill) {
       return res.status(400).send("Issue with Bill");
@@ -113,13 +112,17 @@ router.post("/deductAmount", auth_operator, async (req, res) => {
     if (req.body.table) {
       (await Table.findOneAndUpdate({ tableId: req.body.table }, { balance: bill.balance }, { useFindAndModify: false })).save();
     }
-    var operator = await Operator.findOne({ operatorId: req.operator.id });
-    operator = operator.toObject();
     bill.transactions.unshift({ type: "rfid", rfid: req.body.uid, by: req.operator.id, at: now, amount: req.body.amount });
-    operator.transactions.unshift({ type: "rfid", tranId: req.body.uid, at: now, amount: req.body.amount, bill: req.body.bill });
+    await new OperatorTransaction({
+      operatorId: req.operator.id,
+      type: "rfid",
+      tranId: req.body.uid,
+      at: now,
+      amount: req.body.amount,
+      bill: req.body.bill,
+    }).save();
     (await Bill.findOneAndUpdate({ billId: req.body.bill }, bill, { useFindAndModify: false })).save();
     (await Card.findOneAndUpdate({ cardId: uid }, card, { useFindAndModify: false })).save();
-    (await Operator.findOneAndUpdate({ operatorId: req.operator.id }, operator, { useFindAndModify: false })).save();
     return res.send("amount deducted sucessfully");
   } catch (err) {
     console.log(err);
@@ -130,16 +133,21 @@ router.post("/deductAmount", auth_operator, async (req, res) => {
 router.post("/assign", auth_operator, async (req, res) => {
   try {
     var card = await Card.findOne({ uid: req.body.uid });
-    card = card.toObject();
+    card = card.toJSON();
     card.holder = req.body.holder;
     card.holder.assigned = true;
     card.balance = parseInt(req.body.balance);
     card.transactions.unshift({ type: "assign", by: req.operator.id, details: { to: card.holder }, at: parseInt(Date.now()) });
     var operator = await Operator.findOne({ operatorId: req.operator.id });
-    operator = operator.toObject();
+    operator = operator.toJSON();
     operator.balance = parseInt(operator.balance) + parseInt(req.body.balance);
-    if (!operator.transactions) operator.transactions = [];
-    operator.transactions.unshift({ type: "assign", amount: req.body.balance, at: Date.now(), details: { to: card.holder } });
+    await new OperatorTransaction({
+      operatorId: req.operator.id,
+      type: "assign",
+      amount: req.body.balance,
+      at: Date.now(),
+      details: { to: card.holder },
+    }).save();
     (await Operator.findOneAndUpdate({ operatorId: req.operator.id }, operator, { useFindAndModify: false })).save();
 
     (await Card.findOneAndUpdate({ uid: req.body.uid }, card, { useFindAndModify: false })).save();
@@ -154,14 +162,13 @@ router.post("/retire", auth_operator, async (req, res) => {
   try {
     var card = await Card.findOne({ uid: req.body.uid });
     var operator = await Operator.findOne({ operatorId: req.operator.id });
-    operator = operator.toObject();
-    card = card.toObject();
+    operator = operator.toJSON();
+    card = card.toJSON();
     card.holder = { assigned: false };
     card.transactions.unshift({ type: "retire", by: req.operator.id, at: parseInt(Date.now()), details: { paidAmount: card.balance } });
     operator.balance = operator.balance - card.balance;
     card.balance = 0;
-    if (!operator.transactions) operator.transactions = [];
-    operator.transactions.unshift({ type: "retire", amount: card.balance, at: Date.now() });
+    await new OperatorTransaction({ type: "retire", amount: card.balance, at: Date.now(), operatorId: req.operator.id });
     (await Operator.findOneAndUpdate({ operatorId: req.operator.id }, operator, { useFindAndModify: false })).save();
     (await Card.findOneAndUpdate({ uid: req.body.uid }, card, { useFindAndModify: false })).save();
     return res.send("Retired");
@@ -174,10 +181,8 @@ router.post("/retire", auth_operator, async (req, res) => {
 router.get("/searchByPhone/:phone", auth_operator, async (req, res) => {
   try {
     var cards = await Card.find({ "holder.mobile": req.params.phone });
-    // console.log(cards);
-
     for (var i = 0; i < cards.length; i++) {
-      var card = cards[i].toObject();
+      var card = cards[i].toJSON();
       card.id = cards[i].cardId;
       cards[i] = card;
     }

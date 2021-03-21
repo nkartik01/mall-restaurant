@@ -10,7 +10,7 @@ router.post("/admin", async (req, res) => {
   try {
     const { username, password } = req.body;
     try {
-      var admin = (await Admin.findOne({ username })).toObject();
+      var admin = (await Admin.findOne({ username })).toJSON();
       const isMatch = await bcryptjs.compare(password, admin.password);
       if (!isMatch) {
         return res.status(400).send("Wrong Password");
@@ -44,7 +44,7 @@ router.post("/operator", async (req, res) => {
     if (!operator) {
       return res.status(400).send("Operator not found");
     }
-    operator = operator.toObject();
+    operator = operator.toJSON();
     const isMatch = await bcryptjs.compare(password, operator.password);
     if (!isMatch) {
       return res.status(400).send("Wrong Password");

@@ -58,7 +58,14 @@ router.post("/setMenu/:menu", async (req, res) => {
     var id = req.params.menu;
     var x = await Menu.findOne({ menuId: id });
     if (!x) new Menu({ menuId: id, menu, order: sheets, kot: req.body.kot, disc: req.body.disc }).save();
-    else (await Menu.findOneAndUpdate({ menuId: id }, { menuId: id, menu, order: sheets, kot: req.body.kot, disc: req.body.disc }, { useFindAndModify: false })).save();
+    else
+      (
+        await Menu.findOneAndUpdate(
+          { menuId: id },
+          { menuId: id, menu, order: sheets, kot: req.body.kot, disc: req.body.disc },
+          { useFindAndModify: false }
+        )
+      ).save();
     return res.send(menu);
   } catch (err) {
     console.log(err);
@@ -71,10 +78,10 @@ router.get("/getRestaurantMenus", async (req, res) => {
     var rests = await Restaurant.find({});
     var menus = {};
     for (var i = 0; i < rests.length; i++) {
-      var rest = rests[i].toObject();
+      var rest = rests[i].toJSON();
       var menu = [];
       for (var j = 0; j < rest.menu.length; j++) {
-        var menu1 = (await Menu.findOne({ menuId: rest.menu[j] })).toObject();
+        var menu1 = (await Menu.findOne({ menuId: rest.menu[j] })).toJSON();
         menu1.id = menu1.menuId;
         menu.push(menu1);
       }
@@ -119,7 +126,7 @@ router.get("/getTables", async (req, res) => {
     // var tables = await db.collection("table").orderBy("table", "asc").orderBy("restaurant", "asc").get();
     var tables = await Table.find({}).sort("table").sort("restaurant");
     for (var i = 0; i < tables.length; i++) {
-      tables[i] = tables[i].toObject();
+      tables[i] = tables[i].toJSON();
       tables[i].id = tables[i].tableId;
     }
     return res.send({ tables: tables });
@@ -132,7 +139,7 @@ router.get("/getTables", async (req, res) => {
 router.post("/updateTable", auth_operator, async (req, res) => {
   try {
     console.log(req.body);
-    var table1 = (await Table.findOne({ tableId: req.body.table.id })).toObject();
+    var table1 = (await Table.findOne({ tableId: req.body.table.id })).toJSON();
     var at = Date.now();
     req.body.orderChange.at = at;
     table1.orderHistory = req.body.orderHistory;
@@ -167,7 +174,7 @@ router.post("/updateTable", auth_operator, async (req, res) => {
       table1.bill = prefix + (bills.length + 1).toString();
     }
     console.log(table1.bill);
-    var bill = (await Bill.findOne({ billId: table1.bill })).toObject();
+    var bill = (await Bill.findOne({ billId: table1.bill })).toJSON();
     bill.balance = bill.balance + req.body.orderChange.sum;
     table1.balance = bill.balance;
     var start = new Date();
@@ -284,7 +291,7 @@ router.post("/toggleMenu", async (req, res) => {
     if (!restaurant) {
       return res.status(400).send("Restaurant Not Found");
     }
-    restaurant = restaurant.toObject();
+    restaurant = restaurant.toJSON();
     var index = restaurant.menu.indexOf(req.body.menu);
     if (index === -1) {
       restaurant.menu.push(req.body.menu);

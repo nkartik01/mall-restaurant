@@ -13,14 +13,17 @@ router.post("/editBooking", async (req, res) => {
       var b = await Booking.findOne({
         rooms: {
           $elemMatch: {
-            $or: [{ arrivalTime: { $gte: room.arrivalTime, $lte: room.checkoutTime } }, { checkoutTime: { $lte: room.checkoutTime, $gte: room.arrivalTime } }],
+            $or: [
+              { arrivalTime: { $gte: room.arrivalTime, $lte: room.checkoutTime } },
+              { checkoutTime: { $lte: room.checkoutTime, $gte: room.arrivalTime } },
+            ],
             room: room.room.label,
           },
         },
         bookingId: { $ne: req.body.bookingId },
       });
       if (b) {
-        b = b.toObject();
+        b = b.toJSON();
         return res.status(400).send("Room: " + room.room.label + " clashes with booking Id: " + b.bookingId);
       }
     }
@@ -64,7 +67,7 @@ router.post("/date", async (req, res) => {
     var bookings = await Booking.find({ rooms: { $elemMatch: { arrivalTime: { $lt: date2 }, checkoutTime: { $gt: date1 } } } });
     var rooms = {};
     bookings.map((booking, i) => {
-      booking = booking.toObject();
+      booking = booking.toJSON();
       booking.id = booking.bookingId;
       booking.rooms.map((room, k) => {
         try {
@@ -120,10 +123,12 @@ router.post("/room", async (req, res) => {
     var dates = {};
     var date2 = date1 + days * (1000 * 60 * 60 * 24);
     for (var i = 0; i < days; i = i + 1) {
-      var bookings = await Booking.find({ rooms: { $elemMatch: { room: req.body.room, arrivalTime: { $lt: date1 + 1000 * 60 * 60 * 24 }, checkoutTime: { $gt: date1 } } } });
+      var bookings = await Booking.find({
+        rooms: { $elemMatch: { room: req.body.room, arrivalTime: { $lt: date1 + 1000 * 60 * 60 * 24 }, checkoutTime: { $gt: date1 } } },
+      });
 
       bookings = bookings.map((booking, j) => {
-        booking = booking.toObject();
+        booking = booking.toJSON();
         booking.id = booking.bookingId;
 
         // console.log(booking);
@@ -178,7 +183,7 @@ router.get("/rooms", async (req, res) => {
   try {
     var rooms = await Room.find({});
     for (var i = 0; i < rooms.length; i++) {
-      rooms[i] = rooms[i].toObject().roomId;
+      rooms[i] = rooms[i].toJSON().roomId;
     }
     res.send({ rooms });
   } catch (err) {
@@ -220,7 +225,7 @@ router.post("/generateBill", auth_operator, async (req, res) => {
     var booking = await Booking.findOne({ bookingId: req.body.bookingId });
     booking = booking.toJSON();
     if (!booking.bill || booking.bill === "") {
-      var bills = await Bill.find({ restaurant: "Umega Hotel" });
+      var bills = await Bill.find({ restaurant: "Hotel Grand Umega" });
     }
   } catch (err) {
     console.log(err);
@@ -287,7 +292,7 @@ router.post("/printBill", async (req, res) => {
       // return print.table([i + 1, order.item, order.price, order.quantity, order.price * order.quantity]);
     });
     // print.drawLine();
-    // var bill = (await Bill.findOne({ billId: req.body.bill })).toObject();
+    // var bill = (await Bill.findOne({ billId: req.body.bill })).toJSON();
 
     // var orders = [];
     // bill.orderChanges.map((order, _) => {
@@ -314,7 +319,8 @@ router.post("/printBill", async (req, res) => {
         } else if (req.body.method !== "cash") {
           print.leftRight("", "Txn Id: " + req.body.tranId);
         }
-      if (req.body.balance - req.body.paid !== 0) print.leftRight("", "Pending: " + parseInt(parseInt(req.body.balance) - parseInt(req.body.paid)) + " ");
+      if (req.body.balance - req.body.paid !== 0)
+        print.leftRight("", "Pending: " + parseInt(parseInt(req.body.balance) - parseInt(req.body.paid)) + " ");
     }
     // print.println("hello");
     print.newLine();

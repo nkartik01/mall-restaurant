@@ -415,7 +415,7 @@ export default class Landing extends Component {
                     className="form-control"
                     type="text"
                     required
-                    placeholder="Enter Restaurant Name"
+                    placeholder="Enter Room Name"
                     value={this.state.removeRoomName}
                     onChange={(e) => {
                       e.preventDefault();
