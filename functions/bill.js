@@ -84,7 +84,7 @@ router.post("/byCash", auth_operator, async (req, res) => {
       bill.gstin = req.body.gstin;
     }
     var table = await Table.findOne({ bill: req.body.bill });
-    if (!!table) {
+    if (!!table && bill.balance === req.body.amount) {
       table = table.toJSON();
       table.bill = "";
       table.orderHistory = { sum: 0, order: [] };
@@ -147,7 +147,7 @@ router.post("/byCard", auth_operator, async (req, res) => {
     }
     bill.balance = bill.balance - req.body.amount;
     var table = await Table.findOne({ bill: req.body.bill });
-    if (!!table) {
+    if (!!table && bill.balance === req.body.amount) {
       table = table.toJSON();
       table.bill = "";
       table.orderHistory = { sum: 0, order: [] };
@@ -209,7 +209,7 @@ router.post("/byUpi", auth_operator, async (req, res) => {
     }
     bill.balance = bill.balance - req.body.amount;
     var table = await Table.findOne({ bill: req.body.bill });
-    if (!!table) {
+    if (!!table && bill.balance === req.body.amount) {
       table = table.toJSON();
       table.bill = "";
       table.orderHistory = { sum: 0, order: [] };
