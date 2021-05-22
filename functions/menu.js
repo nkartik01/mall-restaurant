@@ -23,6 +23,7 @@ router.get("/listMenus", async (req, res) => {
   try {
     var menus = await Menu.find({});
     for (var i = 0; i < menus.length; i++) {
+      menus[i] = menus[i].toJSON();
       menus[i] = menus[i].menuId;
     }
     res.send({ menus: menus });
@@ -48,21 +49,40 @@ router.post("/setMenu/:menu", async (req, res) => {
       console.log(sheets[i]);
       menu[sheets[i]] = [];
       for (var j = 1; j <= x1; j++) {
-        menu[sheets[i]].push({
-          name: worksheet["A" + j].v,
-          price: worksheet["B" + j].v,
-          // description: worksheet["C" + j].v,
-        });
+        try {
+          menu[sheets[i]].push({
+            name: worksheet["A" + j].v,
+            price: worksheet["B" + j].v,
+            // description: worksheet["C" + j].v,
+          });
+        } catch (err) {
+          console.log(err);
+        }
       }
     }
     var id = req.params.menu;
     var x = await Menu.findOne({ menuId: id });
-    if (!x) new Menu({ menuId: id, menu, order: sheets, kot: req.body.kot, disc: req.body.disc }).save();
+    if (!x)
+      new Menu({
+        menuId: id,
+        menu,
+        order: sheets,
+        kot: req.body.kot,
+        disc: req.body.disc,
+        counterName: req.body.counterName,
+      }).save();
     else
       (
         await Menu.findOneAndUpdate(
           { menuId: id },
-          { menuId: id, menu, order: sheets, kot: req.body.kot, disc: req.body.disc },
+          {
+            menuId: id,
+            menu,
+            order: sheets,
+            kot: req.body.kot,
+            disc: req.body.disc,
+            counterName: req.body.counterName,
+          },
           { useFindAndModify: false }
         )
       ).save();
@@ -112,6 +132,7 @@ router.get("/restaurants", async (req, res) => {
   try {
     var rests = await Restaurant.find({});
     for (var i = 0; i < rests.length; i++) {
+      rests[i] = rests[i].toJSON();
       rests[i].id = rests[i].restaurantId;
     }
     res.send({ restaurants: rests });
@@ -182,22 +203,31 @@ router.post("/updateTable", auth_operator, async (req, res) => {
     var end = new Date();
     end.setHours(23, 59, 59, 999);
     end = end.valueOf();
-    var orders = await ChefSide.find({ at: { $gte: start, $lt: end }, restaurant: table1.restaurant });
-    req.body.orderChange.orderNo = (orders.length + 1).toString();
+    var orders = await ChefSide.count({
+      at: { $gte: start, $lt: end },
+      restaurant: table1.restaurant,
+    });
+    req.body.orderChange.orderNo = (orders + 1).toString();
     bill.orderChanges.push(req.body.orderChange);
     bill.finalOrder = req.body.orderHistory;
     (await Bill.findOneAndReplace({ billId: table1.bill }, bill)).save();
     table1.orderSnippets.push(req.body.orderChange);
-    (await Table.findOneAndReplace({ tableId: req.body.table.id }, table1)).save();
+    (
+      await Table.findOneAndReplace({ tableId: req.body.table.id }, table1)
+    ).save();
     //add oorder to chef side with timer and stuff
-    new ChefSide({
-      chefSideId: prefix + (orders.length + 1).toString(),
-      ...req.body.orderChange,
-      restaurant: table1.restaurant,
-      bill: table1.bill,
-      orderNo: (orders.length + 1).toString(),
-    }).save();
-    res.send({ bill: table1.bill, orderId: (orders.length + 1).toString() });
+    Object.keys(req.body.chefBreakDown).map((order) => {
+      new ChefSide({
+        chefSideId: prefix + (orders + 1).toString(),
+        ...req.body.chefBreakDown[order],
+        at,
+        restaurant: table1.restaurant,
+        bill: table1.bill,
+        orderNo: (orders + 1).toString(),
+        menuId: order.split(".")[0],
+      }).save();
+    });
+    res.send({ bill: table1.bill, orderId: (orders + 1).toString() });
   } catch (err) {
     console.log(err);
     res.status(500).send(err.toString());
@@ -209,7 +239,14 @@ router.post("/freeTable", auth_operator, async (req, res) => {
     (
       await Table.findOneAndUpdate(
         { tableId: req.body.table.id },
-        { orderHistory: { order: [], sum: 0 }, orderSnippets: [], bill: "", balance: 0, discType: false, discAmount: 0 },
+        {
+          orderHistory: { order: [], sum: 0 },
+          orderSnippets: [],
+          bill: "",
+          balance: 0,
+          discType: false,
+          discAmount: 0,
+        },
         { useFindAndModify: false }
       )
     ).save();
@@ -246,7 +283,9 @@ router.get("/createTables", async (req, res) => {
 
 router.post("/addTable", async (req, res) => {
   try {
-    var table = await Table.findOne({ tableId: req.body.restaurant + "-" + req.body.table });
+    var table = await Table.findOne({
+      tableId: req.body.restaurant + "-" + req.body.table,
+    });
     if (table) {
       return res.status(400).send("Table already exists");
     }
@@ -270,7 +309,9 @@ router.post("/addTable", async (req, res) => {
 router.delete("/table", async (req, res) => {
   try {
     console.log(req.body);
-    var table = await Table.findOne({ tableId: req.body.restaurant + "-" + req.body.table });
+    var table = await Table.findOne({
+      tableId: req.body.restaurant + "-" + req.body.table,
+    });
     console.log(table);
     if (!table) {
       return res.status(400).send("Table doesn't exist");
@@ -286,7 +327,9 @@ router.delete("/table", async (req, res) => {
 
 router.post("/toggleMenu", async (req, res) => {
   try {
-    var restaurant = await Restaurant.findOne({ restaurantId: req.body.restaurant });
+    var restaurant = await Restaurant.findOne({
+      restaurantId: req.body.restaurant,
+    });
     if (!restaurant) {
       return res.status(400).send("Restaurant Not Found");
     }
@@ -294,13 +337,27 @@ router.post("/toggleMenu", async (req, res) => {
     var index = restaurant.menu.indexOf(req.body.menu);
     if (index === -1) {
       restaurant.menu.push(req.body.menu);
-      (await Restaurant.findOneAndUpdate({ restaurantId: req.body.restaurant }, restaurant, { useFindAndModify: false })).save();
+      (
+        await Restaurant.findOneAndUpdate(
+          { restaurantId: req.body.restaurant },
+          restaurant,
+          { useFindAndModify: false }
+        )
+      ).save();
       return res.send("Added " + req.body.menu + " to " + req.body.restaurant);
     } else {
       restaurant.menu.splice(index, 1);
       console.log(restaurant);
-      (await Restaurant.findOneAndUpdate({ restaurantId: req.body.restaurant }, restaurant, { useFindAndModify: false })).save();
-      return res.send("Removed " + req.body.menu + " from " + req.body.restaurant);
+      (
+        await Restaurant.findOneAndUpdate(
+          { restaurantId: req.body.restaurant },
+          restaurant,
+          { useFindAndModify: false }
+        )
+      ).save();
+      return res.send(
+        "Removed " + req.body.menu + " from " + req.body.restaurant
+      );
     }
   } catch (err) {
     console.log(err);

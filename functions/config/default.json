@@ -1,5 +1,6 @@
 {
   "JWTSecretAdmin": "admin",
   "JWTSecretOperator": "operator",
+  "JWTSecretChef": "chef",
   "mongoUri": "mongodb://localhost:27017/mall"
 }

@@ -3,18 +3,36 @@ import axios from "axios";
 import AlertDiv from "../AlertDiv";
 import { Modal } from "react-bootstrap";
 export default class Payment extends Component {
-  state = { partial: false, partialAmount: 0, upiId: "", cardId: "", discType: "none", discReason: "By operator", rooms: {} };
+  state = {
+    partial: false,
+    partialAmount: 0,
+    upiId: "",
+    cardId: "",
+    discType: "none",
+    discReason: "By operator",
+    rooms: {},
+  };
   getBill = async () => {
     try {
-      var bill = await axios.get(require("../config.json").url + "bill/getBill/" + this.props.bill, {
-        headers: { "x-auth-token": localStorage.getItem("token") },
-      });
+      var bill = await axios.get(
+        require("../config.json").url + "bill/getBill/" + this.props.bill,
+        {
+          headers: { "x-auth-token": localStorage.getItem("token") },
+        }
+      );
       bill = bill.data;
-      var bookings = await axios.post(require("../config.json").url + "booking/date", { date: Date.now() });
+      var bookings = await axios.post(
+        require("../config.json").url + "booking/date",
+        { date: Date.now() }
+      );
       bookings = bookings.data;
       this.setState({ bill, rooms: bookings.rooms });
       if (bill.discType && bill.discType !== "none") {
-        this.setState({ discType: bill.discType, discAmount: bill.discAmount, discPerc: bill.discPerc });
+        this.setState({
+          discType: bill.discType,
+          discAmount: bill.discAmount,
+          discPerc: bill.discPerc,
+        });
       }
     } catch (err) {
       console.log(err, err.response);
@@ -75,6 +93,19 @@ export default class Payment extends Component {
           </table>
           <table align="center" className="table table-bordered">
             <tbody>
+              <input
+                className="form-control"
+                type="number"
+                required
+                placeholder="phone"
+                id="phone"
+                name="phone"
+                value={this.state.phone}
+                onChange={(e) => {
+                  e.preventDefault();
+                  this.setState({ phone: e.target.value });
+                }}
+              />
               {this.state.discType !== "none" ? (
                 <Fragment>
                   <tr>
@@ -98,7 +129,10 @@ export default class Payment extends Component {
                             }
                             return null;
                           });
-                          this.setState({ discPerc: e.target.value, discAmount: (e.target.value * sum) / 100 });
+                          this.setState({
+                            discPerc: e.target.value,
+                            discAmount: (e.target.value * sum) / 100,
+                          });
                         }}
                       />
                     </td>
@@ -118,7 +152,12 @@ export default class Payment extends Component {
                         autoComplete="off"
                         onChange={(e) => {
                           e.preventDefault();
-                          this.setState({ discPerc: (e.target.value * 100) / this.props.orderHistory.sum, discAmount: e.target.value });
+                          this.setState({
+                            discPerc:
+                              (e.target.value * 100) /
+                              this.props.orderHistory.sum,
+                            discAmount: e.target.value,
+                          });
                         }}
                       />
                     </td>
@@ -142,7 +181,11 @@ export default class Payment extends Component {
                   </tr>
                   <tr>
                     <td colSpan={2}>
-                      <input type="submit" value="Apply Discount" className="btn-secondary" />
+                      <input
+                        type="submit"
+                        value="Apply Discount"
+                        className="btn-secondary"
+                      />
                     </td>
                   </tr>
                 </Fragment>
@@ -186,11 +229,16 @@ export default class Payment extends Component {
                     value={this.state.partialAmount}
                     onChange={(e) => {
                       e.preventDefault();
-                      var value = e.target.value === "" ? 0 : parseInt(e.target.value);
+                      var value =
+                        e.target.value === "" ? 0 : parseInt(e.target.value);
                       this.setState({ partialAmount: value });
                     }}
-                    hidden={!this.state.partial || this.props.disable ? true : false}
-                    disabled={!this.state.partial || this.props.disable ? true : false}
+                    hidden={
+                      !this.state.partial || this.props.disable ? true : false
+                    }
+                    disabled={
+                      !this.state.partial || this.props.disable ? true : false
+                    }
                   />
                 </td>
               </tr>
@@ -198,7 +246,9 @@ export default class Payment extends Component {
                 <td colSpan={2}>
                   <input
                     className="form-control"
-                    disabled={!this.state.partial || this.props.disable ? true : false}
+                    disabled={
+                      !this.state.partial || this.props.disable ? true : false
+                    }
                     type="text"
                     required
                     placeholder="Customer Name"
@@ -209,27 +259,32 @@ export default class Payment extends Component {
                       e.preventDefault();
                       this.setState({ to: e.target.value });
                     }}
-                    hidden={!this.state.partial || this.props.disable ? true : false}
+                    hidden={
+                      !this.state.partial || this.props.disable ? true : false
+                    }
                   />
                 </td>
               </tr>
-
               <tr>
                 <td colSpan={2}>
                   <input
                     className="form-control"
-                    disabled={!this.state.partial || this.props.disable ? true : false}
+                    disabled={
+                      !this.state.partial || this.props.disable ? true : false
+                    }
                     type="text"
                     required
-                    placeholder="GSTIN"
-                    id="gstin"
-                    name="gstin"
-                    value={this.state.gstin}
+                    placeholder="Customer GSTIN"
+                    id="to"
+                    name="to"
+                    value={this.state.to}
                     onChange={(e) => {
                       e.preventDefault();
-                      this.setState({ gstin: e.target.value });
+                      this.setState({ to: e.target.value });
                     }}
-                    hidden={!this.state.partial || this.props.disable ? true : false}
+                    hidden={
+                      !this.state.partial || this.props.disable ? true : false
+                    }
                   />
                 </td>
               </tr>
@@ -241,8 +296,19 @@ export default class Payment extends Component {
             e.preventDefault();
             try {
               // if (this.state.partial) document.getElementById("partialForm").submit();
-              var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
-              if (!window.confirm("Are you sure you want to deduct Rs." + tranAmount + " from this card?")) return;
+              var tranAmount = parseInt(
+                this.state.partial
+                  ? parseInt(this.state.partialAmount)
+                  : parseInt(this.props.amount)
+              );
+              if (
+                !window.confirm(
+                  "Are you sure you want to deduct Rs." +
+                    tranAmount +
+                    " from this card?"
+                )
+              )
+                return;
               await axios.post(
                 require("../config.json").url + "card/deductAmount",
                 {
@@ -251,6 +317,8 @@ export default class Payment extends Component {
                   amount: tranAmount,
                   to: this.state.partial ? this.state.to : undefined,
                   gstin: this.state.partial ? this.state.gstin : undefined,
+
+                  phone: this.state.phone ? this.state.phone : undefined,
                   uid: this.state.uid,
                   bill: this.props.bill,
                   table: !this.props.table ? false : this.props.table,
@@ -314,7 +382,12 @@ export default class Payment extends Component {
                   />
                 </td>
                 <td>
-                  <input className="form-control" type="submit" value="Pay by Card" disabled={this.props.disable} />
+                  <input
+                    className="form-control"
+                    type="submit"
+                    value="Pay by Card"
+                    disabled={this.props.disable}
+                  />
                 </td>
               </tr>
             </tbody>
@@ -327,11 +400,29 @@ export default class Payment extends Component {
             try {
               // console.log()
               // if (this.state.partial) document.getElementById("partialForm").submit();
-              var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
+              var tranAmount = parseInt(
+                this.state.partial
+                  ? parseInt(this.state.partialAmount)
+                  : parseInt(this.props.amount)
+              );
               var received = parseInt(prompt("Cash Tendered by Customer"));
               if (!received || received === 0) return;
-              alert("Return Rs. " + received + " - " + tranAmount + " = " + (received - tranAmount));
-              if (!window.confirm("Are you sure you received Rs." + tranAmount + " for this order in Cash?")) return;
+              alert(
+                "Return Rs. " +
+                  received +
+                  " - " +
+                  tranAmount +
+                  " = " +
+                  (received - tranAmount)
+              );
+              if (
+                !window.confirm(
+                  "Are you sure you received Rs." +
+                    tranAmount +
+                    " for this order in Cash?"
+                )
+              )
+                return;
               await axios.post(
                 require("../config.json").url + "bill/byCash",
                 {
@@ -340,6 +431,8 @@ export default class Payment extends Component {
                   amount: tranAmount,
                   to: this.state.partial ? this.state.to : undefined,
                   gstin: this.state.partial ? this.state.gstin : undefined,
+
+                  phone: this.state.phone ? this.state.phone : undefined,
                   bill: this.props.bill,
                   table: !this.props.table ? false : this.props.table,
                 },
@@ -383,7 +476,12 @@ export default class Payment extends Component {
             <tbody>
               <tr>
                 <td colSpan={2}>
-                  <input className="form-control" type="submit" value="Receive Cash" disabled={this.props.disable} />
+                  <input
+                    className="form-control"
+                    type="submit"
+                    value="Receive Cash"
+                    disabled={this.props.disable}
+                  />
                 </td>
               </tr>
             </tbody>
@@ -394,8 +492,19 @@ export default class Payment extends Component {
             e.preventDefault();
             try {
               // console.log()
-              var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
-              if (!window.confirm("Are you sure you received Rs." + tranAmount + " for this order in UPI transaction?")) return;
+              var tranAmount = parseInt(
+                this.state.partial
+                  ? parseInt(this.state.partialAmount)
+                  : parseInt(this.props.amount)
+              );
+              if (
+                !window.confirm(
+                  "Are you sure you received Rs." +
+                    tranAmount +
+                    " for this order in UPI transaction?"
+                )
+              )
+                return;
               await axios.post(
                 require("../config.json").url + "bill/byUpi",
                 {
@@ -404,6 +513,8 @@ export default class Payment extends Component {
                   amount: tranAmount,
                   to: this.state.partial ? this.state.to : undefined,
                   gstin: this.state.partial ? this.state.gstin : undefined,
+
+                  phone: this.state.phone ? this.state.phone : undefined,
                   bill: this.props.bill,
                   table: !this.props.table ? false : this.props.table,
                 },
@@ -465,7 +576,12 @@ export default class Payment extends Component {
                   />
                 </td>
                 <td>
-                  <input className="form-control" type="submit" value="received UPI Payment" disabled={this.props.disable} />
+                  <input
+                    className="form-control"
+                    type="submit"
+                    value="received UPI Payment"
+                    disabled={this.props.disable}
+                  />
                 </td>
               </tr>
             </tbody>
@@ -476,8 +592,19 @@ export default class Payment extends Component {
             e.preventDefault();
             try {
               // console.log()
-              var tranAmount = parseInt(this.state.partial ? parseInt(this.state.partialAmount) : parseInt(this.props.amount));
-              if (!window.confirm("Are you sure you received Rs." + tranAmount + " for this order in Card Swipe transaction?")) return;
+              var tranAmount = parseInt(
+                this.state.partial
+                  ? parseInt(this.state.partialAmount)
+                  : parseInt(this.props.amount)
+              );
+              if (
+                !window.confirm(
+                  "Are you sure you received Rs." +
+                    tranAmount +
+                    " for this order in Card Swipe transaction?"
+                )
+              )
+                return;
               await axios.post(
                 require("../config.json").url + "bill/byCard",
                 {
@@ -486,6 +613,8 @@ export default class Payment extends Component {
                   amount: tranAmount,
                   to: this.state.partial ? this.state.to : undefined,
                   gstin: this.state.partial ? this.state.gstin : undefined,
+
+                  phone: this.state.phone ? this.state.phone : undefined,
                   bill: this.props.bill,
                   table: !this.props.table ? false : this.props.table,
                 },
@@ -547,7 +676,12 @@ export default class Payment extends Component {
                   />
                 </td>
                 <td>
-                  <input className="form-control" type="submit" value="received card Payment" disabled={this.props.disable} />
+                  <input
+                    className="form-control"
+                    type="submit"
+                    value="received card Payment"
+                    disabled={this.props.disable}
+                  />
                 </td>
               </tr>
             </tbody>
@@ -556,7 +690,11 @@ export default class Payment extends Component {
         <form
           onSubmit={async (e) => {
             e.preventDefault();
-            if (!window.confirm("Are you sure you want to add this bill to a booking? ")) {
+            if (
+              !window.confirm(
+                "Are you sure you want to add this bill to a booking? "
+              )
+            ) {
               return;
             }
             this.setState({ show: true });
@@ -591,7 +729,8 @@ export default class Payment extends Component {
                               );
                               if (
                                 x.room.value.toString() === roomName &&
-                                new Date(x.arrivalTime).valueOf() < Date.now() &&
+                                new Date(x.arrivalTime).valueOf() <
+                                  Date.now() &&
                                 new Date(x.checkoutTime).valueOf() > Date.now()
                               )
                                 return true;
@@ -603,14 +742,30 @@ export default class Payment extends Component {
                               // style={{ padding: "5px" }}
                               onClick={async (e) => {
                                 e.preventDefault();
-                                if (!window.confirm("Are you sure, you want to add this bill to " + roomName + " registered under " + name)) {
+                                if (
+                                  !window.confirm(
+                                    "Are you sure, you want to add this bill to " +
+                                      roomName +
+                                      " registered under " +
+                                      name
+                                  )
+                                ) {
                                   return;
                                 }
                                 try {
                                   await axios.post(
-                                    require("../config.json").url + "bill/addToBooking",
-                                    { bill: this.props.bill, bookingId: room.bookingId },
-                                    { headers: { "x-auth-token": localStorage.getItem("token") } }
+                                    require("../config.json").url +
+                                      "bill/addToBooking",
+                                    {
+                                      bill: this.props.bill,
+                                      bookingId: room.bookingId,
+                                    },
+                                    {
+                                      headers: {
+                                        "x-auth-token":
+                                          localStorage.getItem("token"),
+                                      },
+                                    }
                                   );
                                   AlertDiv("green", "Added bill to booking");
                                 } catch (err) {
@@ -634,7 +789,11 @@ export default class Payment extends Component {
           <table align="center" className="table table-bordered">
             <tr>
               <td colSpan={2}>
-                <input type="submit" value="Move to Booking" className="form-control" />
+                <input
+                  type="submit"
+                  value="Move to Booking"
+                  className="form-control"
+                />
               </td>
             </tr>
           </table>
@@ -658,7 +817,11 @@ export default class Payment extends Component {
                         preview: true,
                         printer: localStorage.getItem("printer"),
                       },
-                      { headers: { "x-auth-token": localStorage.getItem("token") } }
+                      {
+                        headers: {
+                          "x-auth-token": localStorage.getItem("token"),
+                        },
+                      }
                     );
                   }}
                 >

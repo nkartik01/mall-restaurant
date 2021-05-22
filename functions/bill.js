@@ -49,7 +49,10 @@ router.get("/getBill/:id", async (req, res) => {
 router.get("/pendingBills", auth_operator, async (req, res) => {
   try {
     var x = parseInt(req.params.x);
-    var bills = await Bill.find({ balance: { $ne: 0 } }).sort({ balance: -1, at: -1 });
+    var bills = await Bill.find({ balance: { $ne: 0 } }).sort({
+      balance: -1,
+      at: -1,
+    });
     for (ind = 0; ind < bills.length; ind++) {
       var bill1 = bills[ind].toJSON();
       bill1.id = bills[ind].billId;
@@ -94,7 +97,13 @@ router.post("/byCash", auth_operator, async (req, res) => {
     }
     bill.balance = bill.balance - req.body.amount;
     if (req.body.table) {
-      (await Table.findOneAndUpdate({ tableId: req.body.table }, { balance: bill.balance }, { useFindAndModify: false })).save();
+      (
+        await Table.findOneAndUpdate(
+          { tableId: req.body.table },
+          { balance: bill.balance },
+          { useFindAndModify: false }
+        )
+      ).save();
     }
     bill.transactions.unshift({
       type: "cash",
@@ -103,7 +112,9 @@ router.post("/byCash", auth_operator, async (req, res) => {
       amount: req.body.amount,
       gstin: req.body.gstin,
     });
-    var operator = (await Operator.findOne({ operatorId: req.operator.id })).toJSON();
+    var operator = (
+      await Operator.findOne({ operatorId: req.operator.id })
+    ).toJSON();
     if (!operator.balance) {
       operator.balance = 0;
     }
@@ -116,8 +127,18 @@ router.post("/byCash", auth_operator, async (req, res) => {
       gstin: req.body.gstin,
       operatorId: req.operator.id,
     }).save();
-    (await Bill.findOneAndUpdate({ billId: req.body.bill }, bill, { useFindAndModify: false })).save();
-    (await Operator.findOneAndReplace({ operatorId: req.operator.id }, { ...operator }, { useFindAndModify: false })).save();
+    (
+      await Bill.findOneAndUpdate({ billId: req.body.bill }, bill, {
+        useFindAndModify: false,
+      })
+    ).save();
+    (
+      await Operator.findOneAndReplace(
+        { operatorId: req.operator.id },
+        { ...operator },
+        { useFindAndModify: false }
+      )
+    ).save();
     res.send("Paid");
   } catch (err) {
     console.log(err);
@@ -156,7 +177,11 @@ router.post("/byCard", auth_operator, async (req, res) => {
       (await Table.findOneAndReplace({ bill: req.body.bill }, table)).save();
     }
     if (req.body.table) {
-      Table.findOneAndUpdate({ tableId: req.body.table }, { balance: bill.balance }, { useFindAndModify: false });
+      Table.findOneAndUpdate(
+        { tableId: req.body.table },
+        { balance: bill.balance },
+        { useFindAndModify: false }
+      );
     }
     bill.transactions.unshift({
       type: "card",
@@ -167,7 +192,9 @@ router.post("/byCard", auth_operator, async (req, res) => {
       gstin: req.body.gstin,
     });
 
-    var operator = (await Operator.findOne({ operatorId: req.operator.id })).toJSON();
+    var operator = (
+      await Operator.findOne({ operatorId: req.operator.id })
+    ).toJSON();
     if (!operator.balance) {
       operator.balance = 0;
     }
@@ -180,8 +207,18 @@ router.post("/byCard", auth_operator, async (req, res) => {
       gstin: req.body.gstin,
       operatorId: req.operator.id,
     }).save();
-    (await Bill.findOneAndUpdate({ billId: req.body.bill }, bill, { useFindAndModify: false })).save();
-    (await Operator.findOneAndReplace({ operatorId: req.operator.id }, { ...operator }, { useFindAndModify: false })).save();
+    (
+      await Bill.findOneAndUpdate({ billId: req.body.bill }, bill, {
+        useFindAndModify: false,
+      })
+    ).save();
+    (
+      await Operator.findOneAndReplace(
+        { operatorId: req.operator.id },
+        { ...operator },
+        { useFindAndModify: false }
+      )
+    ).save();
     res.send("Paid");
   } catch (err) {
     console.log(err);
@@ -218,7 +255,13 @@ router.post("/byUpi", auth_operator, async (req, res) => {
       (await Table.findOneAndReplace({ bill: req.body.bill }, table)).save();
     }
     if (req.body.table) {
-      (await Table.findOneAndUpdate({ tableId: req.body.table }, { balance: bill.balance }, { useFindAndModify: false })).save();
+      (
+        await Table.findOneAndUpdate(
+          { tableId: req.body.table },
+          { balance: bill.balance },
+          { useFindAndModify: false }
+        )
+      ).save();
     }
     bill.transactions.unshift({
       type: "upi",
@@ -229,7 +272,9 @@ router.post("/byUpi", auth_operator, async (req, res) => {
       gstin: req.body.gstin,
     });
     // console.log(bill.transactions);
-    var operator = (await Operator.findOne({ operatorId: req.operator.id })).toJSON();
+    var operator = (
+      await Operator.findOne({ operatorId: req.operator.id })
+    ).toJSON();
     if (!operator.balance) {
       operator.balance = 0;
     }
@@ -242,8 +287,15 @@ router.post("/byUpi", auth_operator, async (req, res) => {
       gstin: req.body.gstin,
       operatorId: req.operator.id,
     }).save();
-    (await Bill.findOneAndReplace({ billId: req.body.bill }, { ...bill })).save();
-    (await Operator.findOneAndReplace({ operatorId: req.operator.id }, { ...operator })).save();
+    (
+      await Bill.findOneAndReplace({ billId: req.body.bill }, { ...bill })
+    ).save();
+    (
+      await Operator.findOneAndReplace(
+        { operatorId: req.operator.id },
+        { ...operator }
+      )
+    ).save();
     res.send("Paid");
   } catch (err) {
     console.log(err);
@@ -255,7 +307,10 @@ router.post("/printBill", auth_operator, async (req, res) => {
   try {
     const ThermalPrinter = require("node-thermal-printer").printer;
     const PrinterTypes = require("node-thermal-printer").types;
-    const electron = typeof process !== "undefined" && process.versions && !!process.versions.electro;
+    const electron =
+      typeof process !== "undefined" &&
+      process.versions &&
+      !!process.versions.electro;
     // console.log(req.body.printer);
     let print = new ThermalPrinter({
       type: PrinterTypes.EPSON, // Printer type: 'star' or 'epson'
@@ -282,9 +337,13 @@ router.post("/printBill", auth_operator, async (req, res) => {
       print.println("Bill Preview");
     }
     print.newLine();
-    print.leftRight("Bill No. :" + req.body.bill, "Date: " + new Date(Date.now()).toLocaleDateString("en-GB"));
-    if (!req.body.preview) print.leftRight("", "Time: " + new Date(Date.now()).toLocaleTimeString());
     var bill = (await Bill.findOne({ billId: req.body.bill })).toJSON();
+    print.leftRight(
+      "Bill No. :" + req.body.bill,
+      "Date: " + new Date(bill.at).toLocaleDateString("en-GB")
+    );
+    if (!req.body.preview)
+      print.leftRight("", "Time: " + new Date(bill.at).toLocaleTimeString());
     if (bill.to && bill.to !== "") {
       print.newLine();
       print.bold(true);
@@ -331,17 +390,32 @@ router.post("/printBill", auth_operator, async (req, res) => {
       orders.push(order.orderNo);
     });
     // print.println();
-    print.leftRight(orders.join(", "), "Total: " + req.body.orderHistory.sum + " ");
+    print.leftRight(
+      orders.join(", "),
+      "Total: " + req.body.orderHistory.sum + " "
+    );
     // logic for tax
     if (!bill.discAmount) bill.discAmount = 0;
-    if (bill.discAmount && bill.discAmount > 0) print.leftRight("", "Discount: " + bill.discAmount + " ");
+    if (bill.discAmount && bill.discAmount > 0)
+      print.leftRight("", "Discount: " + bill.discAmount + " ");
     // console.log("hi", parseInt(req.body.orderHistory.sum - parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))));
-    if (parseInt(req.body.orderHistory.sum - parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))) !== 0)
+    if (
+      parseInt(
+        req.body.orderHistory.sum -
+          parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))
+      ) !== 0
+    )
       print.leftRight(
         "",
-        "Already Paid: " + parseInt(req.body.orderHistory.sum - parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))).toString() + " "
+        "Already Paid: " +
+          parseInt(
+            req.body.orderHistory.sum -
+              parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))
+          ).toString() +
+          " "
       );
-    if (req.body.orderHistory.sum !== req.body.balance) print.leftRight("", "Amount to be paid: " + req.body.balance + " ");
+    if (req.body.orderHistory.sum !== req.body.balance)
+      print.leftRight("", "Amount to be paid: " + req.body.balance + " ");
     if (!req.body.preview) {
       print.leftRight("", "Amount Recieved: " + parseInt(req.body.paid) + " ");
       print.leftRight("", "Payment mode: " + req.body.method + " ");
@@ -352,7 +426,12 @@ router.post("/printBill", auth_operator, async (req, res) => {
           print.leftRight("", "Txn Id: " + req.body.tranId + " ");
         }
       if (req.body.balance - req.body.paid !== 0)
-        print.leftRight("", "Pending: " + parseInt(parseInt(req.body.balance) - parseInt(req.body.paid)) + " ");
+        print.leftRight(
+          "",
+          "Pending: " +
+            parseInt(parseInt(req.body.balance) - parseInt(req.body.paid)) +
+            " "
+        );
     }
     print.leftRight("Operator: " + req.operator.id, "");
     // print.println("hello");
@@ -385,10 +464,13 @@ router.post("/printBill", auth_operator, async (req, res) => {
 
 router.post("/printOrder", async (req, res) => {
   try {
-    return res.status(400).send("Order Slip has been turned off. Contact Tech.")
+    // return res.status(400).send("Order Slip has been turned off. Contact Tech.")
     const ThermalPrinter = require("node-thermal-printer").printer;
     const PrinterTypes = require("node-thermal-printer").types;
-    const electron = typeof process !== "undefined" && process.versions && !!process.versions.electro;
+    const electron =
+      typeof process !== "undefined" &&
+      process.versions &&
+      !!process.versions.electro;
     // console.log(req.body.printer);
     let print = new ThermalPrinter({
       type: PrinterTypes.EPSON, // Printer type: 'star' or 'epson'
@@ -404,7 +486,8 @@ router.post("/printOrder", async (req, res) => {
     print.setTextSize(1, 1);
 
     if (!req.body.kot) {
-      if (req.body.restaurant === "Perry Club") print.println("Urban Food Court");
+      if (req.body.restaurant === "Perry Club")
+        print.println("Urban Food Court");
       else print.println(req.body.restaurant);
     } else {
       print.println("KOT - " + req.body.bill.split("-")[0]);
@@ -418,8 +501,14 @@ router.post("/printOrder", async (req, res) => {
     }
     print.newLine();
 
-    print.leftRight("Bill No. : " + req.body.bill, "Date: " + new Date(Date.now()).toLocaleDateString("en-GB"));
-    print.leftRight("Table: " + req.body.table, "Time: " + new Date(Date.now()).toLocaleTimeString());
+    print.leftRight(
+      "Bill No. : " + req.body.bill,
+      "Date: " + new Date(Date.now()).toLocaleDateString("en-GB")
+    );
+    print.leftRight(
+      "Table: " + req.body.table,
+      "Time: " + new Date(Date.now()).toLocaleTimeString()
+    );
     if (req.body.method === "card") {
       print.println("Card No.: " + req.body.uid);
     }
@@ -447,7 +536,7 @@ router.post("/printOrder", async (req, res) => {
     // logic for tax
     print.print("Your Order No. is: ");
     print.setTextSize(1, 1);
-    print.println(req.body.orderId);
+    print.println(req.body.orderId + "-" + req.body.counterName);
     print.setTextSize(0, 0);
     print.cut();
     let execute = await print.execute(); // Executes all the commands. Returns success or throws error
@@ -491,7 +580,11 @@ router.post("/addDiscount", auth_operator, async (req, res) => {
         })
       ).save();
     }
-    (await Bill.findOneAndUpdate({ billId: req.body.bill }, bill, { useFindAndModify: false })).save();
+    (
+      await Bill.findOneAndUpdate({ billId: req.body.bill }, bill, {
+        useFindAndModify: false,
+      })
+    ).save();
     res.send("Discount Applied");
   } catch (err) {
     console.log(err, err.response);
@@ -530,8 +623,16 @@ router.post("/editBill", auth_operator, async (req, res) => {
       by: req.operator.id,
       at: Date.now(),
     });
-    (await Table.findOneAndUpdate({ tableId: req.body.table }, table, { useFindAndModify: false })).save();
-    (await Bill.findOneAndUpdate({ billId: req.body.bill }, bill, { useFindAndModify: false })).save();
+    (
+      await Table.findOneAndUpdate({ tableId: req.body.table }, table, {
+        useFindAndModify: false,
+      })
+    ).save();
+    (
+      await Bill.findOneAndUpdate({ billId: req.body.bill }, bill, {
+        useFindAndModify: false,
+      })
+    ).save();
     res.send("done");
   } catch (err) {
     console.log(err);
@@ -588,7 +689,12 @@ router.post("/editTransaction", auth_operator, async (req, res) => {
       }
       operator = operator.toJSON();
       operator.balance = operator.balance - req.body.transaction.amount;
-      (await Operator.findOneAndReplace({ operatorId: req.operator.id }, operator)).save();
+      (
+        await Operator.findOneAndReplace(
+          { operatorId: req.operator.id },
+          operator
+        )
+      ).save();
     }
 
     (await Bill.findOneAndReplace({ billId: req.body.bill }, bill)).save();
@@ -627,7 +733,12 @@ router.post("/addToBooking", auth_operator, async (req, res) => {
     if (!booking.bills) {
       booking.bills = [];
     }
-    booking.bills.push({ bill: req.body.bill, at: now, amount: bill.balance, by: req.operator.id });
+    booking.bills.push({
+      bill: req.body.bill,
+      at: now,
+      amount: bill.balance,
+      by: req.operator.id,
+    });
     var table = await Table.findOne({ bill: req.body.bill });
     if (!!table) {
       table = table.toJSON();
@@ -638,7 +749,12 @@ router.post("/addToBooking", auth_operator, async (req, res) => {
       (await Table.findOneAndReplace({ bill: req.body.bill }, table)).save();
     }
     bill.balance = 0;
-    (await Booking.findOneAndReplace({ bookingId: req.body.bookingId }, booking)).save();
+    (
+      await Booking.findOneAndReplace(
+        { bookingId: req.body.bookingId },
+        booking
+      )
+    ).save();
     (await Bill.findOneAndReplace({ billId: req.body.bill }, bill)).save();
     res.send("Done");
   } catch (err) {

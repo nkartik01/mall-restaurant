@@ -1,4 +1,5 @@
 // import axios from "axios";
+import axios from "axios";
 import React, { Component } from "react";
 
 export default class PermissionsSetup extends Component {
@@ -6,7 +7,7 @@ export default class PermissionsSetup extends Component {
     menus: [],
     edit: false,
     changeMenu: false,
-    restaurant: {},
+    restaurants: [],
     wait: {},
   };
   // getMenus = async (e) => {
@@ -22,12 +23,25 @@ export default class PermissionsSetup extends Component {
     this.props.setState1([array[0], x]);
     console.log(this.state);
   };
-  // componentDidMount() {
-  //   this.getMenus();
-  // }
+  getRestaurants = async () => {
+    var res = await axios.get("http://192.168.2.2:5000/menu/restaurants");
+    res = res.data;
+    this.setState({ restaurants: res.restaurants });
+  };
+  componentDidMount() {
+    this.getRestaurants();
+  }
   render() {
     // var { menus } = this.state;
-    var restraunts = ["Urban Food Court", "Perry Club", "Pizzaria", "Juice Bar", "Dosa Counter", "Umega Hotel"];
+    var restaurants = this.state.restaurants;
+    //  [
+    //   "Urban Food Court",
+    //   "Perry Club",
+    //   "Pizzaria",
+    //   "Juice Bar",
+    //   "Dosa Counter",
+    //   "Umega Hotel",
+    // ];
     return (
       <div align="left">
         {/* <div>
@@ -52,7 +66,8 @@ export default class PermissionsSetup extends Component {
         <div>
           <label>Recieve orders in: </label>
           <br />
-          {restraunts.map((restaurant, i) => {
+          {restaurants.map((restaurant, i) => {
+            restaurant = restaurant.id;
             return (
               <div className="form-group" key={"wait" + i}>
                 <input

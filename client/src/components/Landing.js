@@ -2,26 +2,37 @@ import axios from "axios";
 import React, { Component, Fragment } from "react";
 import AlertDiv from "../AlertDiv";
 import AdminLogin from "./AdminLogin";
+import ChefLogin from "./ChefLogin";
+import ChefScreen from "./ChefScreen";
 import OperatorLogin from "./OperatorLogin";
 export default class Landing extends Component {
   state = {
     printers: [],
-    printer: localStorage.getItem("printer") ? localStorage.getItem("printer") : "",
+    printer: localStorage.getItem("printer")
+      ? localStorage.getItem("printer")
+      : "",
     kotPrinter: "",
     disc: true,
     menus: [],
     restaurants: [],
   };
   getPrinters = async () => {
-    var printers = await axios.get(require("../config.json").url + "bill/printers", { headers: { "x-auth-token": localStorage.getItem("token") } });
+    var printers = await axios.get(
+      require("../config.json").url + "bill/printers",
+      { headers: { "x-auth-token": localStorage.getItem("token") } }
+    );
     this.setState({ printers: printers.data.printers });
   };
   getMenus = async () => {
-    var menus = await axios.get(require("../config.json").url + "menu/listMenusFromFolder");
+    var menus = await axios.get(
+      require("../config.json").url + "menu/listMenusFromFolder"
+    );
     this.setState({ menus: menus.data.menus });
   };
   getRestaurants = async () => {
-    var res = await axios.get(require("../config.json").url + "menu/restaurants");
+    var res = await axios.get(
+      require("../config.json").url + "menu/restaurants"
+    );
     console.log(res.data);
 
     this.setState({ restaurants: res.data.restaurants });
@@ -39,14 +50,14 @@ export default class Landing extends Component {
       <div>
         {!status ? (
           <Fragment>
-            <AdminLogin /> <br /> <OperatorLogin />
+            <AdminLogin /> <br /> <OperatorLogin /> <br /> <ChefLogin />
           </Fragment>
         ) : null}
         {status === "admin" ? (
           <Fragment>
             <div className="row">
               <div className="col-md-4 landingDiv">
-                <h4>Set printer for this browser</h4>
+                <h4>Set printer for this browser(For bills and Order Slip)</h4>
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -67,14 +78,95 @@ export default class Landing extends Component {
                     <option value={null}></option>
                     {this.state.printers.map((printer, _) => {
                       return (
-                        <option className="form-control" key={printer.name} id={printer.name}>
+                        <option
+                          className="form-control"
+                          key={printer.name}
+                          id={printer.name}
+                        >
                           {printer.name}
                         </option>
                       );
                     })}
                   </select>
-                  <input className="form-control" type="submit" value="Submit" />
+                  <input
+                    className="form-control"
+                    type="submit"
+                    value="Submit"
+                  />
                 </form>
+              </div>
+              <div className="col-md-4 landingDiv">
+                <h4>Print Order Slip?</h4>
+                <p>
+                  Currently{" "}
+                  {localStorage.getItem("printOrderSlip") !== "false"
+                    ? ""
+                    : "not"}{" "}
+                  Printing
+                </p>
+                <button
+                  className="btn btn-primary"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (localStorage.getItem("printOrderSlip") !== "false") {
+                      localStorage.setItem("printOrderSlip", "false");
+                    } else {
+                      localStorage.setItem("printOrderSlip", "true");
+                    }
+                    this.setState({});
+                  }}
+                >
+                  {localStorage.getItem("printOrderSlip") !== "false"
+                    ? "No"
+                    : "Yes"}
+                </button>
+              </div>
+              <div className="col-md-4 landingDiv">
+                <h4>Print KOTs for orders from this PC?</h4>
+                <p>
+                  Currently{" "}
+                  {localStorage.getItem("printKOT") !== "false" ? "" : "not"}{" "}
+                  Printing
+                </p>
+                <button
+                  className="btn btn-primary"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (localStorage.getItem("printKOT") !== "false") {
+                      localStorage.setItem("printKOT", "false");
+                    } else {
+                      localStorage.setItem("printKOT", "true");
+                    }
+                    this.setState({});
+                  }}
+                >
+                  {localStorage.getItem("printKOT") !== "false" ? "No" : "Yes"}
+                </button>
+              </div>
+              <div className="col-md-4 landingDiv">
+                <h4>Print one order slip or Different for all menus?</h4>
+                <p>
+                  Currently Printing{" "}
+                  {localStorage.getItem("oneOrderSlip") !== "true"
+                    ? "different"
+                    : "one"}{" "}
+                </p>
+                <button
+                  className="btn btn-primary"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (localStorage.getItem("oneOrderSlip") === "true") {
+                      localStorage.setItem("oneOrderSlip", "false");
+                    } else {
+                      localStorage.setItem("oneOrderSlip", "true");
+                    }
+                    this.setState({});
+                  }}
+                >
+                  {localStorage.getItem("oneOrderSlip") !== "true"
+                    ? "One"
+                    : "Different"}
+                </button>
               </div>
               <div className="col-md-4 landingDiv">
                 <h4>Add/Update Menu</h4>
@@ -82,10 +174,22 @@ export default class Landing extends Component {
                   onSubmit={(e) => {
                     e.preventDefault();
                     try {
-                      axios.post(require("../config.json").url + "menu/setMenu/" + this.state.menu, { kot: this.state.kot, disc: this.state.disc });
+                      axios.post(
+                        require("../config.json").url +
+                          "menu/setMenu/" +
+                          this.state.menu,
+                        {
+                          kot: this.state.kot,
+                          disc: this.state.disc,
+                          counterName: this.state.counterName,
+                        }
+                      );
                       AlertDiv("green", "Menu Updated");
                     } catch {
-                      AlertDiv("red", "Excel Format not correct, Check server console");
+                      AlertDiv(
+                        "red",
+                        "Excel Format not correct, Check server console"
+                      );
                     }
                   }}
                 >
@@ -107,6 +211,18 @@ export default class Landing extends Component {
                       );
                     })}
                   </select>
+                  <label>Counter Name: </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    required
+                    value={this.state.counterName}
+                    onChange={(e) => {
+                      e.preventDefault();
+                      this.setState({ counterName: e.target.value });
+                    }}
+                  />
+                  <br />
                   <label>Discount: </label>
                   <select
                     className="form-control"
@@ -114,7 +230,9 @@ export default class Landing extends Component {
                     value={this.state.disc}
                     onChange={(e) => {
                       e.preventDefault();
-                      this.setState({ disc: e.target.value === "true" ? true : false });
+                      this.setState({
+                        disc: e.target.value === "true" ? true : false,
+                      });
                     }}
                   >
                     <option className="form-control" value={true}>
@@ -124,7 +242,7 @@ export default class Landing extends Component {
                       False
                     </option>
                   </select>
-                  <label>Printer: </label>
+                  <label>Printer for KOT: </label>
                   <select
                     className="form-control"
                     required
@@ -136,13 +254,21 @@ export default class Landing extends Component {
                   >
                     {this.state.printers.map((printer, _) => {
                       return (
-                        <option className="form-control" key={printer.name} id={printer.name}>
+                        <option
+                          className="form-control"
+                          key={printer.name}
+                          id={printer.name}
+                        >
                           {printer.name}
                         </option>
                       );
                     })}
                   </select>
-                  <input className="form-control" type="submit" value="Submit" />
+                  <input
+                    className="form-control"
+                    type="submit"
+                    value="Submit"
+                  />
                 </form>
               </div>
               <div className="col-md-4 landingDiv">
@@ -151,12 +277,22 @@ export default class Landing extends Component {
                   onSubmit={async (e) => {
                     e.preventDefault();
                     try {
-                      await axios.get(require("../config.json").url + "menu/addRestaurant/" + this.state.restaurantName, {
-                        headers: { "x-auth-token": localStorage.getItem("token") },
-                      });
+                      await axios.get(
+                        require("../config.json").url +
+                          "menu/addRestaurant/" +
+                          this.state.restaurantName,
+                        {
+                          headers: {
+                            "x-auth-token": localStorage.getItem("token"),
+                          },
+                        }
+                      );
                       AlertDiv("green", "Restaurant Added Successfully");
                     } catch {
-                      AlertDiv("red", "Couldn't Create Restaurant by that name");
+                      AlertDiv(
+                        "red",
+                        "Couldn't Create Restaurant by that name"
+                      );
                     }
                   }}
                 >
@@ -171,10 +307,14 @@ export default class Landing extends Component {
                       this.setState({ restaurantName: e.target.value });
                     }}
                   />
-                  <input className="form-control" type="submit" value="Create" />
+                  <input
+                    className="form-control"
+                    type="submit"
+                    value="Create"
+                  />
                 </form>
               </div>
-              <div className="col-md-4 landingDiv">
+              {/* <div className="col-md-4 landingDiv">
                 <h4>Set KOT printer for this browser</h4>
                 <form
                   onSubmit={(e) => {
@@ -201,17 +341,30 @@ export default class Landing extends Component {
                   </select>
                   <input className="form-control" type="submit" value="Submit" />
                 </form>
-              </div>
+              </div> */}
               <div className="col-md-4 landingDiv">
-                <h5>Add table to restaurant</h5>
+                <h5>Add table to Restaurant</h5>
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();
                     try {
+                      console.log(this.state.tableRestaurant);
+                      if (
+                        !this.state.tableRestaurant ||
+                        this.state.tableRestaurant === "Select Restaurant"
+                      )
+                        return;
                       await axios.post(
                         require("../config.json").url + "menu/addTable",
-                        { table: this.state.tableName, restaurant: this.state.tableRestaurant },
-                        { headers: { "x-auth-token": localStorage.getItem("token") } }
+                        {
+                          table: this.state.tableName,
+                          restaurant: this.state.tableRestaurant,
+                        },
+                        {
+                          headers: {
+                            "x-auth-token": localStorage.getItem("token"),
+                          },
+                        }
                       );
                       AlertDiv("green", "Table Added");
                     } catch (err) {
@@ -229,10 +382,15 @@ export default class Landing extends Component {
                     }}
                     value={this.state.tableRestaurant}
                   >
-                    <option className="form-control" value={null}></option>
+                    <option className="form-control" value={null}>
+                      Select Restaurant
+                    </option>
                     {this.state.restaurants.map((restaurant, _) => {
                       return (
-                        <option className="form-control" value={restaurant.restaurantId}>
+                        <option
+                          className="form-control"
+                          value={restaurant.restaurantId}
+                        >
                           {restaurant.restaurantId}
                         </option>
                       );
@@ -241,6 +399,7 @@ export default class Landing extends Component {
                   <input
                     className="form-control"
                     type="text"
+                    required
                     onChange={(e) => {
                       e.preventDefault();
                       this.setState({ tableName: e.target.value });
@@ -254,15 +413,29 @@ export default class Landing extends Component {
                 </form>
               </div>
               <div className="col-md-4 landingDiv">
-                <h5>Delete table from restaurant</h5>
+                <h5>Delete table from Restaurant</h5>
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();
                     try {
-                      await axios.delete(require("../config.json").url + "menu/table", {
-                        headers: { "x-auth-token": localStorage.getItem("token") },
-                        data: { table: this.state.tableDeleteName, restaurant: this.state.tableDeleteRestaurant },
-                      });
+                      if (
+                        !this.state.tableDeleteRestaurant ||
+                        this.state.tableDeleteRestaurant === "Select Restaurant"
+                      )
+                        return;
+
+                      await axios.delete(
+                        require("../config.json").url + "menu/table",
+                        {
+                          headers: {
+                            "x-auth-token": localStorage.getItem("token"),
+                          },
+                          data: {
+                            table: this.state.tableDeleteName,
+                            restaurant: this.state.tableDeleteRestaurant,
+                          },
+                        }
+                      );
                       AlertDiv("green", "Table Removed");
                     } catch (err) {
                       console.log(err, err.response);
@@ -271,6 +444,7 @@ export default class Landing extends Component {
                   }}
                 >
                   <select
+                    placeholder="Select Restaurant"
                     className="form-control"
                     required
                     onChange={(e) => {
@@ -279,10 +453,15 @@ export default class Landing extends Component {
                     }}
                     value={this.state.tableDeleteRestaurant}
                   >
-                    <option className="form-control" value={null}></option>
+                    <option className="form-control" value={null}>
+                      Select Restaurant
+                    </option>
                     {this.state.restaurants.map((restaurant, _) => {
                       return (
-                        <option className="form-control" value={restaurant.restaurantId}>
+                        <option
+                          className="form-control"
+                          value={restaurant.restaurantId}
+                        >
                           {restaurant.restaurantId}
                         </option>
                       );
@@ -297,10 +476,15 @@ export default class Landing extends Component {
                     }}
                     value={this.state.tableDeleteName}
                     id="tableDeleteName"
+                    required
                     name="tableDeleteName"
                     placeholder="Table Name"
                   />
-                  <input className="form-control" type="submit" value="Remove" />
+                  <input
+                    className="form-control"
+                    type="submit"
+                    value="Remove"
+                  />
                 </form>
               </div>
               <div className="col-md-4 landingDiv">
@@ -309,10 +493,27 @@ export default class Landing extends Component {
                   onSubmit={async (e) => {
                     e.preventDefault();
                     try {
+                      if (
+                        !this.state.menuRestaurant ||
+                        this.state.menuRestaurant === "Select Restaurant"
+                      )
+                        return;
+                      if (
+                        !this.state.addMenu ||
+                        this.state.addMenu === "Select Menu"
+                      )
+                        return;
                       var res = await axios.post(
                         require("../config.json").url + "menu/toggleMenu",
-                        { restaurant: this.state.menuRestaurant, menu: this.state.addMenu },
-                        { headers: { "x-auth-token": localStorage.getItem("token") } }
+                        {
+                          restaurant: this.state.menuRestaurant,
+                          menu: this.state.addMenu,
+                        },
+                        {
+                          headers: {
+                            "x-auth-token": localStorage.getItem("token"),
+                          },
+                        }
                       );
                       AlertDiv("green", res.data);
                     } catch (err) {
@@ -330,10 +531,15 @@ export default class Landing extends Component {
                     }}
                     value={this.state.menuRestaurant}
                   >
-                    <option className="form-control" value={null}></option>
+                    <option className="form-control" value={null}>
+                      Select Restaurant
+                    </option>
                     {this.state.restaurants.map((restaurant) => {
                       return (
-                        <option className="form-control" value={restaurant.restaurantId}>
+                        <option
+                          className="form-control"
+                          value={restaurant.restaurantId}
+                        >
                           {restaurant.restaurantId}
                         </option>
                       );
@@ -348,7 +554,9 @@ export default class Landing extends Component {
                     }}
                     value={this.state.addMenu}
                   >
-                    <option className="form-control" value={null}></option>
+                    <option className="form-control" value={null}>
+                      Select Menu
+                    </option>
                     {this.state.menus.map((menu) => {
                       return (
                         <option className="form-control" value={menu}>
@@ -357,7 +565,11 @@ export default class Landing extends Component {
                       );
                     })}
                   </select>
-                  <input className="form-control" type="submit" value="Toggle" />
+                  <input
+                    className="form-control"
+                    type="submit"
+                    value="Toggle"
+                  />
                 </form>
               </div>
               <div className="col-md-4 landingDiv">
@@ -370,7 +582,9 @@ export default class Landing extends Component {
                         require("../config.json").url + "booking/addRoom",
                         { room: this.state.addRoomName },
                         {
-                          headers: { "x-auth-token": localStorage.getItem("token") },
+                          headers: {
+                            "x-auth-token": localStorage.getItem("token"),
+                          },
                         }
                       );
                       AlertDiv("green", "Room Added");
@@ -400,11 +614,16 @@ export default class Landing extends Component {
                   onSubmit={async (e) => {
                     e.preventDefault();
                     try {
-                      await axios.delete(require("../config.json").url + "booking/deleteRoom", {
-                        data: { room: this.state.removeRoomName },
+                      await axios.delete(
+                        require("../config.json").url + "booking/deleteRoom",
+                        {
+                          data: { room: this.state.removeRoomName },
 
-                        headers: { "x-auth-token": localStorage.getItem("token") },
-                      });
+                          headers: {
+                            "x-auth-token": localStorage.getItem("token"),
+                          },
+                        }
+                      );
                       AlertDiv("green", "Room Removed Successfully");
                     } catch (err) {
                       AlertDiv("red", err.response.data);
@@ -422,13 +641,21 @@ export default class Landing extends Component {
                       this.setState({ removeRoomName: e.target.value });
                     }}
                   />
-                  <input className="form-control" type="submit" value="Remove" />
+                  <input
+                    className="form-control"
+                    type="submit"
+                    value="Remove"
+                  />
                 </form>
               </div>
             </div>
           </Fragment>
         ) : null}
-        {status === "operator" ? <Fragment></Fragment> : null}
+        {status === "operator" ? (
+          <Fragment></Fragment>
+        ) : (
+          <Fragment>{status === "chef" ? <ChefScreen /> : null}</Fragment>
+        )}
       </div>
     );
   }

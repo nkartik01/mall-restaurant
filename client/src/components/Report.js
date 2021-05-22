@@ -14,7 +14,7 @@ export default class Example extends React.PureComponent {
   }
 }
 class Report extends Component {
-  state = { bills: [], sum: 0, sums: {}, restaurant: "overall", restaurants: [] };
+  state = { bills: [], sum: 0, sums: {}, restaurant: "overall", restaurants: [],what:"summary" };
   getRestaurants = async () => {
     var res = await axios.get(require("../config.json").url + "menu/restaurants");
     console.log(res.data);
@@ -32,14 +32,8 @@ class Report extends Component {
   render() {
     return (
       <div align="center">
-        <ReactToPrint
-          trigger={() => {
-            // NOTE: could just as easily return <SomeComponent />. Do NOT pass an `onClick` prop
-            // to the root node of the returned component as it will be overwritten.
-            return <button>Print this out!</button>;
-          }}
-          content={() => this.componentRef}
-        />
+       
+      <div ref={(el) => (this.componentRef = el)} style={{alignContent:"center",paddingLeft:"5px"}}>
         <form
           align="center"
           onSubmit={async (e) => {
@@ -55,12 +49,11 @@ class Report extends Component {
             // .toLocaleString("en-GB"));
           }}
         >
-          <table className="table table-bordered">
+          <table className="table table-bordered" style={{width:"fit-content"}}>
             <tbody>
               <tr>
                 <th scope="col">Start Date</th>
                 <th scope="col">End Date</th>
-                <th scope="col">Restaurant</th>
               </tr>
               <tr>
                 <td>
@@ -83,6 +76,8 @@ class Report extends Component {
                     }}
                   />
                 </td>
+                </tr>
+                <tr>
                 <td>
                   <select
                     value={this.state.restaurant}
@@ -97,51 +92,86 @@ class Report extends Component {
                     })}
                   </select>
                 </td>
+                <td>
+                  <select
+                  value={this.state.what}
+                  onChange={e=>{e.preventDefault();this.setState({what:e.target.value})}}
+                  >
+                    <option value="summary">Summary</option>
+                    <option value="billList">Bill List</option>
+                    <option value="itemWise">Item Wise Sale</option>
+                    <option value="return">Returns</option>
+                  </select>
+                </td>
               </tr>
               <tr>
-                <td colSpan={3}>
+                <td colSpan={1}>
                   <input type="submit" className="btn btn-primary" value="Submit" />
                 </td>
+                <td> <ReactToPrint
+          trigger={() => {
+            // NOTE: could just as easily return <SomeComponent />. Do NOT pass an `onClick` prop
+            // to the root node of the returned component as it will be overwritten.
+            return <button className="btn btn-primary">Print</button>;
+          }}
+          content={() => this.componentRef}
+        /></td>
               </tr>
             </tbody>
           </table>
         </form>
         {this.state.bills.length !== 0 ? (
-          <div ref={(el) => (this.componentRef = el)} className="col-md-10" style={{ paddingLeft: "75px", paddingRight: "50px" }}>
-            <table className="table table-bordered">
+          <div className="col-md-10"  >
+            <table className="table table-bordered" style={{width:"fit-content"}} hidden={this.state.what==="summary"?false:true}>
               <thead>
                 <tr>
                   <th scope="col">Total Sale</th>
-                  <th scope="col">Cash Collected</th>
-                  <th scope="col">RFID payments</th>
-                  <th scope="col">Card Payments</th>
-                  <th scope="col">UPI Payments</th>
+                  <td>{this.state.sum}</td>
+                  </tr><tr>
                   <th scope="col">Discounts</th>
+
+                  <td>{this.state.discAmount}</td>
+                  </tr>
+                  <tr>
+                    <th>Net Sale</th>
+                    <td>
+                  {this.state.cashSum+
+                  this.state.rfidSum+
+                  this.state.cardSum+
+                  this.state.upiSum+this.state.balance}
+                  </td>
+                  </tr>
+                  <tr>
+                  <th scope="col">Cash Collected</th>
+
+                  <td>{this.state.cashSum}</td>
+                  </tr><tr>
+                  <th scope="col">RFID payments</th>
+                  <td>{this.state.rfidSum}</td>
+                  </tr><tr>
+                  <th scope="col">Card Payments</th>
+                  <td>{this.state.cardSum}</td>
+                  </tr><tr>
+                  <th scope="col">UPI Payments</th>
+                  <td>{this.state.upiSum}</td>
+                  </tr><tr>
                   <th scope="col">Credit</th>
+                  <td>{this.state.balance}</td>
+                  
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td>{this.state.sum}</td>
-                  <td>{this.state.cashSum}</td>
-                  <td>{this.state.rfidSum}</td>
-                  <td>{this.state.cardSum}</td>
-                  <td>{this.state.upiSum}</td>
-                  <td>{this.state.discAmount}</td>
-                  <td>{this.state.balance}</td>
-                </tr>
-              </tbody>
             </table>
+            <div hidden={this.state.what==="billList"?false:true}>
             <h4>Bills</h4>
-            <table className="table table-bordered">
+            <table className="table table-bordered" style={{width:"fit-content"}}>
               <thead>
                 <tr>
-                  <th scope="col">Sr. No.</th>
+                  {/* <th scope="col">Sr. No.</th> */}
                   <th scope="col">Bill Id</th>
                   {/* <th scope="col">To</th> */}
                   <th scope="col">Amount</th>
                   {/* <th scope="col">Balance</th> */}
-                  <th scope="col">Generated At</th>
+                  {/* <th scope="col">Generated At</th> */}
                   {/* <th scope="col">Go to bill</th> */}
                 </tr>
               </thead>
@@ -149,12 +179,12 @@ class Report extends Component {
                 {this.state.bills.map((bill, ind) => {
                   return (
                     <tr>
-                      <th scope="row">{ind + 1}</th>
+                      {/* <th scope="row">{ind + 1}</th> */}
                       <td>{bill.billId}</td>
                       {/* <td>{bill.to}</td> */}
-                      <td align="right">{bill.finalOrder.sum}</td>
+                      <td align="right">{bill.finalOrder.sum-parseInt(bill.discAmount?bill.discAmount:0)}</td>
                       {/* <td>{bill.balance}</td> */}
-                      <td>{new Date(bill.at).toLocaleString("en-GB")}</td>
+                      {/* <td>{new Date(bill.at).toLocaleString("en-GB")}</td> */}
                       {/* <td>
                     <Link to={"/bill/" + bill.id} className="btn btn-primary">
                       View Bill
@@ -165,11 +195,13 @@ class Report extends Component {
                 })}
               </tbody>
             </table>
+            </div>
+            <div hidden={this.state.what==="itemWise"?false:true}>
             <h4>Item Wise Sale</h4>
-            <table className="table table-bordered">
+            <table className="table table-bordered" style={{width:"fit-content"}}>
               <thead>
                 <tr>
-                  <th scope="col">Sr. No.</th>
+                  {/* <th scope="col">Sr. No.</th> */}
                   <th scope="col">Item Name</th>
                   <th scope="col">Price</th>
                   <th scope="col">Quantity</th>
@@ -180,7 +212,7 @@ class Report extends Component {
                 {this.state.itemwise.map((item, ind) => {
                   return (
                     <tr>
-                      <th scope="row">{ind + 1}</th>
+                      {/* <th scope="row">{ind + 1}</th> */}
                       <td>{item.item}</td>
                       <td>{item.price}</td>
                       <td>{item.quantity}</td>
@@ -190,16 +222,18 @@ class Report extends Component {
                 })}
               </tbody>
             </table>
+            </div>
+            <div hidden={this.state.what==="return"?false:true}>
             <h4>Order Return Details</h4>
             <ol>
               {this.state.itemwiseEdit.map((order1, ind) => {
                 return (
                   <li>
                     <h5 align="left">At: {new Date(order1.at).toLocaleString("en-GB") + (order1.type === "edit" ? ", By: " + order1.by + ",  Reason: " + order1.reason : "")} </h5>
-                    <table className="table table-bordered">
+                    <table className="table table-bordered" style={{width:"fit-content"}}>
                       <thead>
                         <tr>
-                          <th scope="col">Sr. No.</th>
+                          {/* <th scope="col">Sr. No.</th> */}
                           <th scope="col">Item Name</th>
                           <th scope="col">Price</th>
                           <th scope="col">Quantity</th>
@@ -210,7 +244,7 @@ class Report extends Component {
                         {order1.order.map((order, ind) => {
                           return (
                             <tr>
-                              <th scope="row">{ind + 1}</th>
+                              {/* <th scope="row">{ind + 1}</th> */}
                               <td>{order.item}</td>
                               <td>{order.price}</td>
                               <td>{order.quantity}</td>
@@ -229,8 +263,10 @@ class Report extends Component {
                 );
               })}
             </ol>
+            </div>
           </div>
         ) : null}
+      </div>
       </div>
     );
   }

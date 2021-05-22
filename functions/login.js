@@ -1,7 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const auth_admin = require("./middleware/auth_admin");
-const auth_operator = require("./middleware/auth_operator");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const config = require("config");
@@ -60,6 +58,37 @@ router.post("/operator", async (req, res) => {
         id: username,
         token: token,
         permissions: operator.permissions,
+      });
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.toString());
+  }
+});
+
+router.post("/chef", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    var chef = await Chef.findOne({ username });
+    if (!chef) {
+      return res.status(400).send("chef not found");
+    }
+    chef = chef.toJSON();
+    const isMatch = await bcryptjs.compare(password, chef.password);
+    if (!isMatch) {
+      return res.status(400).send("Wrong Password");
+    }
+    const payload = {
+      chef: {
+        id: username,
+      },
+    };
+    jwt.sign(payload, config.get("JWTSecretChef"), (err, token) => {
+      if (err) throw err;
+      return res.status(200).json({
+        id: username,
+        token: token,
+        permissions: chef.permissions,
       });
     });
   } catch (err) {

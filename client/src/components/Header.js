@@ -16,6 +16,12 @@ export default class Header extends Component {
               <Link className="btn btn-primary navBtn" to="/listOperators">
                 Operator List
               </Link>
+              <Link className="btn btn-primary navBtn" to="/chefSignup">
+                Add Chef
+              </Link>
+              <Link className="btn btn-primary navBtn" to="/listChef">
+                Chef List
+              </Link>
               <Link className="btn btn-primary navBtn" to="/registerRFID">
                 Register RFID Cards
               </Link>
@@ -32,7 +38,10 @@ export default class Header extends Component {
               <Link to="/billList" className="btn btn-primary navBtn">
                 Bill List
               </Link>
-              <Link to={"/operator/" + localStorage.getItem("username")} className={"btn btn-primary navBtn"}>
+              <Link
+                to={"/operator/" + localStorage.getItem("username")}
+                className={"btn btn-primary navBtn"}
+              >
                 Profile
               </Link>
             </Fragment>
