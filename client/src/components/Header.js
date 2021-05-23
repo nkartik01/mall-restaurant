@@ -25,6 +25,16 @@ export default class Header extends Component {
               <Link className="btn btn-primary navBtn" to="/registerRFID">
                 Register RFID Cards
               </Link>
+              <Link to="/booking" className="btn btn-primary navBtn">
+                Booking
+              </Link>
+
+              <Link to="/availability" className="btn btn-primary navBtn">
+                Availability
+              </Link>
+              <Link to={"/report"} className="btn btn-primary navBtn">
+                Reports
+              </Link>
             </Fragment>
           ) : null}
           {status === "operator" ? (
@@ -44,12 +54,6 @@ export default class Header extends Component {
               >
                 Profile
               </Link>
-            </Fragment>
-          ) : null}
-          {!status ? (
-            <Fragment></Fragment>
-          ) : (
-            <Fragment>
               <Link to="/booking" className="btn btn-primary navBtn">
                 Booking
               </Link>
@@ -60,6 +64,22 @@ export default class Header extends Component {
               <Link to={"/report"} className="btn btn-primary navBtn">
                 Reports
               </Link>
+            </Fragment>
+          ) : null}
+          {status === "chef" ? (
+            <Fragment>
+              <Link to={"/"} className="btn btn-primary navBtn">
+                Orders
+              </Link>
+              <Link to={"/revert"} className="btn btn-primary navBtn">
+                Revert
+              </Link>
+            </Fragment>
+          ) : null}
+          {!status ? (
+            <Fragment></Fragment>
+          ) : (
+            <Fragment>
               <button
                 className="btn btn-primary navBtn"
                 onClick={(e) => {

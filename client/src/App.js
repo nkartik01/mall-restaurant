@@ -19,6 +19,8 @@ import Booking from "./components/Booking";
 import Report from "./components/Report";
 import Availability from "./components/Availability";
 import ListChef from "./components/ListChef";
+import ChefEdit from "./components/ChefEdit";
+import Revert from "./components/Revert";
 
 function App(props) {
   return (
@@ -42,11 +44,8 @@ function App(props) {
           <Route path="/adminLogin" component={AdminLogin} />
           <Route path="/operatorSignup" component={OperatorSignup} />
           <Route path="/chefSignup" component={ChefSignup} />
+          <Route path="/chef/:username" component={ChefEdit} />
           <Route path="/operator/:username" component={OperatorEdit} />
-          <Route
-            path="/operatorLogin"
-            component={() => <OperatorLogin store={props.store} />}
-          />
           <Route
             path="/takeOrder"
             component={() => <TakeOrder store={props.store} />}
@@ -64,6 +63,7 @@ function App(props) {
             component={() => <BillList store={props.store} />}
           />
           <Route path="/availability" component={Availability} />
+          <Route path="/revert" component={Revert} />
           <Route path="/" component={Landing} />
         </Switch>
       </Router>

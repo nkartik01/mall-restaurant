@@ -225,6 +225,7 @@ router.post("/updateTable", auth_operator, async (req, res) => {
         bill: table1.bill,
         orderNo: (orders + 1).toString(),
         menuId: order.split(".")[0],
+        table: table1.table,
       }).save();
     });
     res.send({ bill: table1.bill, orderId: (orders + 1).toString() });

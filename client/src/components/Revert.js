@@ -1,33 +1,26 @@
 import axios from "axios";
 import React, { Component } from "react";
-import Masonry from "react-masonry-component";
-import AlertDiv from "../AlertDiv";
 import config from "../config.json";
-export default class ChefScreen extends Component {
+import AlertDiv from "../AlertDiv";
+export default class Revert extends Component {
   state = { orders: [] };
   componentDidMount() {
-    this.getOrders();
-    this.interval = setInterval(() => {
-      this.getOrders();
-    }, 10000);
+    this.getRecent();
   }
-  getOrders = async () => {
-    var res = await axios.get(
-      require("../config.json").url + "chef/getPendingOrders",
-      {
-        headers: { "x-auth-token": localStorage.getItem("token") },
-      }
-    );
-    this.setState({ orders: res.data });
+  getRecent = async () => {
+    var res = await axios.get(config.url + "chef/getRecent", {
+      headers: { "x-auth-token": localStorage.getItem("token") },
+    });
+
+    console.log(res.data);
+    res = res.data;
+    this.setState({ orders: res });
   };
-  componentWillUnmount() {
-    clearInterval(this.interval);
-  }
   render() {
     var orders = this.state.orders;
     return (
       <div>
-        <h2>Current Orders</h2>
+        <h2>Select the orders to revert</h2>
         <div class="row">
           {orders.map((order, i) => {
             var time = Date.now() - order.at;
@@ -37,24 +30,12 @@ export default class ChefScreen extends Component {
                 // className="col-md-4"
 
                 style={{
-                  backgroundColor:
-                    time < 600000
-                      ? "#90ee90"
-                      : time < 900000
-                      ? "orange"
-                      : "red",
+                  backgroundColor: order.done === true ? "#90ee90" : "red",
                   width: "fit-content",
                   margin: "3px",
                 }}
               >
-                <h5>
-                  Order {order.orderNo} - ({(time - (time % 60000)) / 60000}
-                  {":"}
-                  {(((time - (time % 1000)) % 60000) / 1000)
-                    .toString()
-                    .padStart(2, "0")}
-                  )
-                </h5>
+                <h5>Order {order.orderNo}</h5>
                 <p>
                   {order.restaurant} - {order.table}
                 </p>
@@ -90,11 +71,11 @@ export default class ChefScreen extends Component {
                           onClick={async (e) => {
                             e.preventDefault();
                             var confirm = window.confirm(
-                              "Are you sure you want to mark this order as done?"
+                              "Are you sure you want to revert this order?"
                             );
                             if (!confirm) return;
                             await axios.post(
-                              config.url + "chef/setAsDone",
+                              require("../config.json").url + "chef/revert",
                               { id: order._id },
                               {
                                 headers: {
@@ -103,38 +84,22 @@ export default class ChefScreen extends Component {
                               }
                             );
                             AlertDiv("green", "Done");
-                            this.getOrders();
+                            this.getRecent();
                           }}
                         >
-                          Done
+                          Revert
                         </button>
                       </td>
                       <td></td>
                       <td>
-                        <button
+                        {/* <button
                           className="btn btn-warning"
-                          onClick={async (e) => {
+                          onClick={(e) => {
                             e.preventDefault();
-                            {
-                              var confirm = window.confirm(
-                                "Are you sure you want to Cancel this order?"
-                              );
-                              if (!confirm) return;
-                              await axios.post(
-                                config.url + "chef/cancelOrder",
-                                { id: order._id },
-                                {
-                                  headers: {
-                                    "x-auth-token":
-                                      localStorage.getItem("token"),
-                                  },
-                                }
-                              );
-                            }
                           }}
                         >
                           Cancel
-                        </button>
+                        </button> */}
                       </td>
                     </tr>
                   </tbody>

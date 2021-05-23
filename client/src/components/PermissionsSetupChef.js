@@ -23,7 +23,7 @@ export default class PermissionsSetup extends Component {
     console.log(this.state);
   };
   getMenus = async () => {
-    var res = await axios.get("http://192.168.2.2:5000/menu/listMenus");
+    var res = await axios.get(require("../config.json").url + "menu/listMenus");
     res = res.data;
     this.setState({ menus: res.menus });
   };

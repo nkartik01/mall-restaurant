@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const router = express.Router();
 const auth_admin = require("./middleware/auth_admin");
 const auth_operator = require("./middleware/auth_operator");
@@ -12,11 +13,34 @@ router.post("/sale", async (req, res) => {
     end = end.valueOf();
 
     var bills;
+    var cancelled;
     if (req.body.restaurant !== "overall") {
-      bills = await Bill.find({ at: { $gt: start, $lte: end }, cancelled: { $ne: true }, restaurant: req.body.restaurant });
+      bills = await Bill.find({
+        at: { $gt: start, $lte: end },
+        cancelled: { $ne: true },
+        restaurant: req.body.restaurant,
+      });
+      cancelled = await Bill.find({
+        at: { $gt: start, $lte: end },
+        cancelled: true,
+        restaurant: req.body.restaurant,
+      });
     } else {
-      bills = await Bill.find({ at: { $gt: start, $lte: end }, cancelled: { $ne: true } });
+      bills = await Bill.find({
+        at: { $gt: start, $lte: end },
+        cancelled: { $ne: true },
+      });
+      cancelled = await Bill.find({
+        at: { $gt: start, $lte: end },
+        cancelled: true,
+      });
     }
+    for (var i = 0; i < cancelled.length; i++) {
+      var bill = cancelled[i].toJSON();
+      bill.id = cancelled[i].billId;
+      cancelled[i] = bill;
+    }
+
     for (var i = 0; i < bills.length; i++) {
       var bill = bills[i].toJSON();
       bill.id = bills[i].billId;
@@ -43,7 +67,10 @@ router.post("/sale", async (req, res) => {
         bill.finalOrder.order.map((orderItem, _) => {
           var c = 0;
           itemwise.map((item, _) => {
-            if (item.item === orderItem.item && item.price === orderItem.price) {
+            if (
+              item.item === orderItem.item &&
+              item.price === orderItem.price
+            ) {
               item.quantity = item.quantity + orderItem.quantity;
               c = 1;
             }
@@ -88,11 +115,38 @@ router.post("/sale", async (req, res) => {
       } catch {}
       return;
     });
-    res.send({ bills: bills, itemwise, itemwiseEdit, upiSum, cashSum, cardSum, rfidSum, sum, balance, discAmount });
+    res.send({
+      bills: bills,
+      itemwise,
+      itemwiseEdit,
+      upiSum,
+      cashSum,
+      cardSum,
+      rfidSum,
+      sum,
+      balance,
+      discAmount,
+      cancelled,
+    });
   } catch (err) {
     console.log(err);
     res.status(500).send(err.toString());
   }
+});
+
+router.get("/backup", async (req, res) => {
+  return res.send(
+    mongoose.connection.db.listCollections().toArray(function (err, names) {
+      if (err) {
+        console.log(err);
+      } else {
+        return names.forEach(function (e, i, a) {
+          // Mongoose.connection.db.dropCollection(e.name);
+          return e.name;
+        });
+      }
+    })
+  );
 });
 
 module.exports = router;

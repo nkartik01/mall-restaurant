@@ -763,4 +763,40 @@ router.post("/addToBooking", auth_operator, async (req, res) => {
   }
 });
 
+router.post("/cancelBill", auth_operator, async (req, res) => {
+  try {
+    var bill = await Bill.findOne({ billId: req.body.bill });
+    bill = bill.toJSON();
+    if (bill.transactions && bill.transactions.length > 0) {
+      return res.status(400).send("Remove transactions from this bill first.");
+    }
+    var table = await Table.findOne({ bill: req.body.bill });
+    if (!!table) {
+      table = table.toJSON();
+      table.bill = "";
+      table.orderHistory = { sum: 0, order: [] };
+      table.orderSnippet = [];
+      table.balance = 0;
+      (await Table.findOneAndReplace({ bill: req.body.bill }, table)).save();
+    }
+    bill = await Bill.findOneAndUpdate(
+      { billId: req.body.bill },
+      { cancelled: true, reason: req.body.reason }
+    );
+    bill.save();
+    await new OperatorTransaction({
+      operatorId: req.operator.id,
+      at: Date.now(),
+      tranId: req.body.reason,
+      amount: "Cancelled",
+      bill: req.body.bill,
+      type: "Bill cancel",
+    }).save();
+    return res.send("done");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+
 module.exports = router;

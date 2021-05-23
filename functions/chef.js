@@ -3,6 +3,7 @@ const router = express.Router();
 const auth_admin = require("./middleware/auth_admin");
 const auth_chef = require("./middleware/auth_chef");
 const ChefSide = require("./models/ChefSide");
+const ChefTransaction = require("./models/ChefTransaction");
 const Chef = require("./models/Chef");
 
 router.post("/edit", auth_admin, async (req, res) => {
@@ -93,10 +94,9 @@ router.get("/getPendingOrders", auth_chef, async (req, res) => {
     const month = d.getUTCMonth();
     const day = d.getUTCDate();
     const startTime = Date.UTC(year, month, day, 0, 0, 0, 0);
-    console.log(startTime);
     var orders = await ChefSide.find({
       at: { $gte: startTime },
-      done: { $ne: true },
+      $and: [{ done: { $ne: true } }, { cancelled: { $ne: true } }],
     });
     for (var i = 0; i < orders.length; i++) {
       var order = orders[i].toJSON();
@@ -125,11 +125,68 @@ router.get("/getPendingOrders", auth_chef, async (req, res) => {
 
 router.post("/setAsDone", auth_chef, async (req, res) => {
   try {
-    (await ChefSide.findByIdAndUpdate(req.body.id, { done: true })).save();
+    (
+      await ChefSide.findByIdAndUpdate(req.body.id, {
+        done: true,
+        doneAt: Date.now(),
+        doneBy: req.chef.id,
+      })
+    ).save();
     return res.send("Done");
   } catch (err) {
     console.log(err);
     res.status(500).send(err.toString());
+  }
+});
+
+router.get("/getRecent", auth_chef, async (req, res) => {
+  try {
+    var orders = await ChefSide.find({
+      doneBy: req.chef.id,
+      $or: [{ done: true }, { cancelled: true }],
+    })
+      .sort({ doneAt: -1 })
+      .limit(10);
+    for (var i = 0; i < orders.length; i++) {
+      orders[i] = orders[i].toJSON();
+    }
+    return res.send(orders);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send(err);
+  }
+});
+
+router.post("/cancelOrder", auth_chef, async (req, res) => {
+  try {
+    (
+      await ChefSide.findByIdAndUpdate(req.body.id, {
+        cancelled: true,
+        doneAt: Date.now(),
+        doneBy: req.chef.id,
+      })
+    ).save();
+    return res.send("Done");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+
+router.post("/revert", auth_chef, async (req, res) => {
+  try {
+    (
+      await ChefSide.findByIdAndUpdate(req.body.id, {
+        cancelled: null,
+        done: null,
+        doneAt: Date.now(),
+        doneBy: req.chef.id,
+      })
+    ).save();
+    return res.send("Done");
+  } catch (err) {
+    console.log(err);
+    res.status(500).end(err);
   }
 });
 
