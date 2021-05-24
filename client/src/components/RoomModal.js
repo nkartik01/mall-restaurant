@@ -29,23 +29,47 @@ export default class RoomModal extends Component {
             c = 1;
             a.push(
               <td
-                style={{ border: "2px solid red", backgroundColor: "red", padding: "0px" }}
+                style={{
+                  border: "2px solid red",
+                  padding: "0px",
+                  margin: "0px",
+                  backgroundColor: "red",
+                  // width: "1px",
+                }}
                 title={
-                  new Date(room.bookings[j].rooms[k].arrivalTime).toLocaleString("en-GB") +
+                  new Date(
+                    room.bookings[j].rooms[k].arrivalTime
+                  ).toLocaleString("en-GB") +
                   " to " +
-                  new Date(room.bookings[j].rooms[k].checkoutTime).toLocaleString("en-GB") +
+                  new Date(
+                    room.bookings[j].rooms[k].checkoutTime
+                  ).toLocaleString("en-GB") +
                   "\nBooking Id: " +
                   room.bookings[j].bookingId +
                   "\nCustomer: " +
                   room.bookings[j].rooms[k].name
                 }
-              ></td>
+              >
+                {""}
+              </td>
             );
           }
         }
       }
       if (c === 0) {
-        a.push(<td style={{ border: "2px solid green", backgroundColor: "green", padding: "0%" }}></td>);
+        a.push(
+          <td
+            style={{
+              border: "2px solid green",
+              padding: "0px",
+              margin: "0px",
+              backgroundColor: "green",
+              // width: "1px",
+            }}
+          >
+            {""}
+          </td>
+        );
       }
     }
     return (
@@ -58,13 +82,16 @@ export default class RoomModal extends Component {
       >
         <Modal.Header closeButton>
           <Modal.Title>
-            Room: {room.room} - Date: {new Date(this.props.date).toLocaleDateString("en-GB")}
+            Room: {room.room} - Date:{" "}
+            {new Date(this.props.date).toLocaleDateString("en-GB")}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <table style={{ width: "100%" }}>
             <tbody style={{ width: "100%" }}>
-              <tr style={{ width: "100%", overflow: "scroll", height: "50px" }}>{a}</tr>
+              <tr style={{ width: "100%", overflow: "scroll", height: "50px" }}>
+                {a}
+              </tr>
             </tbody>
           </table>
           {room.bookings.length === 0 ? <p>No bookings for the day</p> : null}

@@ -734,6 +734,7 @@ export default class Payment extends Component {
                                 new Date(x.checkoutTime).valueOf() > Date.now()
                               )
                                 return true;
+                              return false;
                             })[0].name;
                           } catch {}
                           return (

@@ -10,3 +10,4 @@ firestore_data/firestore_export/firestore_export.overall_export_metadata
 firestore_data/firestore_export/all_namespaces/all_kinds/output-0
 client/src/config.json
 client/package-lock.json
+functions/index.exe

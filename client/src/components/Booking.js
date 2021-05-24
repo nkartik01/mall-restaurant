@@ -17,7 +17,9 @@ export default class Booking extends React.Component {
     var res1 = await axios.get(require("../config.json").url + "booking/rooms");
     var rooms = res1.data.rooms;
 
-    var res = await axios.post(require("../config.json").url + "booking/date", { date: this.state.date });
+    var res = await axios.post(require("../config.json").url + "booking/date", {
+      date: this.state.date,
+    });
     res = res.data.rooms;
     console.log(res);
     for (var i = 0; i < rooms.length; i++) {
@@ -73,7 +75,11 @@ export default class Booking extends React.Component {
               >
                 New Booking
               </button>
-              <BookingModal setShow={() => this.setState({ show: false })} booking={{ rooms: this.state.newRooms }} show={this.state.show} />
+              <BookingModal
+                setShow={() => this.setState({ show: false })}
+                booking={{ rooms: this.state.newRooms }}
+                show={this.state.show}
+              />
             </Col>
             <Col sm={10}>
               <Fragment>
@@ -85,41 +91,107 @@ export default class Booking extends React.Component {
                     for (var i = today; i <= tomorrow; i = i + 600000) {
                       var c = 0;
                       for (var j = 0; j < room.bookings.length; j++) {
-                        for (var k = 0; k < room.bookings[j].rooms.length; k++) {
-                          if (!(room.bookings[j].rooms[k].room.label === room.room)) {
+                        for (
+                          var k = 0;
+                          k < room.bookings[j].rooms.length;
+                          k++
+                        ) {
+                          if (
+                            !(
+                              room.bookings[j].rooms[k].room.label === room.room
+                            )
+                          ) {
                             continue;
                           }
-                          var arrival = new Date(room.bookings[j].rooms[k].arrivalTime);
-                          var checkout = new Date(room.bookings[j].rooms[k].checkoutTime);
+                          var arrival = new Date(
+                            room.bookings[j].rooms[k].arrivalTime
+                          );
+                          var checkout = new Date(
+                            room.bookings[j].rooms[k].checkoutTime
+                          );
                           if (i > arrival && i < checkout) {
                             c = 1;
                             a.push(
                               <td
-                                style={{ border: "2px solid red", backgroundColor: "red", padding: "0px" }}
+                                style={{
+                                  borderLeft: "2px solid red",
+                                  // backgroundColor: "red",
+                                  padding: "0px",
+                                  margin: "0px",
+                                  width: "2px",
+                                }}
                                 title={
-                                  new Date(room.bookings[j].rooms[k].arrivalTime).toLocaleString("en-GB") +
+                                  new Date(
+                                    room.bookings[j].rooms[k].arrivalTime
+                                  ).toLocaleString("en-GB") +
                                   " to " +
-                                  new Date(room.bookings[j].rooms[k].checkoutTime).toLocaleString("en-GB") +
+                                  new Date(
+                                    room.bookings[j].rooms[k].checkoutTime
+                                  ).toLocaleString("en-GB") +
                                   "\nBooking Id: " +
                                   room.bookings[j].bookingId +
                                   "\nCustomer: " +
                                   room.bookings[j].rooms[k].name
                                 }
-                              ></td>
+                              >
+                                {""}
+                              </td>
                             );
                           }
                         }
                       }
                       if (c === 0) {
-                        a.push(<td style={{ border: "2px solid green", backgroundColor: "green", padding: "0%" }}></td>);
+                        a.push(
+                          <td
+                            style={{
+                              borderLeft: "2px solid green",
+                              // backgroundColor: "green",
+                              padding: "0%",
+                              width: "2px",
+                              margin: "0px",
+                            }}
+                          >
+                            {""}
+                          </td>
+                        );
                       }
                     }
 
                     return (
-                      <div className="col-md-3" style={{ border: "2px solid black", margin: "5px", padding: "0px" }} key={room.room}>
-                        <table style={{ width: "100%", margin: "0px", padding: "0px" }}>
-                          <tbody style={{ width: "100%", margin: "0px", padding: "0px" }}>
-                            <tr style={{ height: "35px", width: "100%", margin: "0px", padding: "0px" }}>{a}</tr>
+                      <div
+                        className="col-md-4"
+                        style={{
+                          width: "fit-content",
+                          border: "2px solid black",
+                          margin: "0px",
+                          padding: "5px",
+                        }}
+                        key={room.room}
+                      >
+                        <table
+                          style={{
+                            width: "100%",
+                            margin: "0px",
+                            padding: "0px",
+                          }}
+                        >
+                          <tbody
+                            style={{
+                              width: "100%",
+                              margin: "0px",
+                              padding: "0px",
+                            }}
+                          >
+                            <tr
+                              style={{
+                                height: "35px",
+                                width: "100%",
+                                margin: "0px",
+                                padding: "0px",
+                              }}
+                            >
+                              {a}
+                            </tr>
                           </tbody>
                         </table>
                         <button

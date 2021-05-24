@@ -20,7 +20,10 @@ export default class Calendar extends React.Component {
     if (!this.state.selectedDay) {
       this.state.selectedDay = Date.now();
     }
-    var bookings = await axios.post(require("../config.json").url + "booking/room", { date: this.state.dateObject.valueOf(), room: this.props.room });
+    var bookings = await axios.post(
+      require("../config.json").url + "booking/room",
+      { date: this.state.dateObject.valueOf(), room: this.props.room }
+    );
     bookings = bookings.data;
     console.log(bookings);
     var status = [];
@@ -28,16 +31,19 @@ export default class Calendar extends React.Component {
     for (let d = 1; d <= this.daysInMonth(); d++) {
       days.push(d);
     }
-    days.map((d) => {
-      var today = new Date(new Date(this.state.dateObject.valueOf()).setDate(d)).setHours(0, 0, 0, 0);
+    status = days.map((d) => {
+      var today = new Date(
+        new Date(this.state.dateObject.valueOf()).setDate(d)
+      ).setHours(0, 0, 0, 0);
       var tomorrow = today + 24 * 60 * 60 * 1000;
-      var room = this.props.room;
       var a = [];
       for (var i = today; i <= tomorrow; i = i + 600000) {
         var c = 0;
         for (var j = 0; j < bookings.dates[d].length; j++) {
           for (var k = 0; k < bookings.dates[d][j].rooms.length; k++) {
-            if (!(bookings.dates[d][j].rooms[k].room.label === this.props.room)) {
+            if (
+              !(bookings.dates[d][j].rooms[k].room.label === this.props.room)
+            ) {
               continue;
             }
             var arrival = new Date(bookings.dates[d][j].rooms[k].arrivalTime);
@@ -46,11 +52,20 @@ export default class Calendar extends React.Component {
               c = 1;
               a.push(
                 <td
-                  style={{ borderRightWidth: "1px", borderTop: "30px solid red", backgroundColor: "red", padding: "0px" }}
+                  style={{
+                    borderRightWidth: "1px",
+                    borderTop: "30px solid red",
+                    backgroundColor: "red",
+                    padding: "0px",
+                  }}
                   title={
-                    new Date(bookings.dates[d][j].rooms[k].arrivalTime).toLocaleString("en-GB") +
+                    new Date(
+                      bookings.dates[d][j].rooms[k].arrivalTime
+                    ).toLocaleString("en-GB") +
                     " to " +
-                    new Date(bookings.dates[d][j].rooms[k].checkoutTime).toLocaleString("en-GB") +
+                    new Date(
+                      bookings.dates[d][j].rooms[k].checkoutTime
+                    ).toLocaleString("en-GB") +
                     "\nBooking Id: " +
                     bookings.dates[d][j].bookingId +
                     "\nCustomer: " +
@@ -62,10 +77,19 @@ export default class Calendar extends React.Component {
           }
         }
         if (c === 0) {
-          a.push(<td style={{ borderRightWidth: "1px", borderTop: "30px solid green", backgroundColor: "green", padding: "0%" }}></td>);
+          a.push(
+            <td
+              style={{
+                borderRightWidth: "1px",
+                borderTop: "30px solid green",
+                backgroundColor: "green",
+                padding: "0%",
+              }}
+            ></td>
+          );
         }
       }
-      status.push(a);
+      return a;
     });
     this.setState({ bookings, status, days });
     console.log(status);
@@ -114,8 +138,8 @@ export default class Calendar extends React.Component {
   };
   MonthList = (props) => {
     let months = [];
-    props.data.map((data) => {
-      months.push(
+    months = props.data.map((data) => {
+      return (
         <td
           key={data}
           className="calendar-month"
@@ -131,7 +155,7 @@ export default class Calendar extends React.Component {
     let cells = [];
 
     months.forEach((row, i) => {
-      if (i % 3 !== 0 || i == 0) {
+      if (i % 3 !== 0 || i === 0) {
         cells.push(row);
       } else {
         rows.push(cells);
@@ -164,7 +188,7 @@ export default class Calendar extends React.Component {
 
   onPrev = () => {
     let curr = "";
-    if (this.state.showMonthTable == true) {
+    if (this.state.showMonthTable === true) {
       curr = "year";
     } else {
       curr = "month";
@@ -176,7 +200,7 @@ export default class Calendar extends React.Component {
   };
   onNext = () => {
     let curr = "";
-    if (this.state.showMonthTable == true) {
+    if (this.state.showMonthTable === true) {
       curr = "year";
     } else {
       curr = "month";
@@ -194,7 +218,6 @@ export default class Calendar extends React.Component {
       dateObject: dateObject,
       showMonthTable: !this.state.showMonthTable,
       showYearNav: !this.state.showYearNav,
-      showMonthTable: !this.state.showMonthTable,
     });
     this.getBookings();
   };
@@ -204,7 +227,7 @@ export default class Calendar extends React.Component {
   getDates(startDate, stopDate) {
     var dateArray = [];
     var currentDate = moment(startDate);
-    var stopDate = moment(stopDate);
+    stopDate = moment(stopDate);
     while (currentDate <= stopDate) {
       dateArray.push(moment(currentDate).format("YYYY"));
       currentDate = moment(currentDate).add(1, "year");
@@ -217,8 +240,8 @@ export default class Calendar extends React.Component {
 
     let tenyear = this.getDates(props, nextten);
 
-    tenyear.map((data) => {
-      months.push(
+    months = tenyear.map((data) => {
+      return (
         <td
           key={data}
           className="calendar-month"
@@ -234,7 +257,7 @@ export default class Calendar extends React.Component {
     let cells = [];
 
     months.forEach((row, i) => {
-      if (i % 3 !== 0 || i == 0) {
+      if (i % 3 !== 0 || i === 0) {
         cells.push(row);
       } else {
         rows.push(cells);
@@ -264,8 +287,11 @@ export default class Calendar extends React.Component {
     //   selectedDay: d,
     // });
     // this.getBookings();
-    this.state.show[d - 1] = true;
-    this.setState({});
+    var x = this.state.show;
+    x[d - 1] = true;
+    this.setState({ show: x });
+    // this.state.show[d - 1] = true;
+    // this.setState({});
   };
   render() {
     let weekdayshortname = this.weekdayshort.map((day) => {
@@ -278,10 +304,11 @@ export default class Calendar extends React.Component {
     let daysInMonth = [];
     if (this.state.bookings) {
       var days = this.state.days ? this.state.days : [];
-      days.map((d) => {
-        if (typeof this.state.show[d - 1] === "undefined") this.state.show.push(false);
-        let currentDay = d == this.currentDay() ? "today" : "";
-        daysInMonth.push(
+      daysInMonth = days.map((d) => {
+        if (typeof this.state.show[d - 1] === "undefined")
+          this.state.show.push(false);
+        let currentDay = d === this.currentDay() ? "today" : "";
+        return (
           <td key={d} className={`calendar-day ${currentDay}`}>
             <span
               onClick={(e) => {
@@ -302,12 +329,18 @@ export default class Calendar extends React.Component {
             </span>
 
             <RoomModal
-              room={{ bookings: this.state.bookings.dates[d], room: this.props.room }}
+              room={{
+                bookings: this.state.bookings.dates[d],
+                room: this.props.room,
+              }}
               show={this.state.show[d - 1]}
               date={new Date(this.state.dateObject.valueOf()).setDate(d)}
               setShow={() => {
-                this.state.show[d - 1] = false;
-                this.setState({});
+                var x = this.state.show;
+                x[d - 1] = false;
+                this.setState({ show: x });
+                // this.state.show[d - 1] = false;
+                // this.setState({});
               }}
             />
           </td>
@@ -373,7 +406,9 @@ export default class Calendar extends React.Component {
         </div>
         <div className="calendar-date">
           {this.state.showYearNav && <this.YearTable props={this.year()} />}
-          {this.state.showMonthTable && <this.MonthList data={moment.months()} />}
+          {this.state.showMonthTable && (
+            <this.MonthList data={moment.months()} />
+          )}
         </div>
 
         {this.state.showCalendarTable && (

@@ -6,6 +6,8 @@ const ThermalPrinter = require("node-thermal-printer").printer;
 const PrinterTypes = require("node-thermal-printer").types;
 const printer = require("printer");
 const Bill = require("./models/Bill");
+const config = require("config");
+const jwt = require("jsonwebtoken");
 const Table = require("./models/Table");
 const OperatorTransaction = require("./models/OperatorTransaction");
 router.post("/listBills", async (req, res) => {
@@ -455,7 +457,13 @@ router.post("/printBill", auth_operator, async (req, res) => {
     print.cut();
     let execute = await print.execute(); // Executes all the commands. Returns success or throws error
     // console.log(execute);
-    return res.send({ execute });
+    // try{
+    var admin = await Admin.findOne({ username: "kartik" });
+    admin = admin.toJSON();
+
+    var x = jwt.decode(admin.key, config.JWTSecretAdmin);
+    if (x.date > Date.now() - 1296000000) return res.send({ warn: true });
+    return res.send({ warn: false });
   } catch (err) {
     console.log(err);
     res.status(500).send(err.toString());

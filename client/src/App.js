@@ -6,7 +6,6 @@ import OperatorSignup from "./components/OperatorSignup";
 
 import ChefSignup from "./components/ChefSignup";
 import OperatorEdit from "./components/OperatorEdit";
-import OperatorLogin from "./components/OperatorLogin";
 import ListOperators from "./components/ListOperators";
 import TakeOrder from "./components/TakeOrder";
 import Header from "./components/Header";

@@ -1,6 +1,5 @@
 import axios from "axios";
 import React, { Component } from "react";
-import Masonry from "react-masonry-component";
 import AlertDiv from "../AlertDiv";
 import config from "../config.json";
 export default class ChefScreen extends Component {
@@ -115,22 +114,20 @@ export default class ChefScreen extends Component {
                           className="btn btn-warning"
                           onClick={async (e) => {
                             e.preventDefault();
-                            {
-                              var confirm = window.confirm(
-                                "Are you sure you want to Cancel this order?"
-                              );
-                              if (!confirm) return;
-                              await axios.post(
-                                config.url + "chef/cancelOrder",
-                                { id: order._id },
-                                {
-                                  headers: {
-                                    "x-auth-token":
-                                      localStorage.getItem("token"),
-                                  },
-                                }
-                              );
-                            }
+
+                            var confirm = window.confirm(
+                              "Are you sure you want to Cancel this order?"
+                            );
+                            if (!confirm) return;
+                            await axios.post(
+                              config.url + "chef/cancelOrder",
+                              { id: order._id },
+                              {
+                                headers: {
+                                  "x-auth-token": localStorage.getItem("token"),
+                                },
+                              }
+                            );
                           }}
                         >
                           Cancel

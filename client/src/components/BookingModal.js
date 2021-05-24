@@ -45,13 +45,19 @@ export default class BookingModal extends Component {
             e.preventDefault();
             var x = [];
             booking.rooms = booking.rooms.map((room) => {
-              x.push({ arrivalTime: room.arrivalTime, checkoutTime: room.checkoutTime });
+              x.push({
+                arrivalTime: room.arrivalTime,
+                checkoutTime: room.checkoutTime,
+              });
               room.arrivalTime = new Date(room.arrivalTime).valueOf();
               room.checkoutTime = new Date(room.checkoutTime).valueOf();
               return room;
             });
             try {
-              var res = await axios.post(require("../config.json").url + "booking/editbooking", { ...booking });
+              var res = await axios.post(
+                require("../config.json").url + "booking/editbooking",
+                { ...booking }
+              );
               booking.bookingId = res.data.bookingId;
               this.setState({});
               AlertDiv("green", "Booking Successfully modified");
@@ -61,6 +67,7 @@ export default class BookingModal extends Component {
             } finally {
               x.map((q, i) => {
                 booking.rooms[i] = { ...booking.rooms, ...q };
+                return 0;
               });
               this.setState({});
             }
@@ -72,11 +79,20 @@ export default class BookingModal extends Component {
               className="btn btn-primary"
               onClick={(e) => {
                 e.preventDefault();
-                if (window.confirm("Do you want to copy the details from an existing room in this booking?")) {
+                if (
+                  window.confirm(
+                    "Do you want to copy the details from an existing room in this booking?"
+                  )
+                ) {
                   var string = "Choose the room you want to import data from: ";
                   for (var i = 0; i < booking.rooms.length; i++) {
                     try {
-                      string = string + "\n" + (i + 1).toString() + ": " + booking.rooms[i].room.label;
+                      string =
+                        string +
+                        "\n" +
+                        (i + 1).toString() +
+                        ": " +
+                        booking.rooms[i].room.label;
                     } catch {}
                   }
                   var x = window.prompt(string);
@@ -98,7 +114,13 @@ export default class BookingModal extends Component {
               <Accordion.Toggle
                 eventKey="bills"
                 as={Card.Header}
-                style={{ backgroundColor: "green", color: "white", fontWeight: "bold", border: "2px solid black", borderRadius: "5px" }}
+                style={{
+                  backgroundColor: "green",
+                  color: "white",
+                  fontWeight: "bold",
+                  border: "2px solid black",
+                  borderRadius: "5px",
+                }}
                 align="center"
               >
                 Bills
@@ -132,19 +154,31 @@ export default class BookingModal extends Component {
               <Accordion.Toggle
                 eventKey="rooms"
                 as={Card.Header}
-                style={{ backgroundColor: "green", color: "white", fontWeight: "bold", border: "2px solid black", borderRadius: "5px" }}
+                style={{
+                  backgroundColor: "green",
+                  color: "white",
+                  fontWeight: "bold",
+                  border: "2px solid black",
+                  borderRadius: "5px",
+                }}
                 align="center"
               >
                 Rooms
               </Accordion.Toggle>
-              <Accordion.Collapse as={Card.Header} eventKey="rooms" style={{ width: "95%" }}>
+              <Accordion.Collapse
+                as={Card.Header}
+                eventKey="rooms"
+                style={{ width: "95%" }}
+              >
                 <Accordion defaultActiveKey="x">
                   {booking.rooms.map((room, roomInd) => {
                     if (!room.arrivalTime) {
                       room.arrivalTime =
                         this.state.today.getFullYear().toString() +
                         "-" +
-                        (this.state.today.getMonth() + 1).toString().padStart(2, 0) +
+                        (this.state.today.getMonth() + 1)
+                          .toString()
+                          .padStart(2, 0) +
                         "-" +
                         this.state.today.getDate().toString().padStart(2, 0) +
                         "T12:00";
@@ -153,24 +187,41 @@ export default class BookingModal extends Component {
                       room.checkoutTime =
                         this.state.tomorrow.getFullYear().toString() +
                         "-" +
-                        (this.state.tomorrow.getMonth() + 1).toString().padStart(2, 0) +
+                        (this.state.tomorrow.getMonth() + 1)
+                          .toString()
+                          .padStart(2, 0) +
                         "-" +
-                        this.state.tomorrow.getDate().toString().padStart(2, 0) +
+                        this.state.tomorrow
+                          .getDate()
+                          .toString()
+                          .padStart(2, 0) +
                         "T11:59";
                     }
 
                     return (
                       <Card>
                         <div className="row">
-                          <Accordion.Toggle as={Card.Header} eventKey={roomInd.toString()} style={{ width: "95%" }}>
+                          <Accordion.Toggle
+                            as={Card.Header}
+                            eventKey={roomInd.toString()}
+                            style={{ width: "95%" }}
+                          >
                             {room.room ? room.room.label : ""}
                           </Accordion.Toggle>
                           <button
                             className="btn btn-secondary"
-                            style={{ align: "right", minWidth: "fit-content", maxWidth: "5%" }}
+                            style={{
+                              align: "right",
+                              minWidth: "fit-content",
+                              maxWidth: "5%",
+                            }}
                             onClick={(e) => {
                               e.preventDefault();
-                              if (!window.confirm("Are you sure you want to remove this room?")) {
+                              if (
+                                !window.confirm(
+                                  "Are you sure you want to remove this room?"
+                                )
+                              ) {
                                 return;
                               }
                               booking.rooms.splice(roomInd, 1);
@@ -187,7 +238,9 @@ export default class BookingModal extends Component {
                                 <div className="row">
                                   <div className="col-md-6">
                                     <div className="form-group">
-                                      <label htmlFor="name">Name of Customer</label>
+                                      <label htmlFor="name">
+                                        Name of Customer
+                                      </label>
                                       <input
                                         type="text"
                                         className="form-control"
@@ -245,7 +298,9 @@ export default class BookingModal extends Component {
                                   </div>
                                   <div className="col-md-2">
                                     <div className="form-group">
-                                      <label htmlFor="gstIncluded">GST Included</label>
+                                      <label htmlFor="gstIncluded">
+                                        GST Included
+                                      </label>
                                       <br />
                                       <label className="switch">
                                         <input
@@ -268,15 +323,24 @@ export default class BookingModal extends Component {
                                   </div>
                                   <div className="col-md-4">
                                     <div className="form-group">
-                                      <label htmlFor="name">Date of booking</label>
+                                      <label htmlFor="name">
+                                        Date of booking
+                                      </label>
                                       <input
                                         type="date"
                                         defaultValue={
-                                          this.state.today.getFullYear().toString() +
+                                          this.state.today
+                                            .getFullYear()
+                                            .toString() +
                                           "-" +
-                                          (this.state.today.getMonth() + 1).toString().padStart(2, 0) +
+                                          (this.state.today.getMonth() + 1)
+                                            .toString()
+                                            .padStart(2, 0) +
                                           "-" +
-                                          this.state.today.getDate().toString().padStart(2, 0)
+                                          this.state.today
+                                            .getDate()
+                                            .toString()
+                                            .padStart(2, 0)
                                         }
                                         value={room.bookingDate}
                                         name="bookingDate"
@@ -306,7 +370,11 @@ export default class BookingModal extends Component {
                                         className="form-control"
                                         onChange={(e) => {
                                           e.preventDefault();
-                                          console.log(new Date(e.target.value).toLocaleString());
+                                          console.log(
+                                            new Date(
+                                              e.target.value
+                                            ).toLocaleString()
+                                          );
                                           room.arrivalTime = e.target.value;
                                           this.setState({});
                                         }}
@@ -317,7 +385,9 @@ export default class BookingModal extends Component {
                                   </div>
                                   <div className="col-md-6">
                                     <div className="form-group">
-                                      <label htmlFor="name">Checkout Time</label>
+                                      <label htmlFor="name">
+                                        Checkout Time
+                                      </label>
                                       <input
                                         min={room.arrivalTime}
                                         type="datetime-local"
@@ -357,7 +427,9 @@ export default class BookingModal extends Component {
                                 <div className="row">
                                   <div className="col-md-4">
                                     <div className="form-group">
-                                      <label htmlFor="name">Customer City</label>
+                                      <label htmlFor="name">
+                                        Customer City
+                                      </label>
                                       <input
                                         type="text"
                                         value={room.city}
@@ -377,7 +449,9 @@ export default class BookingModal extends Component {
                                   </div>
                                   <div className="col-md-8">
                                     <div className="form-group">
-                                      <label htmlFor="name">Customer Phone</label>
+                                      <label htmlFor="name">
+                                        Customer Phone
+                                      </label>
 
                                       <input
                                         type="number"
@@ -465,7 +539,9 @@ export default class BookingModal extends Component {
                                 <div className="row">
                                   <div className="col-md-9">
                                     <div className="form-group">
-                                      <label htmlFor="name">Extra Bedding</label>
+                                      <label htmlFor="name">
+                                        Extra Bedding
+                                      </label>
 
                                       <div className="row">
                                         <div className="col-md-3">
@@ -478,7 +554,8 @@ export default class BookingModal extends Component {
                                               onChange={(e) => {
                                                 // console.log(e.ta)
 
-                                                room.extraBed = e.target.checked;
+                                                room.extraBed =
+                                                  e.target.checked;
                                                 this.setState({});
                                               }}
                                               placeholder="extraBed"
@@ -488,7 +565,9 @@ export default class BookingModal extends Component {
                                         </div>
                                         <div className="col-md-5">
                                           <div className="form-group">
-                                            <label htmlFor="extraBedCost">Cost of Extra Bed</label>
+                                            <label htmlFor="extraBedCost">
+                                              Cost of Extra Bed
+                                            </label>
                                             <input
                                               disabled={!room.extraBed}
                                               type="number"
@@ -499,7 +578,8 @@ export default class BookingModal extends Component {
                                               onChange={(e) => {
                                                 e.preventDefault();
 
-                                                room.extraBedCost = e.target.value;
+                                                room.extraBedCost =
+                                                  e.target.value;
                                                 this.setState({});
                                               }}
                                               placeholder="extraBedCost"
@@ -508,7 +588,9 @@ export default class BookingModal extends Component {
                                         </div>
                                         <div className="col-md-4">
                                           <div className="form-group">
-                                            <label htmlFor="extraBedNumber">Number of beds</label>
+                                            <label htmlFor="extraBedNumber">
+                                              Number of beds
+                                            </label>
                                             <input
                                               disabled={!room.extraBed}
                                               type="number"
@@ -519,7 +601,8 @@ export default class BookingModal extends Component {
                                               onChange={(e) => {
                                                 e.preventDefault();
 
-                                                room.extraBedNumber = e.target.value;
+                                                room.extraBedNumber =
+                                                  e.target.value;
                                                 this.setState({});
                                               }}
                                               placeholder="extraBedNumber"
@@ -532,7 +615,9 @@ export default class BookingModal extends Component {
                                   <div className="col-md-3">
                                     <div className="row">
                                       <div className="form-group col-md-6">
-                                        <label htmlFor="breakfast">Breakfast</label>
+                                        <label htmlFor="breakfast">
+                                          Breakfast
+                                        </label>
 
                                         <label className="switch">
                                           <input
@@ -618,7 +703,9 @@ export default class BookingModal extends Component {
                                   </div>
                                   <div className="col-md-4">
                                     <div className="form-group">
-                                      <label htmlFor="from">Vehicle Number</label>
+                                      <label htmlFor="from">
+                                        Vehicle Number
+                                      </label>
                                       <input
                                         type="text"
                                         value={room.Vehicle}
@@ -758,7 +845,8 @@ export default class BookingModal extends Component {
                                       <button
                                         onClick={(e) => {
                                           e.preventDefault();
-                                          const imageSrc = this.webcamRef1.current.getScreenshot();
+                                          const imageSrc =
+                                            this.webcamRef1.current.getScreenshot();
 
                                           room.photo = imageSrc;
                                           console.log(room);
@@ -796,7 +884,8 @@ export default class BookingModal extends Component {
                                       <button
                                         onClick={(e) => {
                                           e.preventDefault();
-                                          const imageSrc = this.webcamRef2.current.getScreenshot();
+                                          const imageSrc =
+                                            this.webcamRef2.current.getScreenshot();
 
                                           room.id = imageSrc;
                                           console.log(room);

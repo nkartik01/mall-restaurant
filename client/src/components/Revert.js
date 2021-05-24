@@ -23,7 +23,6 @@ export default class Revert extends Component {
         <h2>Select the orders to revert</h2>
         <div class="row">
           {orders.map((order, i) => {
-            var time = Date.now() - order.at;
             console.log(order);
             return (
               <div
