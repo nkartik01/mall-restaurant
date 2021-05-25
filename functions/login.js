@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const config = require("config");
+const config = require("./config/default.json");
 const Admin = require("./models/Admin");
 router.post("/admin", async (req, res) => {
   try {
@@ -22,7 +22,7 @@ router.post("/admin", async (req, res) => {
         id: username,
       },
     };
-    jwt.sign(payload, config.get("JWTSecretAdmin"), (err, token) => {
+    jwt.sign(payload, config.JWTSecretAdmin, (err, token) => {
       if (err) throw err;
       return res.status(200).json({
         id: username,
@@ -52,7 +52,7 @@ router.post("/operator", async (req, res) => {
         id: username,
       },
     };
-    jwt.sign(payload, config.get("JWTSecretOperator"), (err, token) => {
+    jwt.sign(payload, config.JWTSecretOperator, (err, token) => {
       if (err) throw err;
       return res.status(200).json({
         id: username,
@@ -83,7 +83,7 @@ router.post("/chef", async (req, res) => {
         id: username,
       },
     };
-    jwt.sign(payload, config.get("JWTSecretChef"), (err, token) => {
+    jwt.sign(payload, config.JWTSecretChef, (err, token) => {
       if (err) throw err;
       return res.status(200).json({
         id: username,

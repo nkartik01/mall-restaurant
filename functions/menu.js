@@ -10,9 +10,10 @@ const Restaurant = require("./models/Restaurant");
 const Table = require("./models/Table");
 const Bill = require("./models/Bill");
 const ChefSide = require("./models/ChefSide");
+const path = require("path");
 router.get("/listMenusFromFolder", async (req, res) => {
   try {
-    return res.send({ menus: fs.readdirSync("./menus") });
+    return res.send({ menus: fs.readdirSync("C:/menus") });
   } catch (err) {
     console.log(err);
     res.status(500).send(err.toString());
@@ -35,7 +36,7 @@ router.get("/listMenus", async (req, res) => {
 
 router.post("/setMenu/:menu", async (req, res) => {
   try {
-    var workbook = XLSX.readFile("./menus/" + req.params.menu);
+    var workbook = XLSX.readFile("C:/menus/" + req.params.menu);
     var menu = {};
     var sheets = workbook.SheetNames;
     for (var i = 0; i < sheets.length; i++) {

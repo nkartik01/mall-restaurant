@@ -4,7 +4,7 @@ const auth_admin = require("./middleware/auth_admin");
 const auth_operator = require("./middleware/auth_operator");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const config = require("config");
+const config = require("./config/default.json");
 const OperatorTransaction = require("./models/OperatorTransaction");
 router.post("/edit", auth_admin, async (req, res) => {
   const { username, password } = req.body;
@@ -30,7 +30,11 @@ router.post("/edit", auth_admin, async (req, res) => {
       operatorId: req.operator.id,
     }).save();
     try {
-      (await Operator.findOneAndReplace({ username }, operator, { useFindAndModify: false })).save();
+      (
+        await Operator.findOneAndReplace({ username }, operator, {
+          useFindAndModify: false,
+        })
+      ).save();
       res.send("Done");
     } catch (err) {
       console.log(err);
@@ -47,7 +51,12 @@ router.get("/getOperator/:username", async (req, res) => {
     var operator = await Operator.findOne({ username: req.params.username });
     if (operator) {
       operator = operator.toJSON();
-      var transactions = await OperatorTransaction.find({ operatorId: req.params.username }).sort({ at: "asc" }).limit(30).sort({ at: "desc" });
+      var transactions = await OperatorTransaction.find({
+        operatorId: req.params.username,
+      })
+        .sort({ at: "asc" })
+        .limit(30)
+        .sort({ at: "desc" });
       for (var i = 0; i < transactions.length; i++) {
         transactions[i] = transactions[i].toJSON();
       }
@@ -80,7 +89,9 @@ router.get("/getOperatorList", auth_admin, async (req, res) => {
 
 router.get("/getPermissions", auth_operator, async (req, res) => {
   try {
-    var operator = (await Operator.findOne({ username: req.operator.id })).toJSON();
+    var operator = (
+      await Operator.findOne({ username: req.operator.id })
+    ).toJSON();
     res.send({ permissions: operator.permissions });
   } catch (err) {
     console.log(err);

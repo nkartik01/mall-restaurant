@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const config = require("config");
+const config = require("../config/default.json");
 
 module.exports = function (req, res, next) {
   const token = req.header("x-auth-token");
@@ -7,7 +7,7 @@ module.exports = function (req, res, next) {
     res.status(401).json({ msg: "NO token. Auth Failed" });
   }
   try {
-    const decoded = jwt.verify(token, config.get("JWTSecretOperator"));
+    const decoded = jwt.verify(token, config.JWTSecretOperator);
     req.operator = decoded.operator;
     next();
   } catch (err) {
