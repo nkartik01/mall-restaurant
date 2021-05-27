@@ -36,7 +36,7 @@ export default class OrderSheet extends Component {
                 {this.props.menu.map((menu, _) => {
                   var categories = menu.order;
                   return (
-                    <Fragment>
+                    <div key={menu.toString()}>
                       {categories.map((category, _) => {
                         return (
                           <Nav.Item key={category}>
@@ -50,7 +50,7 @@ export default class OrderSheet extends Component {
                           </Nav.Item>
                         );
                       })}
-                    </Fragment>
+                    </div>
                   );
                 })}
               </Nav>
@@ -60,7 +60,7 @@ export default class OrderSheet extends Component {
                 {this.props.menu.map((menu, _) => {
                   var categories = menu.order;
                   return (
-                    <Fragment>
+                    <Fragment key={menu.toString()}>
                       {categories.map((category, _) => {
                         // console.log(menu[category], category);
                         return (
@@ -69,11 +69,14 @@ export default class OrderSheet extends Component {
                             title={category}
                             key={category}
                           >
-                            <div className="row">
+                            <div
+                              className="row"
+                              style={{ verticalAlign: "top" }}
+                            >
                               {menu.menu[category].map((item, _) => {
                                 return (
                                   <div
-                                    key={item.name}
+                                    key={item.name + item.price.toString()}
                                     style={{
                                       backgroundColor: "yellow",
                                       border: "1px dotted black",

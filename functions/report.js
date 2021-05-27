@@ -3,6 +3,9 @@ const mongoose = require("mongoose");
 const router = express.Router();
 const auth_admin = require("./middleware/auth_admin");
 const auth_operator = require("./middleware/auth_operator");
+var backup = require("./backup.js");
+const config = require("./config/default.json");
+const fs = require("fs");
 router.post("/sale", async (req, res) => {
   try {
     var start = new Date(parseInt(req.body.start));
@@ -135,18 +138,26 @@ router.post("/sale", async (req, res) => {
 });
 
 router.get("/backup", async (req, res) => {
-  return res.send(
-    mongoose.connection.db.listCollections().toArray(function (err, names) {
-      if (err) {
-        console.log(err);
-      } else {
-        return names.forEach(function (e, i, a) {
-          // Mongoose.connection.db.dropCollection(e.name);
-          return e.name;
-        });
-      }
-    })
-  );
+  // console.log(backup({uri:}));
+  var testClass1 = await backup({
+    user: "root", // MongoDB username
+    pass: "", // MongoDB password
+    host: "localhost", // MongoDB host
+    port: "27017", // MongoDB port
+    database: "mall", // MongoDB database name
+    backupfolder: "C:/", // Backup Folder Name
+    backuplimit: 3,
+  });
+  // res.writeHead(200, {
+  //   "Content-Type": "application/zip",
+  //   "Content-disposition": "attachment; filename=backup.zip",
+  // });
+  // fs.readFileSync(testClass1);
+  // var str = testClass1 + ".zip";
+  // console.log(str);
+  // res.pipe(fs.createReadStream(str));
+  // backup({ uri: "mongodb://localhost:27017/mall", root: __dirname });
+  return res.send({ testClass1 });
 });
 
 module.exports = router;

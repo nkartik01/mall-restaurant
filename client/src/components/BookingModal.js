@@ -30,6 +30,7 @@ export default class BookingModal extends Component {
   }
   render() {
     var booking = this.props.booking;
+    console.log(booking);
     var roomsList = this.state.roomsList;
     if (!booking.bills) booking.bills = [];
     return (
@@ -59,8 +60,9 @@ export default class BookingModal extends Component {
                 { ...booking }
               );
               booking.bookingId = res.data.bookingId;
-              this.setState({});
-              AlertDiv("green", "Booking Successfully modified");
+              // this.setState({});
+              await AlertDiv("green", "Booking Successfully modified");
+              window.location.reload();
             } catch (err) {
               console.log(err, err.response);
               AlertDiv("red", err.response.data);
@@ -139,7 +141,7 @@ export default class BookingModal extends Component {
                   <tbody>
                     {booking.bills.map((bill, billInd) => {
                       return (
-                        <tr>
+                        <tr key={billInd}>
                           <th scope="row">{(billInd + 1).toString()}</th>
                           <td>{bill.bill}</td>
                           <td>{new Date(bill.at).toLocaleString("en-GB")}</td>
@@ -199,7 +201,7 @@ export default class BookingModal extends Component {
                     }
 
                     return (
-                      <Card>
+                      <Card key={roomInd}>
                         <div className="row">
                           <Accordion.Toggle
                             as={Card.Header}

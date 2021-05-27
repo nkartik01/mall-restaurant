@@ -458,12 +458,12 @@ router.post("/printBill", auth_operator, async (req, res) => {
     let execute = await print.execute(); // Executes all the commands. Returns success or throws error
     // console.log(execute);
     // try{
-    var admin = await Admin.findOne({ username: "kartik" });
-    admin = admin.toJSON();
+    // var admin = await Admin.findOne({ username: "kartik" });
+    // admin = admin.toJSON();
 
-    var x = jwt.decode(admin.key, config.JWTSecretAdmin);
-    if (x.date > Date.now() - 1296000000) return res.send({ warn: true });
-    return res.send({ warn: false });
+    // var x = jwt.decode(admin.key, config.JWTSecretAdmin);
+    // if (x.date > Date.now() - 1296000000) return res.send({ warn: true });
+    return res.send({});
   } catch (err) {
     console.log(err);
     res.status(500).send(err.toString());

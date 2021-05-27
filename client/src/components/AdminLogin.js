@@ -10,7 +10,22 @@ export default class AdminLogin extends Component {
     e.preventDefault();
     const { username, password } = this.state;
     try {
-      var res = await axios.post(require("../config.json").url + "login/admin", { username: username, password: password });
+      var res = await axios.post(
+        require("../config.json").url + "login/admin",
+        { username: username, password: password }
+      );
+      if (res.data.warn) {
+        console.log(res.data.warn);
+        console.log(Date.now());
+        if (res.data.warn > Date.now())
+          alert(
+            "Your software is licensed till " +
+              new Date(res.data.warn).toLocaleDateString()
+          );
+        else {
+          return alert("Your software licence has expired.");
+        }
+      }
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("status", "admin");
       localStorage.setItem("username", username);
@@ -51,7 +66,11 @@ export default class AdminLogin extends Component {
             </div>
             <p style={{ color: "red" }} id="error"></p>
             <div className="form-group">
-              <input className="btn btn-primary" type="submit" value="Log in as Admin" />
+              <input
+                className="btn btn-primary"
+                type="submit"
+                value="Log in as Admin"
+              />
             </div>
           </form>
         </div>

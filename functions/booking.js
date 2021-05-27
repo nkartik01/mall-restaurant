@@ -5,6 +5,7 @@ const fs = require("fs");
 const moment = require("moment");
 const Room = require("./models/Room");
 const auth_operator = require("./middleware/auth_operator");
+router.post;
 router.post("/editBooking", async (req, res) => {
   try {
     console.log(req.body.bookingId);
@@ -14,8 +15,18 @@ router.post("/editBooking", async (req, res) => {
         rooms: {
           $elemMatch: {
             $or: [
-              { arrivalTime: { $gte: room.arrivalTime, $lte: room.checkoutTime } },
-              { checkoutTime: { $lte: room.checkoutTime, $gte: room.arrivalTime } },
+              {
+                arrivalTime: {
+                  $gte: room.arrivalTime,
+                  $lte: room.checkoutTime,
+                },
+              },
+              {
+                checkoutTime: {
+                  $lte: room.checkoutTime,
+                  $gte: room.arrivalTime,
+                },
+              },
             ],
             room: room.room.label,
           },
@@ -24,7 +35,14 @@ router.post("/editBooking", async (req, res) => {
       });
       if (b) {
         b = b.toJSON();
-        return res.status(400).send("Room: " + room.room.label + " clashes with booking Id: " + b.bookingId);
+        return res
+          .status(400)
+          .send(
+            "Room: " +
+              room.room.label +
+              " clashes with booking Id: " +
+              b.bookingId
+          );
       }
     }
     var booking = await Booking.find({});
@@ -36,19 +54,38 @@ router.post("/editBooking", async (req, res) => {
     }
     for (var i = 0; i < req.body.rooms.length; i++) {
       if (req.body.rooms[i].photo) {
-        var bitmap = await new Buffer.from(req.body.rooms[i].photo.slice(23), "base64");
-        fs.writeFileSync("../../images/photo/" + bookingId + "_" + (i + 1).toString() + ".jpg", bitmap);
+        var bitmap = await new Buffer.from(
+          req.body.rooms[i].photo.slice(23),
+          "base64"
+        );
+        console.log(req.body.rooms[i].photo);
+        fs.writeFileSync(
+          "C:/images/photo/" + bookingId + "_" + (i + 1).toString() + ".jpg",
+          bitmap
+        );
         delete req.body.rooms[i].photo;
       }
       if (req.body.rooms[i].id) {
-        var bitmap = await new Buffer.from(req.body.rooms[i].id.slice(23), "base64");
-        fs.writeFileSync("../../images/id/" + bookingId + "_" + (i + 1).toString() + ".jpg", bitmap);
+        var bitmap = await new Buffer.from(
+          req.body.rooms[i].id.slice(23),
+          "base64"
+        );
+        fs.writeFileSync(
+          "C:/images/id/" + bookingId + "_" + (i + 1).toString() + ".jpg",
+          bitmap
+        );
         delete req.body.rooms[i].id;
       }
       req.body.rooms[i].room = req.body.rooms[i].room.label;
     }
     if (req.body.bookingId && req.body.bookingId !== "") {
-      (await Booking.findOneAndUpdate({ bookingId: req.body.bookingId }, { ...req.body }, { useFindAndModify: false })).save();
+      (
+        await Booking.findOneAndUpdate(
+          { bookingId: req.body.bookingId },
+          { ...req.body },
+          { useFindAndModify: false }
+        )
+      ).save();
     } else {
       req.body.bookingId = booking.length + 1;
       booking = new Booking(req.body).save();
@@ -64,18 +101,31 @@ router.post("/date", async (req, res) => {
   try {
     var date1 = new Date(req.body.date).setHours(0, 0, 0, 0);
     var date2 = date1 + 1000 * 60 * 60 * 24;
-    var bookings = await Booking.find({ rooms: { $elemMatch: { arrivalTime: { $lt: date2 }, checkoutTime: { $gt: date1 } } } });
+    var bookings = await Booking.find({
+      rooms: {
+        $elemMatch: {
+          arrivalTime: { $lt: date2 },
+          checkoutTime: { $gt: date1 },
+        },
+      },
+    });
     var rooms = {};
     bookings.map((booking, i) => {
       booking = booking.toJSON();
       booking.id = booking.bookingId;
       booking.rooms.map((room, k) => {
         try {
-          var photo = fs.readFileSync("../../images/photo/" + booking.id + "_" + (k + 1).toString() + ".jpg", { encoding: "base64" });
+          var photo = fs.readFileSync(
+            "C:/images/photo/" + booking.id + "_" + (k + 1).toString() + ".jpg",
+            { encoding: "base64" }
+          );
           room.photo = "data:image/jpeg;base64," + photo.toString();
         } catch {}
         try {
-          var id = fs.readFileSync("../../images/id/" + booking.id + "_" + (k + 1).toString() + ".jpg", { encoding: "base64" });
+          var id = fs.readFileSync(
+            "C:/images/id/" + booking.id + "_" + (k + 1).toString() + ".jpg",
+            { encoding: "base64" }
+          );
           room.id = "data:image/jpeg;base64," + id.toString();
         } catch {}
         room.arrivalTime = new Date(room.arrivalTime);
@@ -116,7 +166,9 @@ router.post("/date", async (req, res) => {
 
 router.post("/room", async (req, res) => {
   try {
-    var date1 = new Date(new Date(req.body.date).setHours(0, 0, 0, 0)).setDate(1);
+    var date1 = new Date(new Date(req.body.date).setHours(0, 0, 0, 0)).setDate(
+      1
+    );
     console.log(new Date(date1).toLocaleString());
     var days = moment(date1).daysInMonth();
     console.log(days);
@@ -124,7 +176,13 @@ router.post("/room", async (req, res) => {
     var date2 = date1 + days * (1000 * 60 * 60 * 24);
     for (var i = 0; i < days; i = i + 1) {
       var bookings = await Booking.find({
-        rooms: { $elemMatch: { room: req.body.room, arrivalTime: { $lt: date1 + 1000 * 60 * 60 * 24 }, checkoutTime: { $gt: date1 } } },
+        rooms: {
+          $elemMatch: {
+            room: req.body.room,
+            arrivalTime: { $lt: date1 + 1000 * 60 * 60 * 24 },
+            checkoutTime: { $gt: date1 },
+          },
+        },
       });
 
       bookings = bookings.map((booking, j) => {
@@ -134,11 +192,21 @@ router.post("/room", async (req, res) => {
         // console.log(booking);
         booking.rooms = booking.rooms.map((room, k) => {
           try {
-            var photo = fs.readFileSync("../../images/photo/" + booking.id + "_" + (k + 1).toString() + ".jpg", { encoding: "base64" });
+            var photo = fs.readFileSync(
+              "C:/images/photo/" +
+                booking.id +
+                "_" +
+                (k + 1).toString() +
+                ".jpg",
+              { encoding: "base64" }
+            );
             room.photo = "data:image/jpeg;base64," + photo.toString();
           } catch {}
           try {
-            var id = fs.readFileSync("../../images/id/" + booking.id + "_" + (k + 1).toString() + ".jpg", { encoding: "base64" });
+            var id = fs.readFileSync(
+              "C:/images/id/" + booking.id + "_" + (k + 1).toString() + ".jpg",
+              { encoding: "base64" }
+            );
             room.id = "data:image/jpeg;base64," + id.toString();
           } catch {}
 
@@ -173,6 +241,16 @@ router.post("/room", async (req, res) => {
       dates[i + 1] = bookings;
     }
     return res.send({ dates });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.toString());
+  }
+});
+
+router.get("/photo/:name", async (req, res) => {
+  try {
+    var name = req.params.name;
+    return res.send(fs.readFileSync("C:/images/photo/" + name));
   } catch (err) {
     console.log(err);
     res.status(500).send(err.toString());
@@ -237,7 +315,10 @@ router.post("/printBill", async (req, res) => {
   try {
     const ThermalPrinter = require("node-thermal-printer").printer;
     const PrinterTypes = require("node-thermal-printer").types;
-    const electron = typeof process !== "undefined" && process.versions && !!process.versions.electro;
+    const electron =
+      typeof process !== "undefined" &&
+      process.versions &&
+      !!process.versions.electro;
     console.log(req.body.printer);
     let print = new ThermalPrinter({
       type: PrinterTypes.EPSON, // Printer type: 'star' or 'epson'
@@ -264,8 +345,12 @@ router.post("/printBill", async (req, res) => {
       print.println("Bill Preview");
     }
     print.newLine();
-    print.leftRight("Bill No. :" + req.body.bill, "Date: " + new Date(Date.now()).toLocaleDateString("en-GB"));
-    if (!req.body.preview) print.leftRight("", "Time: " + new Date(Date.now()).toLocaleTimeString());
+    print.leftRight(
+      "Bill No. :" + req.body.bill,
+      "Date: " + new Date(Date.now()).toLocaleDateString("en-GB")
+    );
+    if (!req.body.preview)
+      print.leftRight("", "Time: " + new Date(Date.now()).toLocaleTimeString());
 
     print.drawLine();
     print.tableCustom([
@@ -309,7 +394,8 @@ router.post("/printBill", async (req, res) => {
     // console.log("hi", parseInt(req.body.orderHistory.sum - parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))));
     // if (parseInt(req.body.orderHistory.sum - parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))) !== 0)
     //   print.leftRight("", "Already Paid: " + parseInt(req.body.orderHistory.sum - parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))).toString() + " ");
-    if (req.body.orderHistory.sum !== req.body.balance) print.leftRight("", "Amount to be paid: " + req.body.balance + " ");
+    if (req.body.orderHistory.sum !== req.body.balance)
+      print.leftRight("", "Amount to be paid: " + req.body.balance + " ");
     if (!req.body.preview) {
       print.leftRight("", "Amount Recieved: " + parseInt(req.body.paid) + " ");
       print.leftRight("", "Payment mode: " + req.body.method);
@@ -320,7 +406,12 @@ router.post("/printBill", async (req, res) => {
           print.leftRight("", "Txn Id: " + req.body.tranId);
         }
       if (req.body.balance - req.body.paid !== 0)
-        print.leftRight("", "Pending: " + parseInt(parseInt(req.body.balance) - parseInt(req.body.paid)) + " ");
+        print.leftRight(
+          "",
+          "Pending: " +
+            parseInt(parseInt(req.body.balance) - parseInt(req.body.paid)) +
+            " "
+        );
     }
     // print.println("hello");
     print.newLine();

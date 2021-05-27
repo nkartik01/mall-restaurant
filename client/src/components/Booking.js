@@ -113,6 +113,14 @@ export default class Booking extends React.Component {
                             c = 1;
                             a.push(
                               <td
+                                key={
+                                  "room-" +
+                                  i.toString() +
+                                  "-" +
+                                  j.toString() +
+                                  "-" +
+                                  k.toString()
+                                }
                                 style={{
                                   borderLeft: "2px solid red",
                                   // backgroundColor: "red",
@@ -143,6 +151,7 @@ export default class Booking extends React.Component {
                       if (c === 0) {
                         a.push(
                           <td
+                            key={i}
                             style={{
                               borderLeft: "2px solid green",
                               // backgroundColor: "green",

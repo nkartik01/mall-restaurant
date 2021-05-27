@@ -93,19 +93,22 @@ export default class Payment extends Component {
           </table>
           <table align="center" className="table table-bordered">
             <tbody>
-              <input
-                className="form-control"
-                type="number"
-                required
-                placeholder="phone"
-                id="phone"
-                name="phone"
-                value={this.state.phone}
-                onChange={(e) => {
-                  e.preventDefault();
-                  this.setState({ phone: e.target.value });
-                }}
-              />
+              <tr>
+                <td colSpan={2}>
+                  <input
+                    className="form-control"
+                    type="number"
+                    placeholder="phone"
+                    id="phone"
+                    name="phone"
+                    value={this.state.phone}
+                    onChange={(e) => {
+                      e.preventDefault();
+                      this.setState({ phone: e.target.value });
+                    }}
+                  />
+                </td>
+              </tr>
               {this.state.discType !== "none" ? (
                 <Fragment>
                   <tr>
@@ -123,6 +126,7 @@ export default class Payment extends Component {
                         onChange={(e) => {
                           e.preventDefault();
                           var sum = 0;
+                          console.log(this.props.orderHistory);
                           this.props.orderHistory.order.map((item, _) => {
                             if (item.disc) {
                               sum = sum + item.price * item.quantity;
@@ -788,15 +792,17 @@ export default class Payment extends Component {
             </Modal.Body>
           </Modal>
           <table align="center" className="table table-bordered">
-            <tr>
-              <td colSpan={2}>
-                <input
-                  type="submit"
-                  value="Move to Booking"
-                  className="form-control"
-                />
-              </td>
-            </tr>
+            <tbody>
+              <tr>
+                <td colSpan={2}>
+                  <input
+                    type="submit"
+                    value="Move to Booking"
+                    className="form-control"
+                  />
+                </td>
+              </tr>
+            </tbody>
           </table>
         </form>
         <table align="center" className="table table-bordered">
@@ -831,7 +837,7 @@ export default class Payment extends Component {
               </td>
             </tr>
             <tr>
-              <td colspan={2}>
+              <td colSpan={2}>
                 <button
                   className="btn  btn-primary"
                   onClick={async (e) => {

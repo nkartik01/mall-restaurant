@@ -29,6 +29,7 @@ export default class RoomModal extends Component {
             c = 1;
             a.push(
               <td
+                key={i}
                 style={{
                   border: "2px solid red",
                   padding: "0px",
@@ -59,6 +60,7 @@ export default class RoomModal extends Component {
       if (c === 0) {
         a.push(
           <td
+            key={i}
             style={{
               border: "2px solid green",
               padding: "0px",
@@ -103,7 +105,7 @@ export default class RoomModal extends Component {
               booking.rooms = booking.bookedRooms;
             }
             return (
-              <Fragment>
+              <Fragment key={i}>
                 <button
                   className="btn btn-secondary"
                   onClick={(e) => {

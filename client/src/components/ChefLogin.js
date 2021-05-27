@@ -3,46 +3,62 @@ import axios from "axios";
 import { setData } from "../redux/action/loadedData";
 
 export default class ChefLogin extends Component {
-  state = { username: "", password: "" };
+  state = { chefUsername: "", password: "" };
   onChange = (e) => {
     e.preventDefault();
     this.setState({ [e.target.name]: e.target.value });
   };
   onSubmit = async (e) => {
     e.preventDefault();
-    const { username, password } = this.state;
+    const { chefUsername, password } = this.state;
     try {
       var res = await axios.post(require("../config.json").url + "login/chef", {
-        username: username,
+        username: chefUsername,
         password: password,
       });
+
+      if (res.data.warn) {
+        console.log(res.data.warn);
+        console.log(Date.now());
+        if (res.data.warn > Date.now())
+          alert(
+            "Your software is licensed till " +
+              new Date(res.data.warn).toLocaleDateString()
+          );
+        else {
+          return alert("Your software licence has expired.");
+        }
+      }
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("status", "chef");
-      localStorage.setItem("username", username);
+      localStorage.setItem("chefUsername", chefUsername);
       setData({ permissions: res.data.permissions });
       this.setState({});
       window.location.reload();
     } catch (err) {
       console.log(err);
-      document.getElementById("error").innerHTML = "Invalid Credentials";
+      document.getElementById("chefError").innerHTML = "Invalid Credentials";
     }
   };
   render() {
-    const { username, password } = this.state;
+    const { chefUsername, password } = this.state;
     return (
       <center>
-        <div className="col-md-3" style={{ border: "2px solid black" }}>
+        <div
+          className="col-md-3"
+          style={{ border: "2px solid black", zIndex: 1 }}
+        >
           <form onSubmit={(e) => this.onSubmit(e)}>
             <h3>Chef Login</h3>
             <div className="form-group">
               <input
                 className="form-control"
                 type="text"
-                name="username"
-                id="username"
-                value={username}
+                name="chefUsername"
+                id="chefUsername"
+                value={chefUsername}
                 onChange={(e) => this.onChange(e)}
-                placeholder="Chef Username"
+                placeholder="Chef chefUsername"
               />
             </div>
             <div className="form-group">
@@ -56,7 +72,7 @@ export default class ChefLogin extends Component {
                 placeholder="Password"
               />
             </div>
-            <p style={{ color: "red" }} id="error"></p>
+            <p style={{ color: "red" }} id="chefError"></p>
             <div className="form-group">
               <input
                 className="btn btn-primary"
