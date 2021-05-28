@@ -5,9 +5,14 @@ const bodyParser = require("body-parser");
 const path = require("path");
 var app = express();
 
-app.use(bodyParser.json());
-app.use(express.json({ extended: false, limit: "100mb" }));
-// app.use(cors(corsOpts));
+app.use(bodyParser.json({ limit: "100mb" }));
+app.use(
+  bodyParser.urlencoded({
+    limit: "100mb",
+    extended: true,
+    parameterLimit: 500000,
+  })
+);
 app.use(cors());
 app.use("/api/card", require("./card"));
 app.use("/api/login", require("./login"));

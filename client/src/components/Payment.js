@@ -47,7 +47,6 @@ export default class Payment extends Component {
       <div>
         <form
           onSubmit={async (e) => {
-            console.log(this.props.table);
             e.preventDefault();
             await axios.post(
               require("../config.json").url + "bill/addDiscount",
@@ -126,7 +125,6 @@ export default class Payment extends Component {
                         onChange={(e) => {
                           e.preventDefault();
                           var sum = 0;
-                          console.log(this.props.orderHistory);
                           this.props.orderHistory.order.map((item, _) => {
                             if (item.disc) {
                               sum = sum + item.price * item.quantity;
@@ -718,19 +716,11 @@ export default class Payment extends Component {
                   .sort()
                   .map((roomName) => {
                     return (
-                      <Fragment>
+                      <Fragment key={roomName}>
                         {this.state.rooms[roomName].map((room) => {
                           var name;
                           try {
                             name = room.rooms.filter((x) => {
-                              console.log(
-                                x.room.value.toString(),
-                                roomName,
-                                new Date(x.arrivalTime).valueOf(),
-                                Date.now(),
-                                new Date(x.checkoutTime).valueOf(),
-                                Date.now()
-                              );
                               if (
                                 x.room.value.toString() === roomName &&
                                 new Date(x.arrivalTime).valueOf() <
@@ -743,6 +733,7 @@ export default class Payment extends Component {
                           } catch {}
                           return (
                             <div
+                              key={roomName}
                               className="col-md-3 btn btn-secondary"
                               // style={{ padding: "5px" }}
                               onClick={async (e) => {

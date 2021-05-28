@@ -14,9 +14,14 @@ export default class OperatorEdit extends Component {
     changeMenu: false,
   };
   getOperator = async (e) => {
-    var res = await axios.get(require("../config.json").url + "operator/getOperator/" + this.props.match.params.username, {
-      headers: { "x-auth-token": localStorage.getItem("token") },
-    });
+    var res = await axios.get(
+      require("../config.json").url +
+        "operator/getOperator/" +
+        this.props.match.params.username,
+      {
+        headers: { "x-auth-token": localStorage.getItem("token") },
+      }
+    );
     res = res.data;
     if (!res.transactions) res.transactions = [];
     this.setState({
@@ -41,7 +46,8 @@ export default class OperatorEdit extends Component {
   onSubmit = async (e) => {
     e.preventDefault();
     try {
-      var { name, balance, username, restaurant, wait, edit, changeMenu } = this.state;
+      var { name, balance, username, restaurant, wait, edit, changeMenu } =
+        this.state;
       var data = {
         balance,
         name,
@@ -66,17 +72,51 @@ export default class OperatorEdit extends Component {
           {localStorage.getItem("status") === "admin" ? (
             <form className="form-control" onSubmit={(e) => this.onSubmit(e)}>
               <div className="from-group">
-                <input className="form-control" placeholder="Name" type="text" id="name" name="name" value={this.state.name} onChange={(e) => this.onChange(e)} />
+                <input
+                  className="form-control"
+                  placeholder="Name"
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={this.state.name}
+                  onChange={(e) => this.onChange(e)}
+                />
               </div>
               <div className="from-group">
-                <input className="form-control" placeholder="Username" type="text" id="username" name="username" value={this.state.username} onChange={(e) => this.onChange(e)} />
+                <input
+                  className="form-control"
+                  placeholder="Username"
+                  type="text"
+                  id="username"
+                  name="username"
+                  value={this.state.username}
+                  onChange={(e) => this.onChange(e)}
+                />
               </div>
               <div className="from-group">
-                <input className="form-control" placeholder="Balance" type="number" id="balance" name="balance" value={this.state.balance} onChange={(e) => this.onChange(e)} />
+                <input
+                  className="form-control"
+                  placeholder="Balance"
+                  type="number"
+                  id="balance"
+                  name="balance"
+                  value={this.state.balance}
+                  onChange={(e) => this.onChange(e)}
+                />
               </div>
               :
-              <PermissionsSetup restaurant={this.state.restaurant} wait={this.state.wait} edit={this.state.edit} changeMenu={this.state.changeMenu} setState1={this.setState1} />
-              <input type="Submit" value="Submit" className="form-control btn-primary" />
+              <PermissionsSetup
+                restaurant={this.state.restaurant}
+                wait={this.state.wait}
+                edit={this.state.edit}
+                changeMenu={this.state.changeMenu}
+                setState1={this.setState1}
+              />
+              <input
+                type="Submit"
+                value="Submit"
+                className="form-control btn-primary"
+              />
             </form>
           ) : (
             <Fragment>
@@ -114,7 +154,7 @@ export default class OperatorEdit extends Component {
             <tbody>
               {this.state.transactions.map((tran, i) => {
                 return (
-                  <tr>
+                  <tr key={i}>
                     <td>{i + 1}</td>
                     <td>{tran.tranId}</td>
                     <td>{tran.amount}</td>

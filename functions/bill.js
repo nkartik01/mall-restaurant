@@ -807,4 +807,29 @@ router.post("/cancelBill", auth_operator, async (req, res) => {
   }
 });
 
+router.get("/activeTables/:res", async (req, res) => {
+  try {
+    var tables = await Table.find({
+      bill: { $ne: "" },
+      restaurant: req.params.res,
+    });
+    for (var i = 0; i < tables.length; i++) {
+      tables[i] = tables[i].toJSON();
+      tables[i].id = tables[i].tableId;
+    }
+    return res.send({ tables });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.toString());
+  }
+});
+
+router.post("/merge", auth_operator, async (req, res) => {
+  try {
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.toString());
+  }
+});
+
 module.exports = router;

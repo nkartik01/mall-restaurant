@@ -4,7 +4,11 @@ import { Link } from "react-router-dom";
 import { setData } from "../redux/action/loadedData";
 
 export default class BillList extends Component {
-  state = { bills: this.props.store.getState().loadedDataReducer.bills ? this.props.store.getState().loadedDataReducer.bills : [] };
+  state = {
+    bills: this.props.store.getState().loadedDataReducer.bills
+      ? this.props.store.getState().loadedDataReducer.bills
+      : [],
+  };
   getBills = async () => {
     var bills = await axios.post(
       require("../config.json").url + "bill/listBills",
@@ -34,8 +38,18 @@ export default class BillList extends Component {
   componentDidMount() {
     var date = new Date();
     this.setState({
-      start: date.getFullYear().toString() + "-" + (date.getMonth() + 1).toString().padStart(2, 0) + "-" + date.getDate().toString().padStart(2, 0),
-      end: date.getFullYear().toString() + "-" + (date.getMonth() + 1).toString().padStart(2, 0) + "-" + date.getDate().toString().padStart(2, 0),
+      start:
+        date.getFullYear().toString() +
+        "-" +
+        (date.getMonth() + 1).toString().padStart(2, 0) +
+        "-" +
+        date.getDate().toString().padStart(2, 0),
+      end:
+        date.getFullYear().toString() +
+        "-" +
+        (date.getMonth() + 1).toString().padStart(2, 0) +
+        "-" +
+        date.getDate().toString().padStart(2, 0),
     });
     this.getBills();
   }
@@ -95,7 +109,11 @@ export default class BillList extends Component {
               </tr>
               <tr>
                 <td colSpan={3}>
-                  <input type="submit" className="btn btn-primary" value="Submit" />
+                  <input
+                    type="submit"
+                    className="btn btn-primary"
+                    value="Submit"
+                  />
                 </td>
               </tr>
             </tbody>
@@ -121,7 +139,10 @@ export default class BillList extends Component {
           <tbody>
             {this.state.bills.map((bill, ind) => {
               return (
-                <tr style={{ color: bill.cancelled ? "red" : "black" }}>
+                <tr
+                  style={{ color: bill.cancelled ? "red" : "black" }}
+                  key={ind}
+                >
                   <td>{ind + 1}</td>
                   <td>{bill.id}</td>
                   <td>{bill.table}</td>

@@ -10,6 +10,35 @@ router.post("/editBooking", async (req, res) => {
   try {
     console.log(req.body.bookingId);
     for (var i = 0; i < req.body.rooms.length; i++) {
+      for (var j = 0; j < req.body.rooms.length; j++) {
+        if (i === j) {
+          continue;
+        }
+        console.log(req.body.rooms[i].room.label, req.body.rooms[j].room.label);
+        console.log(
+          req.body.rooms[i].arrivalTime,
+          req.body.rooms[j].arrivalTime
+        );
+        if (req.body.rooms[i].room.label === req.body.rooms[j].room.label) {
+          if (
+            (req.body.rooms[i].arrivalTime > req.body.rooms[j].arrivalTime &&
+              req.body.rooms[i].arrivalTime > req.body.rooms[j].checkoutTime) ||
+            (req.body.rooms[i].checkoutTime < req.body.rooms[j].checkoutTime &&
+              req.body.rooms[i].checkoutTime > req.body.rooms[j].arrivalTime) ||
+            req.body.rooms[i].arrivalTime === req.body.rooms[j].arrivalTime
+          ) {
+            return res
+              .status(400)
+              .send(
+                "Room " +
+                  req.body.rooms[i].room.label +
+                  " clashes within the booking"
+              );
+          }
+        }
+      }
+    }
+    for (var i = 0; i < req.body.rooms.length; i++) {
       var room = req.body.rooms[i];
       var b = await Booking.findOne({
         rooms: {
@@ -58,7 +87,6 @@ router.post("/editBooking", async (req, res) => {
           req.body.rooms[i].photo.slice(23),
           "base64"
         );
-        console.log(req.body.rooms[i].photo);
         fs.writeFileSync(
           "C:/images/photo/" + bookingId + "_" + (i + 1).toString() + ".jpg",
           bitmap

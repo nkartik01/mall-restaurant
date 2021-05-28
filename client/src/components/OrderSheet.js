@@ -1,3 +1,4 @@
+import { Modal } from "react-bootstrap";
 import axios from "axios";
 import React, { Component, Fragment } from "react";
 import { Tab, Row, Col, Nav } from "react-bootstrap";
@@ -36,7 +37,7 @@ export default class OrderSheet extends Component {
                 {this.props.menu.map((menu, _) => {
                   var categories = menu.order;
                   return (
-                    <div key={menu.toString()}>
+                    <div key={menu.menuId}>
                       {categories.map((category, _) => {
                         return (
                           <Nav.Item key={category}>
@@ -60,7 +61,7 @@ export default class OrderSheet extends Component {
                 {this.props.menu.map((menu, _) => {
                   var categories = menu.order;
                   return (
-                    <Fragment key={menu.toString()}>
+                    <Fragment key={menu.menuId}>
                       {categories.map((category, _) => {
                         // console.log(menu[category], category);
                         return (
@@ -76,7 +77,7 @@ export default class OrderSheet extends Component {
                               {menu.menu[category].map((item, _) => {
                                 return (
                                   <div
-                                    key={item.name + item.price.toString()}
+                                    key={item.name + item.price}
                                     style={{
                                       backgroundColor: "yellow",
                                       border: "1px dotted black",
@@ -625,7 +626,14 @@ export default class OrderSheet extends Component {
                           className="btn btn-secondary"
                           onClick={(e) => {
                             e.preventDefault();
-                            this.setState({ edit: false });
+                            this.setState({
+                              edit: false,
+                              proposedChanges: {
+                                order: [],
+                                sum: 0,
+                                reason: "",
+                              },
+                            });
                           }}
                         >
                           Cancel
@@ -712,6 +720,83 @@ export default class OrderSheet extends Component {
                     }}
                   />
                 </Fragment>
+              ) : null}
+              {this.state.activeTables ? (
+                <Modal
+                  size="xl"
+                  show={this.state.show}
+                  onHide={() => {
+                    this.setState({ show: false });
+                  }}
+                >
+                  <Modal.Header closeButton>Choose the table</Modal.Header>
+                  <Modal.Body>
+                    <div className="row">
+                      {this.state.activeTables.map((table) => {
+                        if (table.table !== propsTable.table)
+                          return (
+                            <div
+                              onClick={async (e) => {
+                                e.preventDefault();
+                                var confirm = window.confirm(
+                                  "Are you sure you want to merge " +
+                                    table.table +
+                                    " into " +
+                                    propsTable.table +
+                                    "?"
+                                );
+                                if (!confirm) return;
+                                await axios.post(
+                                  require("../config.json").url +
+                                    "/api/bill/merge",
+                                  {
+                                    table1: table.tableId,
+                                    table2: propsTable.tableId,
+                                    restaurant: propsTable.restaurant,
+                                  }
+                                );
+                              }}
+                              className="col-md-3"
+                              key={table.bill}
+                              style={{
+                                border: "1px solid black",
+                                backgroundColor: "#eeee99",
+                                padding: "5px",
+                                borderRadius: "5px",
+                              }}
+                            >
+                              <h5>{table.table}</h5>
+                            </div>
+                          );
+                        return null;
+                      })}
+                    </div>
+                  </Modal.Body>
+                </Modal>
+              ) : null}
+              {propsTable.bill &&
+              propsTable.bill !== "" &&
+              propsTable.balance !== 0 ? (
+                <button
+                  className="btn btn-primary"
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    var res = await axios.get(
+                      require("../config.json").url +
+                        "bill/activeTables/" +
+                        propsTable.restaurant,
+                      {
+                        headers: {
+                          "x-auth-token": localStorage.getItem("token"),
+                        },
+                      }
+                    );
+                    res = res.data;
+                    this.setState({ activeTables: res.tables, show: true });
+                  }}
+                >
+                  Merge Bill
+                </button>
               ) : null}
               <button
                 className="btn btn-primary"

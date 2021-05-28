@@ -71,7 +71,6 @@ export default class BookingModal extends Component {
                 booking.rooms[i] = { ...booking.rooms, ...q };
                 return 0;
               });
-              this.setState({});
             }
           }}
         >

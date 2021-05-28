@@ -183,13 +183,7 @@ class Report extends Component {
                   </tr>
                   <tr>
                     <th>Net Sale</th>
-                    <td>
-                      {this.state.cashSum +
-                        this.state.rfidSum +
-                        this.state.cardSum +
-                        this.state.upiSum +
-                        this.state.balance}
-                    </td>
+                    <td>{this.state.sum - this.state.discAmount}</td>
                   </tr>
                   <tr>
                     <th scope="col">Cash Collected</th>
