@@ -30,7 +30,7 @@ export default class OperatorLogin extends Component {
       }
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("status", "operator");
-      localStorage.setItem("operatorUsername", operatorUsername);
+      localStorage.setItem("username", operatorUsername);
       setData({ permissions: res.data.permissions });
       this.setState({});
       window.location.reload();

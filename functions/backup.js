@@ -24,15 +24,6 @@ var backup = async (dbOptions) => {
     fs.mkdirSync(backuppatch);
   }
   await exportdb(backuppatch, dbOptions);
-  var str1 =
-    "tar.exe -a -c -f " +
-    dbOptions.backupfolder +
-    str +
-    ".zip " +
-    dbOptions.backupfolder +
-    str;
-  console.log(str1);
-  exec(str1);
   return backuppatch;
 };
 
@@ -52,7 +43,6 @@ var exportdb = async function (backuppatch, dbOptions) {
       ""
   );
   var names = await conn.db.listCollections().toArray();
-  console.log("Get List Collections");
   for (let index = 0; index < names.length; index++) {
     const element = names[index];
     var str =

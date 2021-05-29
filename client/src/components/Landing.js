@@ -648,6 +648,186 @@ export default class Landing extends Component {
                   />
                 </form>
               </div>
+              <div className="col-md-4 landingDiv">
+                <h3>Take Backup</h3>
+                <form
+                  className="form-control"
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (this.state.backupPassword !== "admin123") {
+                      return alert("Incorrect Password");
+                    }
+                    try {
+                      var res = await axios.get(
+                        require("../config.json").url + "report/backup",
+                        {
+                          headers: {
+                            "x-auth-token": localStorage.getItem("token"),
+                          },
+                        }
+                      );
+                      AlertDiv("green", res.data);
+                    } catch (err) {
+                      console.log(err);
+                      AlertDiv("red", "Backup Failed");
+                    }
+                  }}
+                >
+                  <input
+                    className="form-control"
+                    type="password"
+                    value={this.state.backupPassword}
+                    onChange={(e) => {
+                      e.preventDefault();
+                      this.setState({ backupPassword: e.target.value });
+                    }}
+                    required
+                    placeholder="Password"
+                  />
+                  <input
+                    type="submit"
+                    value="Take Backup"
+                    className="btn btn-primary"
+                  />
+                </form>
+              </div>
+              <div className="col-md-4 landingDiv">
+                <h3>Restore Database</h3>
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    var confirm = window.confirm(
+                      "Are you sure you want to restore the database from given folder? Any existing data in database will be permanently lost."
+                    );
+                    if (!confirm) return;
+
+                    if (this.state.restorePassword !== "admin123") {
+                      return alert("Incorrect Password");
+                    }
+                    try {
+                      await axios.get(
+                        require("../config.json").url +
+                          "report/restore/" +
+                          this.state.restoreFolder,
+                        {
+                          headers: {
+                            "x-auth-token": localStorage.getItem("token"),
+                          },
+                        }
+                      );
+                      AlertDiv("green", "Restored");
+                    } catch (e) {
+                      console.log(e, e.response);
+                      AlertDiv("red", "Restore Failed");
+                    }
+                  }}
+                >
+                  <input
+                    type="text"
+                    placeholder="Enter Folder name"
+                    className="form-control"
+                    value={this.state.restoreFolder}
+                    onChange={(e) => {
+                      e.preventDefault();
+                      this.setState({ restoreFolder: e.target.value });
+                    }}
+                    id="restoreFolder"
+                    name="restoreFolder"
+                    required
+                  />
+                  <input
+                    type="password"
+                    required
+                    className="form-control"
+                    id="restorePassword"
+                    name="restorePassword"
+                    value={this.state.restorePassword}
+                    onChange={(e) => {
+                      e.preventDefault();
+                      this.setState({ restorePassword: e.target.value });
+                    }}
+                    placeholder="Password"
+                  />
+                  <input
+                    type="submit"
+                    value="Restore"
+                    className="btn btn-primary"
+                  />
+                </form>
+              </div>
+              <div className="col-md-4 landingDiv">
+                <h3>Delete Restaurant Records</h3>
+                <form
+                  className="form-control"
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (this.state.restaurantDeletePassword !== "admin123") {
+                      return alert("Incorrect Password");
+                    }
+                    try {
+                      await axios.post(
+                        require("../config.json").url + "report/clearDatabase",
+                        {
+                          start: new Date(
+                            this.state.restaurantDeleteStart
+                          ).valueOf(),
+                          end: new Date(
+                            this.state.restaurantDeleteEnd
+                          ).valueOf(),
+                        },
+                        {
+                          headers: {
+                            "x-auth-token": localStorage.getItem("token"),
+                          },
+                        }
+                      );
+                    } catch (err) {
+                      console.log(err, err.response);
+                      AlertDiv("red", "Delete Failed");
+                    }
+                  }}
+                >
+                  <input
+                    className="form-control"
+                    type="date"
+                    value={this.state.restaurantDeleteStart}
+                    onChange={(e) => {
+                      e.preventDefault();
+                      this.setState({ restaurantDeleteStart: e.target.value });
+                    }}
+                  />
+
+                  <input
+                    className="form-control"
+                    type="date"
+                    value={this.state.restaurantDeleteEnd}
+                    onChange={(e) => {
+                      e.preventDefault();
+                      this.setState({ restaurantDeleteEnd: e.target.value });
+                    }}
+                  />
+                  <input
+                    type="password"
+                    required
+                    className="form-control"
+                    id="restaurantDeletePassword"
+                    name="restaurantDeletePassword"
+                    value={this.state.restaurantDeletePassword}
+                    onChange={(e) => {
+                      e.preventDefault();
+                      this.setState({
+                        restaurantDeletePassword: e.target.value,
+                      });
+                    }}
+                    placeholder="Password"
+                  />
+                  <input
+                    type="submit"
+                    value="Delete"
+                    className="form-control"
+                  />
+                </form>
+              </div>
             </div>
           </Fragment>
         ) : null}

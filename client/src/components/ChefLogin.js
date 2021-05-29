@@ -31,7 +31,7 @@ export default class ChefLogin extends Component {
       }
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("status", "chef");
-      localStorage.setItem("chefUsername", chefUsername);
+      localStorage.setItem("username", chefUsername);
       setData({ permissions: res.data.permissions });
       this.setState({});
       window.location.reload();

@@ -6,6 +6,7 @@ const auth_operator = require("./middleware/auth_operator");
 var backup = require("./backup.js");
 const config = require("./config/default.json");
 const fs = require("fs");
+const { exec } = require("child_process");
 router.post("/sale", async (req, res) => {
   try {
     var start = new Date(parseInt(req.body.start));
@@ -137,7 +138,7 @@ router.post("/sale", async (req, res) => {
   }
 });
 
-router.get("/backup", async (req, res) => {
+router.get("/backup", auth_admin, async (req, res) => {
   // console.log(backup({uri:}));
   var testClass1 = await backup({
     user: "root", // MongoDB username
@@ -157,7 +158,59 @@ router.get("/backup", async (req, res) => {
   // console.log(str);
   // res.pipe(fs.createReadStream(str));
   // backup({ uri: "mongodb://localhost:27017/mall", root: __dirname });
-  return res.send({ testClass1 });
+  return res.send("Backup saved at " + testClass1);
+});
+
+router.get("/restore/:address", auth_admin, async (req, res) => {
+  try {
+    var address = req.params.address;
+    await exec('mongo mall --eval "db.dropDatabase()"', function (err, stdout) {
+      if (err) throw err;
+      if (stdout) {
+        console.log(stdout);
+      }
+      restore("C:/" + address);
+      return res.send("done");
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.toString());
+  }
+});
+
+function restore(address) {
+  fs.readdirSync(address).map((file) => {
+    exec(
+      "mongoimport mongodb://localhost:27017/mall -d mall " +
+        address +
+        "/" +
+        file,
+      function (err, stdout, stderr) {
+        if (err) throw err;
+        if (stdout) console.log(stdout);
+      }
+    );
+  });
+}
+
+router.post("/clearDatabase", auth_admin, async (req, res) => {
+  try {
+    var start = new Date(parseInt(req.body.start));
+    start.setHours(0, 0, 0, 0);
+    start = start.valueOf();
+    var end = new Date(parseInt(req.body.end));
+    end.setHours(23, 59, 59, 999);
+    end = end.valueOf();
+    console.log(start, end);
+    await Bill.find({ at: { $lte: end, $gte: start } }).deleteMany();
+    await OperatorTransaction.find({
+      at: { $lte: end, $gte: start },
+    }).deleteMany();
+    await ChefSide.find({ at: { $lte: end, $gte: start } }).deleteMany();
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.toString());
+  }
 });
 
 module.exports = router;

@@ -6,9 +6,14 @@ import Payment from "./Payment";
 export default class Bill extends Component {
   state = { isLoading: true, bill: {} };
   getBill = async () => {
-    var bill = await axios.get(require("../config.json").url + "bill/getBill/" + this.props.match.params.id, {
-      headers: { "x-auth-token": localStorage.getItem("token") },
-    });
+    var bill = await axios.get(
+      require("../config.json").url +
+        "bill/getBill/" +
+        this.props.match.params.id,
+      {
+        headers: { "x-auth-token": localStorage.getItem("token") },
+      }
+    );
     bill = bill.data.bill;
     bill.amount = 0;
     bill.orderChanges.map((order, i) => {
@@ -31,6 +36,10 @@ export default class Bill extends Component {
       <div>
         {!this.state.isLoading ? (
           <div>
+            {bill.cancelled ? (
+              <h2 style={{ color: "red" }}>Cancelled ({bill.reason})</h2>
+            ) : null}
+
             <table className="table table-bordered">
               <tbody>
                 <tr>
@@ -81,7 +90,6 @@ export default class Bill extends Component {
                 </tr>
               </tbody>
             </table>
-
             <h4>Order Details</h4>
             <table className="table table-bordered">
               <thead>
@@ -112,7 +120,13 @@ export default class Bill extends Component {
               {bill.orderChanges.map((order1, ind) => {
                 return (
                   <li>
-                    <h5 align="left">At: {new Date(order1.at).toLocaleString("en-GB") + (order1.type === "edit" ? ", By: " + order1.by + ",  Reason: " + order1.reason : "")} </h5>
+                    <h5 align="left">
+                      At:{" "}
+                      {new Date(order1.at).toLocaleString("en-GB") +
+                        (order1.type === "edit"
+                          ? ", By: " + order1.by + ",  Reason: " + order1.reason
+                          : "")}{" "}
+                    </h5>
                     <table className="table table-bordered">
                       <thead>
                         <tr>
@@ -123,7 +137,11 @@ export default class Bill extends Component {
                           <th scope="col">Amount</th>
                         </tr>
                       </thead>
-                      <tbody style={{ color: order1.type === "edit" ? "red" : "black" }}>
+                      <tbody
+                        style={{
+                          color: order1.type === "edit" ? "red" : "black",
+                        }}
+                      >
                         {order1.order.map((order, ind) => {
                           return (
                             <tr>
@@ -160,7 +178,9 @@ export default class Bill extends Component {
                   return (
                     <tr>
                       <th scope="row">{ind + 1}</th>
-                      <td>{new Date(parseInt(trans.at)).toLocaleString("en-GB")}</td>
+                      <td>
+                        {new Date(parseInt(trans.at)).toLocaleString("en-GB")}
+                      </td>
                       <td>{trans.type}</td>
                       <td>{trans.by}</td>
                       <td>{trans.amount}</td>
@@ -170,9 +190,19 @@ export default class Bill extends Component {
                             e.preventDefault();
                             try {
                               await axios.post(
-                                require("../config.json").url + "bill/editTransaction",
-                                { transaction: trans, index: ind, bill: this.props.match.params.id },
-                                { headers: { "x-auth-token": localStorage.getItem("token") } }
+                                require("../config.json").url +
+                                  "bill/editTransaction",
+                                {
+                                  transaction: trans,
+                                  index: ind,
+                                  bill: this.props.match.params.id,
+                                },
+                                {
+                                  headers: {
+                                    "x-auth-token":
+                                      localStorage.getItem("token"),
+                                  },
+                                }
                               );
                               AlertDiv("green", "Canceled Transaction");
                               this.getBill();
@@ -190,20 +220,27 @@ export default class Bill extends Component {
                 })}
               </tbody>
             </table>
-            <div>
-              <Payment
-                restaurant={bill.restaurant}
-                disable={bill.balance === 0 ? true : false}
-                amount={bill.balance}
-                bill={bill.id}
-                orderHistory={bill.finalOrder}
-                afterDisc={this.getBill}
-                callBack={(amount) => {
-                  this.setState({ bill: { ...this.state.bill, balance: this.state.bill.balance - amount } });
-                  this.getBill();
-                }}
-              />
-            </div>
+            {bill.cancelled ? null : (
+              <div>
+                <Payment
+                  restaurant={bill.restaurant}
+                  disable={bill.balance === 0 ? true : false}
+                  amount={bill.balance}
+                  bill={bill.id}
+                  orderHistory={bill.finalOrder}
+                  afterDisc={this.getBill}
+                  callBack={(amount) => {
+                    this.setState({
+                      bill: {
+                        ...this.state.bill,
+                        balance: this.state.bill.balance - amount,
+                      },
+                    });
+                    this.getBill();
+                  }}
+                />
+              </div>
+            )}
           </div>
         ) : null}
       </div>

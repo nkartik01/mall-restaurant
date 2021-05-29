@@ -827,37 +827,39 @@ export default class Payment extends Component {
                 </button>
               </td>
             </tr>
-            <tr>
-              <td colSpan={2}>
-                <button
-                  className="btn  btn-primary"
-                  onClick={async (e) => {
-                    e.preventDefault();
-                    var reason = window.prompt("Reason for cancelling?");
-                    if (!reason || reason === "") return;
-                    try {
-                      await axios.post(
-                        require("../config.json").url + "bill/cancelBill",
-                        {
-                          bill: this.props.bill,
-                          reason: reason,
-                        },
-                        {
-                          headers: {
-                            "x-auth-token": localStorage.getItem("token"),
+            {!this.props.bill.cancelled ? (
+              <tr>
+                <td colSpan={2}>
+                  <button
+                    className="btn  btn-primary"
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      var reason = window.prompt("Reason for cancelling?");
+                      if (!reason || reason === "") return;
+                      try {
+                        await axios.post(
+                          require("../config.json").url + "bill/cancelBill",
+                          {
+                            bill: this.props.bill,
+                            reason: reason,
                           },
-                        }
-                      );
-                      window.location.reload();
-                    } catch (err) {
-                      console.log(err, err.response);
-                    }
-                  }}
-                >
-                  Cancel Bill
-                </button>
-              </td>
-            </tr>
+                          {
+                            headers: {
+                              "x-auth-token": localStorage.getItem("token"),
+                            },
+                          }
+                        );
+                        window.location.reload();
+                      } catch (err) {
+                        console.log(err, err.response);
+                      }
+                    }}
+                  >
+                    Cancel Bill
+                  </button>
+                </td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
       </div>

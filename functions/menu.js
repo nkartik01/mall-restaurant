@@ -181,9 +181,18 @@ router.post("/updateTable", auth_operator, async (req, res) => {
     // console.log(table1, table1.restaurant);
     if (!table1.bill || table1.bill === "") {
       table1.orderSnippets = [];
-      var bills = await Bill.find({ restaurant: table1.restaurant });
+      var bills = await Bill.find({ restaurant: table1.restaurant })
+        .sort({ billId: -1 })
+        .limit(1);
+      var billNo;
+      if (bills.length > 0) {
+        bills = bills[0].toJSON();
+        console.log(bills.billId.split("-")[1]);
+        billNo = parseInt(bills.billId.split("-")[1]);
+        console.log(billNo);
+      } else billNo = 0;
       var bill = await new Bill({
-        billId: prefix + (bills.length + 1).toString(),
+        billId: prefix + (billNo + 1).toString(),
         restaurant: table1.restaurant,
         table: table1.table,
         orderChanges: [],
@@ -192,7 +201,7 @@ router.post("/updateTable", auth_operator, async (req, res) => {
         transactions: [],
         finalOrder: { order: [], sum: 0 },
       }).save();
-      table1.bill = prefix + (bills.length + 1).toString();
+      table1.bill = prefix + (billNo + 1).toString();
     }
     // console.log(table1.bill);
     var bill = (await Bill.findOne({ billId: table1.bill })).toJSON();

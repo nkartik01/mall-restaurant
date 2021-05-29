@@ -747,14 +747,20 @@ export default class OrderSheet extends Component {
                                 );
                                 if (!confirm) return;
                                 await axios.post(
-                                  require("../config.json").url +
-                                    "/api/bill/merge",
+                                  require("../config.json").url + "bill/merge",
                                   {
                                     table1: table.tableId,
                                     table2: propsTable.tableId,
                                     restaurant: propsTable.restaurant,
+                                  },
+                                  {
+                                    headers: {
+                                      "x-auth-token":
+                                        localStorage.getItem("token"),
+                                    },
                                   }
                                 );
+                                window.location.reload();
                               }}
                               className="col-md-3"
                               key={table.bill}

@@ -1,3 +1,4 @@
+const axios = require("axios");
 const express = require("express");
 const router = express.Router();
 const auth_admin = require("./middleware/auth_admin");
@@ -826,6 +827,91 @@ router.get("/activeTables/:res", async (req, res) => {
 
 router.post("/merge", auth_operator, async (req, res) => {
   try {
+    var table1 = await Table.findOne({ tableId: req.body.table1 });
+    var table2 = await Table.findOne({ tableId: req.body.table2 });
+    table1 = table1.toJSON();
+    table2 = table2.toJSON();
+
+    for (var i = 0; i < table1.orderHistory.order.length; i++) {
+      var c = 0;
+      for (var j = 0; j < table2.orderHistory.order.length; j++) {
+        if (
+          table1.orderHistory.order[i].item ===
+          table2.orderHistory.order[j].item
+        ) {
+          table2.orderHistory.order[j].quantity =
+            table2.orderHistory.order[j].quantity +
+            table1.orderHistory.order[i].quantity;
+          c = 1;
+          break;
+        }
+      }
+      if (c === 0) {
+        table2.orderHistory.order.push({
+          ...table1.orderHistory.order[i],
+        });
+      }
+    }
+    table2.orderHistory.sum = table2.orderHistory.sum + table1.orderHistory.sum;
+    var orders = {};
+    table1.orderHistory.order.map((item, _) => {
+      if (!orders[item.menuId]) {
+        orders[item.menuId] = { order: [], sum: 0 };
+      }
+      orders[item.menuId].order.push(item);
+      orders[item.menuId].sum =
+        orders[item.menuId].sum + item.price * item.quantity;
+    });
+    var res1 = await axios.post(
+      "http://localhost:5000/api/menu/updateTable",
+      {
+        orderHistory: table2.orderHistory,
+        orderChange: table1.orderHistory,
+        table: { id: table2.tableId },
+        chefBreakDown: {},
+      },
+      {
+        headers: {
+          "x-auth-token": req.headers["x-auth-token"],
+        },
+      }
+    );
+    var bill1 = await Bill.findOne({ billId: table1.bill });
+    bill1 = bill1.toJSON();
+    var bill2 = await Bill.findOne({ billId: table2.bill });
+    bill2 = bill2.toJSON();
+    var s = 0;
+    if (bill1.transactions) {
+      await Bill.findOneAndUpdate(
+        { billId: table2.bill },
+        {
+          transactions: [...bill2.transactions, ...bill1.transactions],
+          balance: table2.balance + table1.balance + bill1.discAmount,
+        },
+        { useFindAndModify: false }
+      );
+    }
+    await Bill.findOneAndUpdate(
+      { billId: table1.bill },
+      { cancelled: true, reason: "Merged into " + table2.bill },
+      { useFindAndModify: false }
+    );
+    await Table.findOneAndUpdate(
+      { tableId: req.body.table2 },
+      { balance: table2.balance + table1.balance },
+      { useFindAndModify: false }
+    );
+    await Table.findOneAndUpdate(
+      { tableId: req.body.table1 },
+      {
+        bill: "",
+        orderHistory: { order: [], sum: 0 },
+        orderChanges: { order: [], sum: 0 },
+        balance: 0,
+      },
+      { useFindAndModify: false }
+    );
+    return res.send("done");
   } catch (err) {
     console.log(err);
     res.status(500).send(err.toString());
