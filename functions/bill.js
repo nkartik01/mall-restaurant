@@ -346,7 +346,10 @@ router.post("/printBill", auth_operator, async (req, res) => {
       "Date: " + new Date(bill.at).toLocaleDateString("en-GB")
     );
     if (!req.body.preview)
-      print.leftRight("", "Time: " + new Date(bill.at).toLocaleTimeString());
+      print.leftRight(
+        "Table: " + bill.table,
+        "Time: " + new Date(bill.at).toLocaleTimeString()
+      );
     if (bill.to && bill.to !== "") {
       print.newLine();
       print.bold(true);

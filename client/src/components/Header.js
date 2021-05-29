@@ -1,7 +1,25 @@
+import axios from "axios";
 import React, { Component, Fragment } from "react";
 import { Link } from "react-router-dom";
 
 export default class Header extends Component {
+  componentDidMount() {
+    if (localStorage.getItem("status")) {
+      axios
+        .get(
+          require("../config.json").url +
+            "login/verify/" +
+            localStorage.getItem("status"),
+          { headers: { "x-auth-token": localStorage.getItem("token") } }
+        )
+        .catch((err) => {
+          localStorage.removeItem("status");
+          localStorage.removeItem("token");
+          localStorage.removeItem("username");
+          window.open("/", "_self");
+        });
+    }
+  }
   render() {
     var status = localStorage.getItem("status");
     return (

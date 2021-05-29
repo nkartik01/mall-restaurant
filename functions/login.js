@@ -4,6 +4,9 @@ const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const config = require("./config/default.json");
 const Admin = require("./models/Admin");
+const auth_admin = require("./middleware/auth_admin");
+const auth_operator = require("./middleware/auth_operator");
+const auth_chef = require("./middleware/auth_chef");
 router.post("/admin", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -138,6 +141,31 @@ router.post("/chef", async (req, res) => {
         });
       }
     );
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.toString());
+  }
+});
+
+router.get("/verify/admin", auth_admin, async (req, res) => {
+  try {
+    return res.send("Verified");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.toString());
+  }
+});
+router.get("/verify/operator", auth_operator, async (req, res) => {
+  try {
+    return res.send("Verified");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.toString());
+  }
+});
+router.get("/verify/chef", auth_chef, async (req, res) => {
+  try {
+    return res.send("Verified");
   } catch (err) {
     console.log(err);
     res.status(500).send(err.toString());
