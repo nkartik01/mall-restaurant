@@ -889,7 +889,10 @@ router.post("/merge", auth_operator, async (req, res) => {
         { billId: table2.bill },
         {
           transactions: [...bill2.transactions, ...bill1.transactions],
-          balance: table2.balance + table1.balance + bill1.discAmount,
+          balance:
+            table2.balance +
+            table1.balance +
+            (bill1.discAmount ? bill1.discAmount : 0),
         },
         { useFindAndModify: false }
       );
