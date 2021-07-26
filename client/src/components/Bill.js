@@ -15,11 +15,11 @@ export default class Bill extends Component {
       }
     );
     bill = bill.data.bill;
-    bill.amount = 0;
-    bill.orderChanges.map((order, i) => {
-      bill.amount = bill.amount + order.sum;
-      return null;
-    });
+    // bill.finalOrder.sum = 0;
+    // bill.orderChanges.map((order, i) => {
+    //   bill.finalOrder.sum = bill.finalOrder.sum + order.sum;
+    //   return null;
+    // });
     if (!bill.transactions) {
       bill.transactions = [];
     }
@@ -58,7 +58,7 @@ export default class Bill extends Component {
                 </tr>
                 <tr>
                   <th scope="row">Total Amount</th>
-                  <td>{bill.amount}</td>
+                  <td>{bill.finalOrder.sum}</td>
                 </tr>
                 {bill.discType && bill.discType !== "none" ? (
                   <Fragment>
