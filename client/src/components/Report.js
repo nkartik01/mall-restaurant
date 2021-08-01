@@ -225,7 +225,10 @@ class Report extends Component {
                       <th scope="col">Bill Id</th>
                       {/* <th scope="col">To</th> */}
                       <th scope="col">Amt</th>
-                      <th scope="col">cash</th><th>upi</th><th>card</th><th>rfid</th>
+                      <th scope="col">cash</th>
+                      <th>upi</th>
+                      <th>card</th>
+                      <th>rfid</th>
                       {/* <th scope="col">Balance</th> */}
                       {/* <th scope="col">Generated At</th> */}
                       {/* <th scope="col">Go to bill</th> */}
@@ -233,23 +236,22 @@ class Report extends Component {
                   </thead>
                   <tbody>
                     {this.state.bills.map((bill, ind) => {
-                      var cash=0
-                      var upi=0
-                      var card=0
-                      var rfid=0
-                      bill.transactions.map((transaction,ind)=>{
-                        if(transaction.type==="cash"){
-                          cash=cash+transaction.amount;
-                        }else if(transaction.type==="upi"){
-                          upi=upi+transaction.amount;
-                        }else if(transaction.type==="card"){
-                          card=card+transaction.amount;
-                        }else if(transaction.type==="rfid"){
-                          rfid=rfid+transaction.amount;
+                      var cash = 0;
+                      var upi = 0;
+                      var card = 0;
+                      var rfid = 0;
+                      bill.transactions.map((transaction, ind) => {
+                        if (transaction.type === "cash") {
+                          cash = cash + transaction.amount;
+                        } else if (transaction.type === "upi") {
+                          upi = upi + transaction.amount;
+                        } else if (transaction.type === "card") {
+                          card = card + transaction.amount;
+                        } else if (transaction.type === "rfid") {
+                          rfid = rfid + transaction.amount;
                         }
                         return 0;
-                        
-                    })
+                      });
                       return (
                         <tr>
                           {/* <th scope="row">{ind + 1}</th> */}
@@ -259,8 +261,11 @@ class Report extends Component {
                             {bill.finalOrder.sum -
                               parseInt(bill.discAmount ? bill.discAmount : 0)}
                           </td>
-                          <td align="right">{cash}</td><td align="right">{upi}</td><td align="right">{card}</td><td align="right">{rfid}</td>
-                          <td>{bill.balance!==0?"C":null}</td>
+                          <td align="right">{cash}</td>
+                          <td align="right">{upi}</td>
+                          <td align="right">{card}</td>
+                          <td align="right">{rfid}</td>
+                          <td>{bill.balance !== 0 ? "C" : null}</td>
                           {/* <td>{bill.balance}</td> */}
                           {/* <td>{new Date(bill.at).toLocaleString("en-GB")}</td> */}
                           {/* <td>
@@ -273,7 +278,9 @@ class Report extends Component {
                     })}
                     <tr>
                       <th scope="row">Total</th>
-                      <td align="right">{this.state.sum - this.state.discAmount}</td>
+                      <td align="right">
+                        {this.state.sum - this.state.discAmount}
+                      </td>
                       <td align="right">{this.state.cashSum}</td>
                       <td align="right">{this.state.upiSum}</td>
                       <td align="right">{this.state.cardSum}</td>
