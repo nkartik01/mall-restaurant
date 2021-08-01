@@ -14,14 +14,28 @@ const OperatorTransaction = require("./models/OperatorTransaction");
 router.post("/listBills", async (req, res) => {
   try {
     // console.log(new Date(req.body.start).setHours(0, 0, 0, 0).valueOf(), new Date(req.body.end).setHours(23, 59, 59, 999).valueOf());
-    var bills = await Bill.find({
-      at: {
-        $gte: new Date(req.body.start).setHours(0, 0, 0, 0).valueOf(),
-        $lt: new Date(req.body.end).setHours(23, 59, 59, 999).valueOf(),
-      },
-    }).sort({
-      at: -1,
-    });
+    var bills;
+    if (req.body.restaurant === "overall") {
+      bills = await Bill.find({
+        at: {
+          $gte: new Date(req.body.start).setHours(0, 0, 0, 0).valueOf(),
+          $lt: new Date(req.body.end).setHours(23, 59, 59, 999).valueOf(),
+        },
+      }).sort({
+        at: -1,
+      });
+    } else {
+      bills = await Bill.find({
+        at: {
+          $gte: new Date(req.body.start).setHours(0, 0, 0, 0).valueOf(),
+          $lt: new Date(req.body.end).setHours(23, 59, 59, 999).valueOf(),
+        },
+        restaurant: req.body.restaurant,
+      }).sort({
+        at: -1,
+      });
+    }
+
     for (ind = 0; ind < bills.length; ind++) {
       bills[ind] = bills[ind].toJSON();
       bills[ind].id = bills[ind].billId;
