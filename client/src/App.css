@@ -13,6 +13,20 @@
   }
 }
 
+@media screen {
+  .noDisplay {
+    display: none;
+  }
+}
+.fontDiv > * {
+  font-size: "9pt";
+}
+u {
+  text-decoration: none;
+  border-bottom: 2px dotted black;
+  width: 100%;
+}
+
 .row {
   margin: 0px;
 }
@@ -301,7 +315,13 @@ input:checked + .slider:before {
   border-radius: 3px;
   -webkit-border-radius: 3px;
 }
-.tail-datetime-calendar .calendar-date table.calendar-month tbody tr > *:hover span {
+.tail-datetime-calendar
+  .calendar-date
+  table.calendar-month
+  tbody
+  tr
+  > *:hover
+  span {
   border-color: #d0d0d0;
   box-shadow: 0 1px 0 0 #efefef;
   -webkit-box-shadow: 0 1px 0 0 #efefef;
@@ -362,10 +382,16 @@ input:checked + .slider:before {
   border-radius: 3px;
   -webkit-border-radius: 3px;
 }
-.tail-datetime-calendar .calendar-time .calendar-field input[type="number"]:hover {
+.tail-datetime-calendar
+  .calendar-time
+  .calendar-field
+  input[type="number"]:hover {
   border-color: #a0a0a0;
 }
-.tail-datetime-calendar .calendar-time .calendar-field input[type="number"]:focus {
+.tail-datetime-calendar
+  .calendar-time
+  .calendar-field
+  input[type="number"]:focus {
   border-color: #3296c8;
 }
 .tail-datetime-calendar .calendar-time .calendar-field label {

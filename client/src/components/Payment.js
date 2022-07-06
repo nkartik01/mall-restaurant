@@ -15,15 +15,17 @@ export default class Payment extends Component {
   getBill = async () => {
     try {
       var bill = await axios.get(
-        require("../config.json").url + "bill/getBill/" + this.props.bill,
+        localStorage.getItem("apiUrl") + "bill/getBill/" + this.props.bill,
         {
           headers: { "x-auth-token": localStorage.getItem("token") },
         }
       );
       bill = bill.data;
       var bookings = await axios.post(
-        require("../config.json").url + "booking/date",
-        { date: Date.now() }
+        localStorage.getItem("apiUrl") + "booking/date",
+        {
+          date: Date.now(),
+        }
       );
       bookings = bookings.data;
       this.setState({ bill, rooms: bookings.rooms });
@@ -43,13 +45,14 @@ export default class Payment extends Component {
   }
   render() {
     // this.setState
+    console.log(this.state, this.props);
     return (
       <div>
         <form
           onSubmit={async (e) => {
             e.preventDefault();
             await axios.post(
-              require("../config.json").url + "bill/addDiscount",
+              localStorage.getItem("apiUrl") + "bill/addDiscount",
               {
                 bill: this.props.bill,
                 discType: this.state.discType,
@@ -312,7 +315,7 @@ export default class Payment extends Component {
               )
                 return;
               await axios.post(
-                require("../config.json").url + "card/deductAmount",
+                localStorage.getItem("apiUrl") + "card/deductAmount",
                 {
                   // amount: this.props.table.partial ? partAmont) : this.props.table.orderHistory.sum,
 
@@ -330,7 +333,7 @@ export default class Payment extends Component {
               AlertDiv("green", "Paid");
               try {
                 await axios.post(
-                  require("../config.json").url + "bill/printBill",
+                  localStorage.getItem("apiUrl") + "bill/printBill",
                   {
                     restaurant: this.props.restaurant,
                     bill: this.props.bill,
@@ -426,7 +429,7 @@ export default class Payment extends Component {
               )
                 return;
               await axios.post(
-                require("../config.json").url + "bill/byCash",
+                localStorage.getItem("apiUrl") + "bill/byCash",
                 {
                   // amount: this.props.table.partial ? partAmont) : this.props.table.orderHistory.sum,
 
@@ -445,7 +448,7 @@ export default class Payment extends Component {
               AlertDiv("yellow", "Paid");
               try {
                 await axios.post(
-                  require("../config.json").url + "bill/printBill",
+                  localStorage.getItem("apiUrl") + "bill/printBill",
                   {
                     restaurant: this.props.restaurant,
                     bill: this.props.bill,
@@ -508,7 +511,7 @@ export default class Payment extends Component {
               )
                 return;
               await axios.post(
-                require("../config.json").url + "bill/byUpi",
+                localStorage.getItem("apiUrl") + "bill/byUpi",
                 {
                   // amount: this.props.table.partial ? partAmont) : this.props.table.orderHistory.sum,
                   tranId: this.state.upiId,
@@ -527,7 +530,7 @@ export default class Payment extends Component {
               AlertDiv("green", "Paid");
               try {
                 await axios.post(
-                  require("../config.json").url + "bill/printBill",
+                  localStorage.getItem("apiUrl") + "bill/printBill",
                   {
                     restaurant: this.props.restaurant,
                     bill: this.props.bill,
@@ -608,7 +611,7 @@ export default class Payment extends Component {
               )
                 return;
               await axios.post(
-                require("../config.json").url + "bill/byCard",
+                localStorage.getItem("apiUrl") + "bill/byCard",
                 {
                   // amount: this.props.table.partial ? partAmont) : this.props.table.orderHistory.sum,
                   tranId: this.state.cardId,
@@ -627,7 +630,7 @@ export default class Payment extends Component {
               AlertDiv("green", "Paid");
               try {
                 await axios.post(
-                  require("../config.json").url + "bill/printBill",
+                  localStorage.getItem("apiUrl") + "bill/printBill",
                   {
                     restaurant: this.props.restaurant,
                     bill: this.props.bill,
@@ -750,7 +753,7 @@ export default class Payment extends Component {
                                 }
                                 try {
                                   await axios.post(
-                                    require("../config.json").url +
+                                    localStorage.getItem("apiUrl") +
                                       "bill/addToBooking",
                                     {
                                       bill: this.props.bill,
@@ -764,9 +767,11 @@ export default class Payment extends Component {
                                     }
                                   );
                                   AlertDiv("green", "Added bill to booking");
+                                  this.props.callBack(this.props.amount);
                                 } catch (err) {
                                   console.log(err, err.response);
                                   AlertDiv("red", err.response.data);
+                                  this.props.fallBack(this.props.amount);
                                 }
                               }}
                             >
@@ -782,19 +787,21 @@ export default class Payment extends Component {
               </div>
             </Modal.Body>
           </Modal>
-          <table align="center" className="table table-bordered">
-            <tbody>
-              <tr>
-                <td colSpan={2}>
-                  <input
-                    type="submit"
-                    value="Move to Booking"
-                    className="form-control"
-                  />
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          {this.props.noMoving ? null : (
+            <table align="center" className="table table-bordered">
+              <tbody>
+                <tr>
+                  <td colSpan={2}>
+                    <input
+                      type="submit"
+                      value="Move to Booking"
+                      className="form-control"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          )}
         </form>
         <table align="center" className="table table-bordered">
           <tbody>
@@ -805,7 +812,7 @@ export default class Payment extends Component {
                   onClick={async (e) => {
                     e.preventDefault();
                     await axios.post(
-                      require("../config.json").url + "bill/printBill",
+                      localStorage.getItem("apiUrl") + "bill/printBill",
                       {
                         restaurant: this.props.restaurant,
                         bill: this.props.bill,
@@ -838,7 +845,7 @@ export default class Payment extends Component {
                       if (!reason || reason === "") return;
                       try {
                         await axios.post(
-                          require("../config.json").url + "bill/cancelBill",
+                          localStorage.getItem("apiUrl") + "bill/cancelBill",
                           {
                             bill: this.props.bill,
                             reason: reason,

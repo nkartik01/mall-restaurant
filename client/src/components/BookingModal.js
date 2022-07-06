@@ -1,10 +1,10 @@
 import React, { Component, Fragment } from "react";
-
 import { Col, Row, Modal, Accordion, Card } from "react-bootstrap";
 import Select from "react-select";
 import axios from "axios";
 import Webcam from "react-webcam";
 import AlertDiv from "../AlertDiv";
+import GRCPrint from "./GRCPrint";
 export default class BookingModal extends Component {
   state = {
     picOf: "photo",
@@ -15,8 +15,9 @@ export default class BookingModal extends Component {
   };
   webcamRef1 = React.createRef();
   webcamRef2 = React.createRef();
+  webcamRef3 = React.createRef();
   getRooms = async () => {
-    var res = await axios.get(require("../config.json").url + "booking/rooms");
+    var res = await axios.get(localStorage.getItem("apiUrl") + "booking/rooms");
     res = res.data;
     var roomsList = [];
     res.rooms.map((room) => {
@@ -29,6 +30,7 @@ export default class BookingModal extends Component {
     this.getRooms();
   }
   render() {
+    var x = 0;
     var booking = this.props.booking;
     console.log(booking);
     var roomsList = this.state.roomsList;
@@ -56,13 +58,13 @@ export default class BookingModal extends Component {
             });
             try {
               var res = await axios.post(
-                require("../config.json").url + "booking/editbooking",
+                localStorage.getItem("apiUrl") + "booking/editbooking",
                 { ...booking }
               );
               booking.bookingId = res.data.bookingId;
               // this.setState({});
               await AlertDiv("green", "Booking Successfully modified");
-              window.location.reload();
+              this.props.update();
             } catch (err) {
               console.log(err, err.response);
               AlertDiv("red", err.response.data);
@@ -198,6 +200,16 @@ export default class BookingModal extends Component {
                           .padStart(2, 0) +
                         "T11:59";
                     }
+                    if (!room.bookingDate) {
+                      room.bookingDate =
+                        this.state.today.getFullYear().toString() +
+                        "-" +
+                        (this.state.today.getMonth() + 1)
+                          .toString()
+                          .padStart(2, 0) +
+                        "-" +
+                        this.state.today.getDate().toString().padStart(2, 0);
+                    }
 
                     return (
                       <Card key={roomInd}>
@@ -235,7 +247,7 @@ export default class BookingModal extends Component {
                         <Accordion.Collapse eventKey={roomInd.toString()}>
                           <Card.Body>
                             <Row>
-                              <Col sm={8}>
+                              <Col sm={10}>
                                 <div className="row">
                                   <div className="col-md-6">
                                     <div className="form-group">
@@ -258,7 +270,50 @@ export default class BookingModal extends Component {
                                       />
                                     </div>
                                   </div>
-                                  <div className="col-md-6">
+                                  <div className="col-md-4">
+                                    <div className="form-group">
+                                      <label htmlFor="company">
+                                        Company Name
+                                      </label>
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                        value={room.company}
+                                        name="company"
+                                        id="company"
+                                        onChange={(e) => {
+                                          e.preventDefault();
+                                          room.company = e.target.value;
+                                          this.setState({});
+                                        }}
+                                        placeholder="Company Name"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="row">
+                                  <div className="col-md-9">
+                                    <div className="form-group">
+                                      <label htmlFor="name">
+                                        Customer Address
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={room.address}
+                                        name="address"
+                                        id="address"
+                                        className="form-control"
+                                        onChange={(e) => {
+                                          e.preventDefault();
+
+                                          room.address = e.target.value;
+                                          this.setState({});
+                                        }}
+                                        placeholder="address"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="col-md-3">
                                     <div className="form-group">
                                       <label htmlFor="gstin">GST In</label>
                                       <input
@@ -278,9 +333,147 @@ export default class BookingModal extends Component {
                                   </div>
                                 </div>
                                 <div className="row">
-                                  <div className="col-md-6">
+                                  <div className="col-md-4">
                                     <div className="form-group">
-                                      <label htmlFor="name">room Rate</label>
+                                      <label>Date of Birth</label>
+                                      <input
+                                        type="date"
+                                        className="form-control"
+                                        placeholder="Date of Birth"
+                                        name="dob"
+                                        onChange={(e) => {
+                                          e.preventDefault();
+                                          room.dob = e.target.value;
+                                          this.setState({});
+                                        }}
+                                        value={room.dob}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="col-md-4">
+                                    <div className="form-group">
+                                      <label>Date of Anniversary</label>
+                                      <input
+                                        type="date"
+                                        className="form-control"
+                                        placeholder="Date of Anniversary"
+                                        name="doa"
+                                        onChange={(e) => {
+                                          e.preventDefault();
+                                          room.doa = e.target.value;
+                                          this.setState({});
+                                        }}
+                                        value={room.doa}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="col-md-4">
+                                    <div className="form-group">
+                                      <label htmlFor="from">
+                                        Vehicle Number
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={room.vehicleNumber}
+                                        name="vehicle"
+                                        id="vehicle"
+                                        className="form-control"
+                                        onChange={(e) => {
+                                          e.preventDefault();
+
+                                          room.vehicleNumber = e.target.value;
+                                          this.setState({});
+                                        }}
+                                        placeholder="Vehicle Number"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="row">
+                                  <div className="col-md-4">
+                                    <div className="form-group">
+                                      <label htmlFor="name">
+                                        Customer Phone
+                                      </label>
+
+                                      <input
+                                        type="number"
+                                        value={room.mobile}
+                                        name="mobile"
+                                        id="mobile"
+                                        className="form-control"
+                                        onChange={(e) => {
+                                          e.preventDefault();
+
+                                          room.mobile = e.target.value;
+                                          this.setState({});
+                                        }}
+                                        required
+                                        placeholder="mobile"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="col-md-4">
+                                    <div className="form-group">
+                                      <label htmlFor="name">Email</label>
+
+                                      <input
+                                        type="text"
+                                        value={room.email}
+                                        name="email"
+                                        id="email"
+                                        className="form-control"
+                                        onChange={(e) => {
+                                          e.preventDefault();
+
+                                          room.email = e.target.value;
+                                          this.setState({});
+                                        }}
+                                        placeholder="email"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="col-md-4">
+                                    <div className="form-group">
+                                      <label htmlFor="name">Nationality</label>
+
+                                      <input
+                                        type="text"
+                                        value={room.nationality}
+                                        name="nationality"
+                                        id="nationality"
+                                        className="form-control"
+                                        onChange={(e) => {
+                                          e.preventDefault();
+
+                                          room.nationality = e.target.value;
+                                          this.setState({});
+                                        }}
+                                        placeholder="nationality"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="row">
+                                  <div className="col-md-3">
+                                    <div className="form-group">
+                                      <label htmlFor="room">Room Number</label>
+
+                                      <Select
+                                        options={roomsList}
+                                        // isMulti
+                                        value={room.room}
+                                        onChange={(e) => {
+                                          // console.log(e);
+                                          room.room = e;
+                                          this.setState({});
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="col-md-3">
+                                    <div className="form-group">
+                                      <label htmlFor="name">Room Rate</label>
                                       <input
                                         type="number"
                                         value={room.roomRate}
@@ -322,7 +515,7 @@ export default class BookingModal extends Component {
                                       </label>
                                     </div>
                                   </div>
-                                  <div className="col-md-4">
+                                  <div className="col-md-3">
                                     <div className="form-group">
                                       <label htmlFor="name">
                                         Date of booking
@@ -408,72 +601,8 @@ export default class BookingModal extends Component {
                                     </div>
                                   </div>
                                 </div>
-                                <div className="form-group">
-                                  <label htmlFor="name">Customer Address</label>
-                                  <textarea
-                                    value={room.address}
-                                    name="address"
-                                    id="address"
-                                    className="form-control"
-                                    onChange={(e) => {
-                                      e.preventDefault();
-
-                                      room.address = e.target.value;
-                                      this.setState({});
-                                    }}
-                                    required
-                                    placeholder="address"
-                                  />
-                                </div>
                                 <div className="row">
-                                  <div className="col-md-4">
-                                    <div className="form-group">
-                                      <label htmlFor="name">
-                                        Customer City
-                                      </label>
-                                      <input
-                                        type="text"
-                                        value={room.city}
-                                        name="city"
-                                        id="city"
-                                        className="form-control"
-                                        onChange={(e) => {
-                                          e.preventDefault();
-
-                                          room.city = e.target.value;
-                                          this.setState({});
-                                        }}
-                                        required
-                                        placeholder="city"
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="col-md-8">
-                                    <div className="form-group">
-                                      <label htmlFor="name">
-                                        Customer Phone
-                                      </label>
-
-                                      <input
-                                        type="number"
-                                        value={room.mobile}
-                                        name="mobile"
-                                        id="mobile"
-                                        className="form-control"
-                                        onChange={(e) => {
-                                          e.preventDefault();
-
-                                          room.mobile = e.target.value;
-                                          this.setState({});
-                                        }}
-                                        required
-                                        placeholder="mobile"
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="row">
-                                  <div className="col-md-4">
+                                  <div className="col-md-2">
                                     <div className="form-group">
                                       <label htmlFor="name">Males</label>
 
@@ -489,12 +618,11 @@ export default class BookingModal extends Component {
                                           room.male = e.target.value;
                                           this.setState({});
                                         }}
-                                        required
                                         placeholder="male"
                                       />
                                     </div>
                                   </div>
-                                  <div className="col-md-4">
+                                  <div className="col-md-2">
                                     <div className="form-group">
                                       <label htmlFor="name">Females</label>
 
@@ -510,12 +638,11 @@ export default class BookingModal extends Component {
                                           room.female = e.target.value;
                                           this.setState({});
                                         }}
-                                        required
                                         placeholder="female"
                                       />
                                     </div>
                                   </div>
-                                  <div className="col-md-4">
+                                  <div className="col-md-2">
                                     <div className="form-group">
                                       <label htmlFor="name">Children</label>
 
@@ -531,292 +658,78 @@ export default class BookingModal extends Component {
                                           room.children = e.target.value;
                                           this.setState({});
                                         }}
-                                        required
                                         placeholder="children"
                                       />
                                     </div>
                                   </div>
-                                </div>
-                                <div className="row">
-                                  <div className="col-md-9">
-                                    <div className="form-group">
-                                      <label htmlFor="name">
-                                        Extra Bedding
-                                      </label>
+                                  <div className="form-group col-md-2">
+                                    <label htmlFor="extraBed">Extra Bed</label>
 
-                                      <div className="row">
-                                        <div className="col-md-3">
-                                          <label className="switch">
-                                            <input
-                                              type="checkbox"
-                                              checked={room.extraBed}
-                                              name="extraBed"
-                                              id="extraBed"
-                                              onChange={(e) => {
-                                                // console.log(e.ta)
-
-                                                room.extraBed =
-                                                  e.target.checked;
-                                                this.setState({});
-                                              }}
-                                              placeholder="extraBed"
-                                            />
-                                            <span className="slider round"></span>
-                                          </label>
-                                        </div>
-                                        <div className="col-md-5">
-                                          <div className="form-group">
-                                            <label htmlFor="extraBedCost">
-                                              Cost of Extra Bed
-                                            </label>
-                                            <input
-                                              disabled={!room.extraBed}
-                                              type="number"
-                                              value={room.extraBedCost}
-                                              name="extraBedCost"
-                                              id="extraBedCost"
-                                              className="form-control"
-                                              onChange={(e) => {
-                                                e.preventDefault();
-
-                                                room.extraBedCost =
-                                                  e.target.value;
-                                                this.setState({});
-                                              }}
-                                              placeholder="extraBedCost"
-                                            />
-                                          </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                          <div className="form-group">
-                                            <label htmlFor="extraBedNumber">
-                                              Number of beds
-                                            </label>
-                                            <input
-                                              disabled={!room.extraBed}
-                                              type="number"
-                                              value={room.extraBedNumber}
-                                              name="extraBedNumber"
-                                              id="extraBedNumber"
-                                              className="form-control"
-                                              onChange={(e) => {
-                                                e.preventDefault();
-
-                                                room.extraBedNumber =
-                                                  e.target.value;
-                                                this.setState({});
-                                              }}
-                                              placeholder="extraBedNumber"
-                                            />
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="col-md-3">
-                                    <div className="row">
-                                      <div className="form-group col-md-6">
-                                        <label htmlFor="breakfast">
-                                          Breakfast
-                                        </label>
-
-                                        <label className="switch">
-                                          <input
-                                            type="checkbox"
-                                            checked={room.breakfast}
-                                            name="breakfast"
-                                            id="breakfast"
-                                            onChange={(e) => {
-                                              // console.log(e.ta)
-
-                                              room.breakfast = e.target.checked;
-                                              console.log(room.breakfast);
-                                              this.setState({});
-                                            }}
-                                            placeholder="breakfast"
-                                          />
-                                          <span className="slider round"></span>
-                                        </label>
-                                      </div>
-                                      <div className="form-group col-md-6">
-                                        <label htmlFor="dinner">Dinner</label>
-                                        <label className="switch">
-                                          <input
-                                            type="checkbox"
-                                            checked={room.dinner}
-                                            name="dinner"
-                                            id="dinner"
-                                            onChange={(e) => {
-                                              // console.log(e.ta)
-
-                                              room.dinner = e.target.checked;
-                                              console.log(room.dinner);
-                                              this.setState({});
-                                            }}
-                                            placeholder="dinner"
-                                          />
-                                          <span className="slider round"></span>
-                                        </label>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="row">
-                                  <div className="col-md-4">
-                                    <div className="form-group">
-                                      <label htmlFor="from">Coming From</label>
+                                    <label className="switch">
                                       <input
-                                        type="text"
-                                        value={room.from}
-                                        name="from"
-                                        id="from"
-                                        className="form-control"
+                                        type="checkbox"
+                                        checked={room.extraBed}
+                                        name="extraBed"
+                                        id="extraBed"
                                         onChange={(e) => {
-                                          e.preventDefault();
+                                          // console.log(e.ta)
 
-                                          room.from = e.target.value;
+                                          room.extraBed = e.target.checked;
+                                          console.log(room.extraBed);
                                           this.setState({});
                                         }}
-                                        required
-                                        placeholder="from"
+                                        placeholder="extraBed"
                                       />
-                                    </div>
+                                      <span className="slider round"></span>
+                                    </label>
                                   </div>
-                                  <div className="col-md-4">
+                                  <div className="col-md-2">
                                     <div className="form-group">
-                                      <label htmlFor="from">Going To</label>
-                                      <input
-                                        type="text"
-                                        value={room.to}
-                                        name="to"
-                                        id="to"
-                                        className="form-control"
-                                        onChange={(e) => {
-                                          e.preventDefault();
-
-                                          room.to = e.target.value;
-                                          this.setState({});
-                                        }}
-                                        required
-                                        placeholder="to"
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="col-md-4">
-                                    <div className="form-group">
-                                      <label htmlFor="from">
-                                        Vehicle Number
+                                      <label htmlFor="extraBedCost">
+                                        Cost of Extra Bed
                                       </label>
                                       <input
-                                        type="text"
-                                        value={room.Vehicle}
-                                        name="Vehicle"
-                                        id="Vehicle"
+                                        disabled={!room.extraBed}
+                                        type="number"
+                                        value={room.extraBedCost}
+                                        name="extraBedCost"
+                                        id="extraBedCost"
                                         className="form-control"
                                         onChange={(e) => {
                                           e.preventDefault();
 
-                                          room.Vehicle = e.target.value;
+                                          room.extraBedCost = e.target.value;
                                           this.setState({});
                                         }}
-                                        required
-                                        placeholder="Vehicle"
+                                        placeholder="extraBedCost"
                                       />
                                     </div>
                                   </div>
-                                  <div className="row">
-                                    <div className="col-md-3">
-                                      <div className="form-group">
-                                        <label htmlFor="dj">DJ</label>
-                                        <label className="switch">
-                                          <input
-                                            type="checkbox"
-                                            checked={room.dj}
-                                            name="dj"
-                                            id="dj"
-                                            onChange={(e) => {
-                                              // console.log(e.ta)
+                                  <div className="col-md-2">
+                                    <div className="form-group">
+                                      <label htmlFor="extraBedNumber">
+                                        Number of beds
+                                      </label>
+                                      <input
+                                        disabled={!room.extraBed}
+                                        type="number"
+                                        value={room.extraBedNumber}
+                                        name="extraBedNumber"
+                                        id="extraBedNumber"
+                                        className="form-control"
+                                        onChange={(e) => {
+                                          e.preventDefault();
 
-                                              room.dj = e.target.checked;
-                                              console.log(room.dj);
-                                              this.setState({});
-                                            }}
-                                            placeholder="DJ"
-                                          />
-                                          <span className="slider round"></span>
-                                        </label>
-                                      </div>
-                                    </div>
-                                    <div className="col-md-3">
-                                      <div className="form-group">
-                                        <label htmlFor="ac">AC</label>
-                                        <label className="switch">
-                                          <input
-                                            type="checkbox"
-                                            checked={room.ac}
-                                            name="ac"
-                                            id="ac"
-                                            onChange={(e) => {
-                                              // console.log(e.ta)
-
-                                              room.ac = e.target.checked;
-                                              console.log(room.ac);
-                                              this.setState({});
-                                            }}
-                                            placeholder="AC"
-                                          />
-                                          <span className="slider round"></span>
-                                        </label>
-                                      </div>
-                                    </div>
-                                    <div className="col-md-3">
-                                      <div className="form-group">
-                                        <label htmlFor="flower">Flowers</label>
-                                        <label className="switch">
-                                          <input
-                                            type="checkbox"
-                                            checked={room.flower}
-                                            name="flower"
-                                            id="flower"
-                                            onChange={(e) => {
-                                              // console.log(e.ta)
-
-                                              room.flower = e.target.checked;
-                                              console.log(room.flower);
-                                              this.setState({});
-                                            }}
-                                            placeholder="Flowers"
-                                          />
-                                          <span className="slider round"></span>
-                                        </label>
-                                      </div>
-                                    </div>
-                                    <div className="col-md-3">
-                                      <div className="form-group">
-                                        <label htmlFor="lights">Lights</label>
-                                        <label className="switch">
-                                          <input
-                                            type="checkbox"
-                                            checked={room.lights}
-                                            name="lights"
-                                            id="lights"
-                                            onChange={(e) => {
-                                              // console.log(e.ta)
-
-                                              room.lights = e.target.checked;
-                                              console.log(room.lights);
-                                              this.setState({});
-                                            }}
-                                            placeholder="Lights"
-                                          />
-                                          <span className="slider round"></span>
-                                        </label>
-                                      </div>
+                                          room.extraBedNumber = e.target.value;
+                                          this.setState({});
+                                        }}
+                                        placeholder="extraBedNumber"
+                                      />
                                     </div>
                                   </div>
                                 </div>
                               </Col>
-                              <Col sm={4}>
+                              <Col sm={2}>
                                 <div>
                                   {/* <h5>{this.state.picOf}</h5> */}
                                   {room.photo ? (
@@ -841,6 +754,8 @@ export default class BookingModal extends Component {
                                         screenshotFormat="image/jpeg"
                                         videoConstraints={{
                                           facingMode: "user",
+
+                                          aspectRatio: 0.79,
                                         }}
                                       />
                                       <button
@@ -858,62 +773,420 @@ export default class BookingModal extends Component {
                                       </button>
                                     </Fragment>
                                   )}
-                                  {room.id ? (
-                                    <Fragment>
-                                      <img src={room.id} alt="not found" />
-                                      <button
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          delete room.id;
-                                          this.setState({});
-                                        }}
-                                      >
-                                        Retake id
-                                      </button>
-                                    </Fragment>
-                                  ) : (
-                                    <Fragment>
-                                      <Webcam
-                                        style={{ width: "100%" }}
-                                        audio={false}
-                                        ref={this.webcamRef2}
-                                        screenshotFormat="image/jpeg"
-                                        videoConstraints={{
-                                          facingMode: "user",
-                                        }}
-                                      />
-                                      <button
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          const imageSrc =
-                                            this.webcamRef2.current.getScreenshot();
-
-                                          room.id = imageSrc;
-                                          console.log(room);
-                                          this.setState({});
-                                        }}
-                                      >
-                                        Capture id
-                                      </button>
-                                    </Fragment>
-                                  )}
                                 </div>
+                              </Col>
+                            </Row>
+                            <div className="row">
+                              <div className="col-md-3">
                                 <div className="form-group">
-                                  <label htmlFor="room">Room Number</label>
-
-                                  <Select
-                                    options={roomsList}
-                                    // isMulti
-                                    value={room.room}
+                                  <label htmlFor="from">Coming From</label>
+                                  <input
+                                    type="text"
+                                    value={room.from}
+                                    name="from"
+                                    id="from"
+                                    className="form-control"
                                     onChange={(e) => {
-                                      // console.log(e);
-                                      room.room = e;
+                                      e.preventDefault();
+
+                                      room.from = e.target.value;
+                                      this.setState({});
+                                    }}
+                                    placeholder="from"
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-md-3">
+                                <div className="form-group">
+                                  <label htmlFor="from">Going To</label>
+                                  <input
+                                    type="text"
+                                    value={room.to}
+                                    name="to"
+                                    id="to"
+                                    className="form-control"
+                                    onChange={(e) => {
+                                      e.preventDefault();
+
+                                      room.to = e.target.value;
+                                      this.setState({});
+                                    }}
+                                    placeholder="to"
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-md-1">
+                                <div className="form-group">
+                                  <label htmlFor="breakfast">Breakfast</label>
+
+                                  <label className="switch">
+                                    <input
+                                      type="checkbox"
+                                      checked={room.breakfast}
+                                      name="breakfast"
+                                      id="breakfast"
+                                      onChange={(e) => {
+                                        // console.log(e.ta)
+
+                                        room.breakfast = e.target.checked;
+                                        console.log(room.breakfast);
+                                        this.setState({});
+                                      }}
+                                      placeholder="breakfast"
+                                    />
+                                    <span className="slider round"></span>
+                                  </label>
+                                </div>
+                              </div>
+                              <div className=" col-md-1">
+                                <div className="form-group">
+                                  <label htmlFor="dinner"> Dinner </label>
+                                  <label className="switch">
+                                    <input
+                                      type="checkbox"
+                                      checked={room.dinner}
+                                      name="dinner"
+                                      id="dinner"
+                                      onChange={(e) => {
+                                        // console.log(e.ta)
+
+                                        room.dinner = e.target.checked;
+                                        console.log(room.dinner);
+                                        this.setState({});
+                                      }}
+                                      placeholder="dinner"
+                                    />
+                                    <span className="slider round"></span>
+                                  </label>
+                                </div>
+                              </div>
+                              <div className="col-md-1">
+                                <div className="form-group">
+                                  <label htmlFor="dj">DJ</label>
+                                  <label className="switch">
+                                    <input
+                                      type="checkbox"
+                                      checked={room.dj}
+                                      name="dj"
+                                      id="dj"
+                                      onChange={(e) => {
+                                        // console.log(e.ta)
+
+                                        room.dj = e.target.checked;
+                                        console.log(room.dj);
+                                        this.setState({});
+                                      }}
+                                      placeholder="DJ"
+                                    />
+                                    <span className="slider round"></span>
+                                  </label>
+                                </div>
+                              </div>
+                              <div className="col-md-1">
+                                <div className="form-group">
+                                  <label htmlFor="ac">AC</label>
+                                  <label className="switch">
+                                    <input
+                                      type="checkbox"
+                                      checked={room.ac}
+                                      name="ac"
+                                      id="ac"
+                                      onChange={(e) => {
+                                        // console.log(e.ta)
+
+                                        room.ac = e.target.checked;
+                                        console.log(room.ac);
+                                        this.setState({});
+                                      }}
+                                      placeholder="AC"
+                                    />
+                                    <span className="slider round"></span>
+                                  </label>
+                                </div>
+                              </div>
+                              <div className="col-md-1">
+                                <div className="form-group">
+                                  <label htmlFor="flower">Flowers</label>
+                                  <label className="switch">
+                                    <input
+                                      type="checkbox"
+                                      checked={room.flower}
+                                      name="flower"
+                                      id="flower"
+                                      onChange={(e) => {
+                                        // console.log(e.ta)
+
+                                        room.flower = e.target.checked;
+                                        console.log(room.flower);
+                                        this.setState({});
+                                      }}
+                                      placeholder="Flowers"
+                                    />
+                                    <span className="slider round"></span>
+                                  </label>
+                                </div>
+                              </div>
+                              <div className="col-md-1">
+                                <div className="form-group">
+                                  <label htmlFor="lights">Lights</label>
+                                  <label className="switch">
+                                    <input
+                                      type="checkbox"
+                                      checked={room.lights}
+                                      name="lights"
+                                      id="lights"
+                                      onChange={(e) => {
+                                        // console.log(e.ta)
+
+                                        room.lights = e.target.checked;
+                                        console.log(room.lights);
+                                        this.setState({});
+                                      }}
+                                      placeholder="Lights"
+                                    />
+                                    <span className="slider round"></span>
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="row">
+                              <div className="col-md-3">
+                                <div className="form-group">
+                                  <label>Passport Number</label>
+                                  <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Passport Number"
+                                    value={room.passportNumber}
+                                    onChange={(e) => {
+                                      e.preventDefault();
+                                      room.passportNumber = e.target.value;
                                       this.setState({});
                                     }}
                                   />
                                 </div>
-                              </Col>
-                            </Row>
+                              </div>
+                              <div className="col-md-3">
+                                <div className="form-group">
+                                  <label>Date of Issue</label>
+                                  <input
+                                    type="date"
+                                    value={room.passportDateOfIssue}
+                                    className="form-control"
+                                    placeholder="Date of Issue"
+                                    onChange={(e) => {
+                                      e.preventDefault();
+                                      room.passportDateOfIssue = e.target.value;
+                                      this.setState({});
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-md-3">
+                                <div className="form-group">
+                                  <label>Place of Issue</label>
+                                  <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Place of Issue"
+                                    onChange={(e) => {
+                                      e.preventDefault();
+                                      room.passportPlaceOfIssue =
+                                        e.target.value;
+                                      this.setState({});
+                                    }}
+                                    value={room.passportPlaceOfIssue}
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-md-3">
+                                <div className="form-group">
+                                  <label>Valid Upto</label>
+                                  <input
+                                    type="date"
+                                    className="form-control"
+                                    placeholder="Valid Upto"
+                                    onChange={(e) => {
+                                      e.preventDefault();
+                                      room.passportValidUpto = e.target.value;
+                                      this.setState({});
+                                    }}
+                                    value={room.passportValidUpto}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <div className="row">
+                              <div className="col-md-3">
+                                <div className="form-group">
+                                  <label>Visa Number</label>
+                                  <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Visa Number"
+                                    value={room.visaNumber}
+                                    onChange={(e) => {
+                                      e.preventDefault();
+                                      room.visaNumber = e.target.value;
+                                      this.setState({});
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-md-3">
+                                <div className="form-group">
+                                  <label>Date of Issue</label>
+                                  <input
+                                    type="date"
+                                    value={room.visaDateOfIssue}
+                                    className="form-control"
+                                    placeholder="Date of Issue"
+                                    onChange={(e) => {
+                                      e.preventDefault();
+                                      room.visaDateOfIssue = e.target.value;
+                                      this.setState({});
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-md-3">
+                                <div className="form-group">
+                                  <label>Place of Issue</label>
+                                  <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Place of Issue"
+                                    onChange={(e) => {
+                                      e.preventDefault();
+                                      room.visaPlaceOfIssue = e.target.value;
+                                      this.setState({});
+                                    }}
+                                    value={room.visaPlaceOfIssue}
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-md-3">
+                                <div className="form-group">
+                                  <label>Valid Upto</label>
+                                  <input
+                                    type="date"
+                                    className="form-control"
+                                    placeholder="Valid Upto"
+                                    onChange={(e) => {
+                                      e.preventDefault();
+                                      room.visaValidUpto = e.target.value;
+                                      this.setState({});
+                                    }}
+                                    value={room.visaValidUpto}
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-md-3">
+                                <div className="form-group">
+                                  <label>Arrival In India</label>
+                                  <input
+                                    type="date"
+                                    className="form-control"
+                                    placeholder="Arrival In India"
+                                    onChange={(e) => {
+                                      e.preventDefault();
+                                      room.arrivalInIndia = e.target.value;
+                                      this.setState({});
+                                    }}
+                                    value={room.arrivalInIndia}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <div className="row">
+                              <div className="col-md-6">
+                                {room.idFront ? (
+                                  <Fragment>
+                                    <img src={room.idFront} alt="not found" />
+                                    <button
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        delete room.idFront;
+                                        this.setState({});
+                                      }}
+                                    >
+                                      Retake ID front
+                                    </button>
+                                  </Fragment>
+                                ) : (
+                                  <Fragment>
+                                    <Webcam
+                                      style={{ width: "100%" }}
+                                      audio={false}
+                                      ref={this.webcamRef2}
+                                      screenshotFormat="image/jpeg"
+                                      videoConstraints={{
+                                        facingMode: "user",
+
+                                        aspectRatio: 2,
+                                      }}
+                                    />
+                                    <button
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        const imageSrc =
+                                          this.webcamRef2.current.getScreenshot();
+
+                                        room.idFront = imageSrc;
+                                        console.log(room);
+                                        this.setState({});
+                                      }}
+                                    >
+                                      Capture ID Front
+                                    </button>
+                                  </Fragment>
+                                )}
+                              </div>
+                              <div className="col-md-6">
+                                {room.idBack ? (
+                                  <Fragment>
+                                    <img src={room.idBack} alt="not found" />
+                                    <button
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        delete room.idBack;
+                                        this.setState({});
+                                      }}
+                                    >
+                                      Retake ID Back
+                                    </button>
+                                  </Fragment>
+                                ) : (
+                                  <Fragment>
+                                    <Webcam
+                                      style={{ width: "100%" }}
+                                      audio={false}
+                                      ref={this.webcamRef3}
+                                      screenshotFormat="image/jpeg"
+                                      videoConstraints={{
+                                        facingMode: "user",
+
+                                        aspectRatio: 2,
+                                      }}
+                                    />
+                                    <button
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        const imageSrc =
+                                          this.webcamRef3.current.getScreenshot();
+
+                                        room.idBack = imageSrc;
+                                        console.log(room);
+                                        this.setState({});
+                                      }}
+                                    >
+                                      Capture id Back
+                                    </button>
+                                  </Fragment>
+                                )}
+                              </div>
+                            </div>
+                            <GRCPrint data={{ room, booking }} />
                           </Card.Body>
                         </Accordion.Collapse>
                       </Card>
@@ -921,10 +1194,115 @@ export default class BookingModal extends Component {
                   })}
                 </Accordion>
               </Accordion.Collapse>
+              <Accordion.Toggle
+                eventKey="payment"
+                as={Card.Header}
+                style={{
+                  backgroundColor: "green",
+                  color: "white",
+                  fontWeight: "bold",
+                  border: "2px solid black",
+                  borderRadius: "5px",
+                }}
+                align="center"
+              >
+                Payment
+              </Accordion.Toggle>
+              <Accordion.Collapse
+                as={Card.Header}
+                eventKey="payment"
+                style={{ width: "95%" }}
+              >
+                <table style={{ width: "100%" }} className="table-bordered">
+                  <thead>
+                    <tr>
+                      <th>Sr.</th>
+                      <th>Particular</th>
+                      <th>Price</th>
+                      <th>Quantity</th>
+                      <th>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {booking.rooms.map((room) => {
+                      x = x + 1;
+                      return (
+                        <tr>
+                          <td>{x}</td>
+                          <td>
+                            {room.room ? room.room.label : ""} (
+                            {new Date(room.arrivalTime).toLocaleString("en-GB")}{" "}
+                            to{" "}
+                            {new Date(room.checkoutTime).toLocaleString(
+                              "en-GB"
+                            )}
+                            )
+                          </td>
+                          <td>{room.roomRate}</td>
+                          <td>
+                            {parseInt(
+                              (new Date(room.checkoutTime).valueOf() -
+                                new Date(room.arrivalTime).valueOf()) /
+                                (1000 * 60 * 60 * 24) +
+                                1,
+                              10
+                            )}
+                          </td>
+                          <td>
+                            {parseInt(
+                              (new Date(room.checkoutTime).valueOf() -
+                                new Date(room.arrivalTime).valueOf()) /
+                                (1000 * 60 * 60 * 24) +
+                                1,
+                              10
+                            ) * parseInt(room.roomRate)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {booking.bills.map((bill) => {
+                      x = x + 1;
+                      return (
+                        <tr>
+                          <td>{x}</td>
+                          <td>
+                            {bill.bill} (
+                            {new Date(bill.at).toLocaleString("en-GB")})
+                          </td>
+                          <td>{bill.amount}</td>
+                          <td>1</td>
+                          <td>{bill.amount}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </Accordion.Collapse>
             </Accordion>
           </Modal.Body>
 
           <Modal.Footer>
+            <button
+              className="btn btn-danger"
+              onClick={(e) => {
+                e.preventDefault();
+              }}
+            >
+              Cancel Booking
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={async (e) => {
+                e.preventDefault();
+                axios.post(
+                  localStorage.getItem("apiUrl") + "booking/checkout",
+                  { bookingId: booking.bookingId }
+                );
+                window.open("/#/bill/H-" + booking.bookingId, "__self");
+              }}
+            >
+              Update Bill
+            </button>
             <input type="submit" value="Submit" className="btn btn-primary" />
             {/* <Button variant="secondary">Close</Button>
     <Button variant="primary">Save changes</Button> */}

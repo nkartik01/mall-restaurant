@@ -21,8 +21,11 @@ export default class Calendar extends React.Component {
       this.state.selectedDay = Date.now();
     }
     var bookings = await axios.post(
-      require("../config.json").url + "booking/room",
-      { date: this.state.dateObject.valueOf(), room: this.props.room }
+      localStorage.getItem("apiUrl") + "booking/room",
+      {
+        date: this.state.dateObject.valueOf(),
+        room: this.props.room,
+      }
     );
     bookings = bookings.data;
     console.log(bookings);
@@ -342,6 +345,7 @@ export default class Calendar extends React.Component {
                 // this.state.show[d - 1] = false;
                 // this.setState({});
               }}
+              update={this.getBookings}
             />
           </td>
         );

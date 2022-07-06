@@ -15,7 +15,7 @@ export default class ChefEdit extends Component {
   };
   getChef = async (e) => {
     var res = await axios.get(
-      require("../config.json").url +
+      localStorage.getItem("apiUrl") +
         "chef/getChef/" +
         this.props.match.params.username,
       {
@@ -54,7 +54,7 @@ export default class ChefEdit extends Component {
         username,
         permissions: { restaurant, wait, edit, changeMenu },
       };
-      await axios.post(require("../config.json").url + "chef/edit", data, {
+      await axios.post(localStorage.getItem("apiUrl") + "chef/edit", data, {
         headers: { "x-auth-token": localStorage.getItem("token") },
       });
       alert("Chef edited successfully");

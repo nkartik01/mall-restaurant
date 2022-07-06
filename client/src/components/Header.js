@@ -7,10 +7,12 @@ export default class Header extends Component {
     if (localStorage.getItem("status")) {
       axios
         .get(
-          require("../config.json").url +
+          localStorage.getItem("apiUrl") +
             "login/verify/" +
             localStorage.getItem("status"),
-          { headers: { "x-auth-token": localStorage.getItem("token") } }
+          {
+            headers: { "x-auth-token": localStorage.getItem("token") },
+          }
         )
         .catch((err) => {
           localStorage.removeItem("status");

@@ -7,7 +7,7 @@ export default class Bill extends Component {
   state = { isLoading: true, bill: {} };
   getBill = async () => {
     var bill = await axios.get(
-      require("../config.json").url +
+      localStorage.getItem("apiUrl") +
         "bill/getBill/" +
         this.props.match.params.id,
       {
@@ -190,7 +190,7 @@ export default class Bill extends Component {
                             e.preventDefault();
                             try {
                               await axios.post(
-                                require("../config.json").url +
+                                localStorage.getItem("apiUrl") +
                                   "bill/editTransaction",
                                 {
                                   transaction: trans,

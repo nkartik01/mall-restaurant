@@ -30,7 +30,7 @@ export default class OperatorSignup extends Component {
       permissions: { restaurant, wait, edit, changeMenu },
     };
     try {
-      await axios.post(require("../config.json").url + "signup/chef", data, {
+      await axios.post(localStorage.getItem("apiUrl") + "signup/chef", data, {
         headers: { "x-auth-token": localStorage.getItem("token") },
       });
       alert("Chef Created Successfully");

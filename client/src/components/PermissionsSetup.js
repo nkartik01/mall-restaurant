@@ -11,7 +11,7 @@ export default class PermissionsSetup extends Component {
     wait: {},
   };
   // getMenus = async (e) => {
-  //   var res = await axios.get(require("../config.json").url+"menu/listMenus");
+  //   var res = await axios.get(localStorage.getItem("apiUrl")+"menu/listMenus");
   //   res = res.data;
   //   this.setState({ menus: res.menus });
   // };
@@ -25,7 +25,7 @@ export default class PermissionsSetup extends Component {
   };
   getRestaurants = async () => {
     var res = await axios.get(
-      require("../config.json").url + "menu/restaurants"
+      localStorage.getItem("apiUrl") + "menu/restaurants"
     );
     res = res.data;
     this.setState({ restaurants: res.restaurants });
@@ -36,14 +36,6 @@ export default class PermissionsSetup extends Component {
   render() {
     // var { menus } = this.state;
     var restaurants = this.state.restaurants;
-    //  [
-    //   "Urban Food Court",
-    //   "Perry Club",
-    //   "Pizzaria",
-    //   "Juice Bar",
-    //   "Dosa Counter",
-    //   "Umega Hotel",
-    // ];
     return (
       <div align="left">
         {/* <div>

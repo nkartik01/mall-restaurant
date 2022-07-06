@@ -23,8 +23,13 @@ app.use("/api/chef", require("./chef"));
 app.use("/api/bill", require("./bill"));
 app.use("/api/report", require("./report"));
 app.use("/api/booking", require("./booking"));
-connectDB().then(async () =>
+connectDB().then(async () => {
   app.listen(5000, () => {
     console.log("Listening");
-  })
-);
+  });
+  // const options = { fullDocument: "updateLookup" };
+  // const changeStream = Booking.watch([], options);
+  // changeStream.on("change", (x, y) => {
+  //   console.log(x, y);
+  // });
+});

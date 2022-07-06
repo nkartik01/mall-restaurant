@@ -11,8 +11,11 @@ export default class AdminLogin extends Component {
     const { username, password } = this.state;
     try {
       var res = await axios.post(
-        require("../config.json").url + "login/admin",
-        { username: username, password: password }
+        localStorage.getItem("apiUrl") + "login/admin",
+        {
+          username: username,
+          password: password,
+        }
       );
       if (res.data.warn) {
         console.log(res.data.warn);

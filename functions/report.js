@@ -63,7 +63,7 @@ router.post("/sale", async (req, res) => {
     var cashSum = 0;
     var rfidSum = 0;
     var cardSum = 0;
-
+    var movedSum = 0;
     var itemwise = [];
     var itemwiseEdit = [];
     bills.map((bill, _) => {
@@ -113,7 +113,8 @@ router.post("/sale", async (req, res) => {
           if (tran.type === "card") cardSum = cardSum + tran.amount;
           if (tran.type === "rfid") rfidSum = rfidSum + tran.amount;
           if (tran.type === "upi") upiSum = upiSum + tran.amount;
-
+          if (tran.type === "moved to booking")
+            movedSum = movedSum + tran.amount;
           return;
         });
       } catch {}
@@ -131,6 +132,7 @@ router.post("/sale", async (req, res) => {
       balance,
       discAmount,
       cancelled,
+      movedSum,
     });
   } catch (err) {
     console.log(err);

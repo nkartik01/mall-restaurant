@@ -1,7 +1,6 @@
 import axios from "axios";
 import React, { Component } from "react";
 import AlertDiv from "../AlertDiv";
-import config from "../config.json";
 export default class ChefScreen extends Component {
   state = { orders: [] };
   componentDidMount() {
@@ -12,7 +11,7 @@ export default class ChefScreen extends Component {
   }
   getOrders = async () => {
     var res = await axios.get(
-      require("../config.json").url + "chef/getPendingOrders",
+      localStorage.getItem("apiUrl") + "chef/getPendingOrders",
       {
         headers: { "x-auth-token": localStorage.getItem("token") },
       }
@@ -93,7 +92,7 @@ export default class ChefScreen extends Component {
                             );
                             if (!confirm) return;
                             await axios.post(
-                              config.url + "chef/setAsDone",
+                              localStorage.getItem("apiUrl") + "chef/setAsDone",
                               { id: order._id },
                               {
                                 headers: {
@@ -120,7 +119,8 @@ export default class ChefScreen extends Component {
                             );
                             if (!confirm) return;
                             await axios.post(
-                              config.url + "chef/cancelOrder",
+                              localStorage.getItem("apiUrl") +
+                                "chef/cancelOrder",
                               { id: order._id },
                               {
                                 headers: {

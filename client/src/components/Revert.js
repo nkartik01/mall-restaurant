@@ -1,6 +1,5 @@
 import axios from "axios";
 import React, { Component } from "react";
-import config from "../config.json";
 import AlertDiv from "../AlertDiv";
 export default class Revert extends Component {
   state = { orders: [] };
@@ -8,9 +7,12 @@ export default class Revert extends Component {
     this.getRecent();
   }
   getRecent = async () => {
-    var res = await axios.get(config.url + "chef/getRecent", {
-      headers: { "x-auth-token": localStorage.getItem("token") },
-    });
+    var res = await axios.get(
+      localStorage.getItem("apiUrl") + "chef/getRecent",
+      {
+        headers: { "x-auth-token": localStorage.getItem("token") },
+      }
+    );
 
     console.log(res.data);
     res = res.data;
@@ -74,7 +76,7 @@ export default class Revert extends Component {
                             );
                             if (!confirm) return;
                             await axios.post(
-                              require("../config.json").url + "chef/revert",
+                              localStorage.getItem("apiUrl") + "chef/revert",
                               { id: order._id },
                               {
                                 headers: {

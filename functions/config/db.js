@@ -4,6 +4,9 @@ const db = config.mongoUri;
 const connectDB = async () => {
   try {
     await mongoose.connect(db, {
+      user: "admin",
+      pass: "Kartik@01",
+      authSource: "admin",
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });

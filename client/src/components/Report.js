@@ -24,7 +24,7 @@ class Report extends Component {
   };
   getRestaurants = async () => {
     var res = await axios.get(
-      require("../config.json").url + "menu/restaurants"
+      localStorage.getItem("apiUrl") + "menu/restaurants"
     );
     console.log(res.data);
 
@@ -60,7 +60,7 @@ class Report extends Component {
             onSubmit={async (e) => {
               e.preventDefault();
               var res = await axios.post(
-                require("../config.json").url + "report/sale",
+                localStorage.getItem("apiUrl") + "report/sale",
                 {
                   start: new Date(this.state.start).valueOf(),
                   end: new Date(this.state.end).valueOf(),
@@ -201,6 +201,10 @@ class Report extends Component {
                   <tr>
                     <th scope="col">UPI Payments</th>
                     <td>{this.state.upiSum}</td>
+                  </tr>
+                  <tr>
+                    <th scope="col">Moved to Hotel</th>
+                    <td>{this.state.movedSum}</td>
                   </tr>
                   <tr>
                     <th scope="col">Credit</th>

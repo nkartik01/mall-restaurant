@@ -9,9 +9,12 @@ export default withRouter(
     getCard = async (e) => {
       try {
         e.preventDefault();
-        var res = await axios.get(require("../config.json").url + "card/getCard/" + this.state.uid, {
-          headers: { "x-auth-token": localStorage.getItem("token") },
-        });
+        var res = await axios.get(
+          localStorage.getItem("apiUrl") + "card/getCard/" + this.state.uid,
+          {
+            headers: { "x-auth-token": localStorage.getItem("token") },
+          }
+        );
         res = res.data;
         this.setState({ card: res.card, cards: [] });
       } catch (err) {
@@ -28,7 +31,7 @@ export default withRouter(
       e.preventDefault();
       try {
         await axios.post(
-          require("../config.json").url + "card/assign",
+          localStorage.getItem("apiUrl") + "card/assign",
           {
             uid: this.state.uid,
             holder: this.state.card.holder,
@@ -40,18 +43,28 @@ export default withRouter(
         this.setState({ card: {}, uid: "" });
       } catch (err) {
         console.log(err, err.response);
-        AlertDiv("red", err.response ? err.response.data : "Failed to assign Card");
+        AlertDiv(
+          "red",
+          err.response ? err.response.data : "Failed to assign Card"
+        );
       }
     };
     retire = async (e) => {
       e.preventDefault();
       try {
-        await axios.post(require("../config.json").url + "card/retire", { uid: this.state.uid }, { headers: { "x-auth-token": localStorage.getItem("token") } });
+        await axios.post(
+          localStorage.getItem("apiUrl") + "card/retire",
+          { uid: this.state.uid },
+          { headers: { "x-auth-token": localStorage.getItem("token") } }
+        );
         AlertDiv("green", "Retired Successfully");
         this.setState({ card: {}, uid: "" });
       } catch (err) {
         console.log(err, err.response);
-        AlertDiv("red", err.response ? err.response.data : "Could Not retire card properly");
+        AlertDiv(
+          "red",
+          err.response ? err.response.data : "Could Not retire card properly"
+        );
       }
     };
     render() {
@@ -75,14 +88,25 @@ export default withRouter(
                     className="form-control"
                   />
                 </div>
-                <input type="submit" value="Submit" className="btn btn-primary" />
+                <input
+                  type="submit"
+                  value="Submit"
+                  className="btn btn-primary"
+                />
               </form>
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();
-                  var res = await axios.get(require("../config.json").url + "card/searchByPhone/" + this.state.phone, {
-                    headers: { "x-auth-token": localStorage.getItem("token") },
-                  });
+                  var res = await axios.get(
+                    localStorage.getItem("apiUrl") +
+                      "card/searchByPhone/" +
+                      this.state.phone,
+                    {
+                      headers: {
+                        "x-auth-token": localStorage.getItem("token"),
+                      },
+                    }
+                  );
                   res = res.data;
                   if (res.cards.length === 0) AlertDiv("red", "No Cards Found");
                   else this.setState({ card: {}, uid: "", cards: res.cards });
@@ -101,7 +125,11 @@ export default withRouter(
                     className="form-control"
                   />
                 </div>
-                <input type="submit" value="Search" className="btn btn-primary" />
+                <input
+                  type="submit"
+                  value="Search"
+                  className="btn btn-primary"
+                />
               </form>
             </Fragment>
           ) : (
@@ -177,11 +205,18 @@ export default withRouter(
                   </tbody>
                 </table>
                 {card.holder.assigned ? (
-                  <button className="btn btn-primary" onClick={(e) => this.retire(e)}>
+                  <button
+                    className="btn btn-primary"
+                    onClick={(e) => this.retire(e)}
+                  >
                     Retire
                   </button>
                 ) : (
-                  <input type="submit" value="Assign" className="btn btn-primary" />
+                  <input
+                    type="submit"
+                    value="Assign"
+                    className="btn btn-primary"
+                  />
                 )}
               </form>
               {card.holder.assigned ? (
@@ -190,9 +225,13 @@ export default withRouter(
                     e.preventDefault();
                     console.log(e.target);
                     var res = await axios.post(
-                      require("../config.json").url + "card/addAmount",
+                      localStorage.getItem("apiUrl") + "card/addAmount",
                       { amount: this.state.toAdd, uid: this.state.uid },
-                      { headers: { "x-auth-token": localStorage.getItem("token") } }
+                      {
+                        headers: {
+                          "x-auth-token": localStorage.getItem("token"),
+                        },
+                      }
                     );
                     console.log(res.data);
                     AlertDiv("green", "Amount Added");
@@ -213,7 +252,11 @@ export default withRouter(
                     placeholder="Amount to add"
                     className="form-control"
                   />
-                  <input type="submit" value="Add money to card" className="btn btn-primary" />
+                  <input
+                    type="submit"
+                    value="Add money to card"
+                    className="btn btn-primary"
+                  />
                 </form>
               ) : null}
               <button
@@ -244,7 +287,11 @@ export default withRouter(
                     .map((tran, id) => {
                       return (
                         <tr>
-                          <td>{new Date(parseInt(tran.at)).toLocaleString("en-GB")}</td>
+                          <td>
+                            {new Date(parseInt(tran.at)).toLocaleString(
+                              "en-GB"
+                            )}
+                          </td>
                           <td>{tran.type}</td>
                           <td>{tran.by}</td>
                           <td>{JSON.stringify(tran.details)}</td>
@@ -254,7 +301,11 @@ export default withRouter(
                                 className="btn btn-primary"
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  console.log(this.props.history.push("/bill/" + tran.details.bill));
+                                  console.log(
+                                    this.props.history.push(
+                                      "/bill/" + tran.details.bill
+                                    )
+                                  );
                                 }}
                               >
                                 Check Bill

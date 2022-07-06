@@ -8,7 +8,7 @@ export default class BillList extends Component {
   componentRef = React.createRef();
   getRestaurants = async () => {
     var res = await axios.get(
-      require("../config.json").url + "menu/restaurants"
+      localStorage.getItem("apiUrl") + "menu/restaurants"
     );
     console.log(res.data);
 
@@ -24,7 +24,7 @@ export default class BillList extends Component {
   };
   getBills = async () => {
     var bills = await axios.post(
-      require("../config.json").url + "bill/listBills",
+      localStorage.getItem("apiUrl") + "bill/listBills",
       {
         start: this.state.start,
         end: this.state.end,
@@ -45,7 +45,7 @@ export default class BillList extends Component {
   getPending = async (e) => {
     e.preventDefault();
     var bills = await axios.post(
-      require("../config.json").url + "bill/pendingBills",
+      localStorage.getItem("apiUrl") + "bill/pendingBills",
       { start: this.state.start, end: this.state.end },
       {
         headers: { "x-auth-token": localStorage.getItem("token") },

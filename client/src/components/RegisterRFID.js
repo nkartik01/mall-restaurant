@@ -7,7 +7,11 @@ export default class RegisterRFID extends Component {
   onSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(require("../config.json").url + "card/registerCard", { uid: this.state.uid }, { headers: { "x-auth-token": localStorage.getItem("token") } });
+      await axios.post(
+        localStorage.getItem("apiUrl") + "card/registerCard",
+        { uid: this.state.uid },
+        { headers: { "x-auth-token": localStorage.getItem("token") } }
+      );
       AlertDiv("green", "Registered Successfully");
     } catch (err) {
       console.log(err, err.response.status);
@@ -41,7 +45,10 @@ export default class RegisterRFID extends Component {
               className="form-control"
             />
           </div>
-          <p id="status" style={{ backgroundColor: "green", fontWeight: "bold" }}>
+          <p
+            id="status"
+            style={{ backgroundColor: "green", fontWeight: "bold" }}
+          >
             {this.state.status}
           </p>
           <input type="submit" value="Submit" className="btn btn-primary" />

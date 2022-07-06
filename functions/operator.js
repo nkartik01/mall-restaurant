@@ -27,7 +27,7 @@ router.post("/edit", auth_admin, async (req, res) => {
       at: Date.now(),
       amount: "new balance: " + req.body.balance,
       bill: "Done By: " + req.admin.id,
-      operatorId: req.operator.id,
+      operatorId: operator.id,
     }).save();
     try {
       (

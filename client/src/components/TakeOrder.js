@@ -17,7 +17,7 @@ export default class TakeOrder extends Component {
   };
   getMenus = async () => {
     var res = await axios.get(
-      require("../config.json").url + "operator/getPermissions",
+      localStorage.getItem("apiUrl") + "operator/getPermissions",
       {
         headers: { "x-auth-token": localStorage.getItem("token") },
       }
@@ -25,7 +25,7 @@ export default class TakeOrder extends Component {
     res = res.data;
     this.setState({ permissions: res.permissions });
     res = await axios.get(
-      require("../config.json").url + "menu/getRestaurantMenus",
+      localStorage.getItem("apiUrl") + "menu/getRestaurantMenus",
       {
         headers: { "x-auth-token": localStorage.getItem("token") },
       }
@@ -35,7 +35,7 @@ export default class TakeOrder extends Component {
   };
   getRestaurants = async () => {
     var res = await axios.get(
-      require("../config.json").url + "menu/getTables",
+      localStorage.getItem("apiUrl") + "menu/getTables",
       {
         headers: { "x-auth-token": localStorage.getItem("token") },
       }

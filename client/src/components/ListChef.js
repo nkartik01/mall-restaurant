@@ -6,7 +6,7 @@ export default class ListChef extends Component {
   state = { chefs: [] };
   getChefs = async () => {
     var res = await axios.get(
-      require("../config.json").url + "chef/getChefList",
+      localStorage.getItem("apiUrl") + "chef/getChefList",
       {
         headers: { "x-auth-token": localStorage.getItem("token") },
       }

@@ -126,6 +126,7 @@ export default class RoomModal extends Component {
                     show[i] = false;
                     this.setState({});
                   }}
+                  update={this.props.update}
                 />
               </Fragment>
             );

@@ -14,12 +14,17 @@ export default class Booking extends React.Component {
     newRooms: [{}],
   };
   getBookings = async () => {
-    var res1 = await axios.get(require("../config.json").url + "booking/rooms");
+    var res1 = await axios.get(
+      localStorage.getItem("apiUrl") + "booking/rooms"
+    );
     var rooms = res1.data.rooms;
 
-    var res = await axios.post(require("../config.json").url + "booking/date", {
-      date: this.state.date,
-    });
+    var res = await axios.post(
+      localStorage.getItem("apiUrl") + "booking/date",
+      {
+        date: this.state.date,
+      }
+    );
     res = res.data.rooms;
     console.log(res);
     for (var i = 0; i < rooms.length; i++) {
@@ -79,6 +84,7 @@ export default class Booking extends React.Component {
                 setShow={() => this.setState({ show: false })}
                 booking={{ rooms: this.state.newRooms }}
                 show={this.state.show}
+                update={this.getBookings}
               />
             </Col>
             <Col sm={10}>
@@ -223,6 +229,7 @@ export default class Booking extends React.Component {
                             room.modal = false;
                             this.setState({});
                           }}
+                          update={this.getBookings}
                         />
                       </div>
                     );

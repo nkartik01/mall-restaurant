@@ -18,20 +18,22 @@ export default class Landing extends Component {
   };
   getPrinters = async () => {
     var printers = await axios.get(
-      require("../config.json").url + "bill/printers",
-      { headers: { "x-auth-token": localStorage.getItem("token") } }
+      localStorage.getItem("apiUrl") + "bill/printers",
+      {
+        headers: { "x-auth-token": localStorage.getItem("token") },
+      }
     );
     this.setState({ printers: printers.data.printers });
   };
   getMenus = async () => {
     var menus = await axios.get(
-      require("../config.json").url + "menu/listMenusFromFolder"
+      localStorage.getItem("apiUrl") + "menu/listMenusFromFolder"
     );
     this.setState({ menus: menus.data.menus });
   };
   getRestaurants = async () => {
     var res = await axios.get(
-      require("../config.json").url + "menu/restaurants"
+      localStorage.getItem("apiUrl") + "menu/restaurants"
     );
     console.log(res.data);
 
@@ -175,7 +177,7 @@ export default class Landing extends Component {
                     e.preventDefault();
                     try {
                       axios.post(
-                        require("../config.json").url +
+                        localStorage.getItem("apiUrl") +
                           "menu/setMenu/" +
                           this.state.menu,
                         {
@@ -278,7 +280,7 @@ export default class Landing extends Component {
                     e.preventDefault();
                     try {
                       await axios.get(
-                        require("../config.json").url +
+                        localStorage.getItem("apiUrl") +
                           "menu/addRestaurant/" +
                           this.state.restaurantName,
                         {
@@ -355,7 +357,7 @@ export default class Landing extends Component {
                       )
                         return;
                       await axios.post(
-                        require("../config.json").url + "menu/addTable",
+                        localStorage.getItem("apiUrl") + "menu/addTable",
                         {
                           table: this.state.tableName,
                           restaurant: this.state.tableRestaurant,
@@ -425,7 +427,7 @@ export default class Landing extends Component {
                         return;
 
                       await axios.delete(
-                        require("../config.json").url + "menu/table",
+                        localStorage.getItem("apiUrl") + "menu/table",
                         {
                           headers: {
                             "x-auth-token": localStorage.getItem("token"),
@@ -504,7 +506,7 @@ export default class Landing extends Component {
                       )
                         return;
                       var res = await axios.post(
-                        require("../config.json").url + "menu/toggleMenu",
+                        localStorage.getItem("apiUrl") + "menu/toggleMenu",
                         {
                           restaurant: this.state.menuRestaurant,
                           menu: this.state.addMenu,
@@ -579,7 +581,7 @@ export default class Landing extends Component {
                     e.preventDefault();
                     try {
                       await axios.post(
-                        require("../config.json").url + "booking/addRoom",
+                        localStorage.getItem("apiUrl") + "booking/addRoom",
                         { room: this.state.addRoomName },
                         {
                           headers: {
@@ -615,7 +617,7 @@ export default class Landing extends Component {
                     e.preventDefault();
                     try {
                       await axios.delete(
-                        require("../config.json").url + "booking/deleteRoom",
+                        localStorage.getItem("apiUrl") + "booking/deleteRoom",
                         {
                           data: { room: this.state.removeRoomName },
 
@@ -659,7 +661,7 @@ export default class Landing extends Component {
                     }
                     try {
                       var res = await axios.get(
-                        require("../config.json").url + "report/backup",
+                        localStorage.getItem("apiUrl") + "report/backup",
                         {
                           headers: {
                             "x-auth-token": localStorage.getItem("token"),
@@ -706,7 +708,7 @@ export default class Landing extends Component {
                     }
                     try {
                       await axios.get(
-                        require("../config.json").url +
+                        localStorage.getItem("apiUrl") +
                           "report/restore/" +
                           this.state.restoreFolder,
                         {
@@ -766,7 +768,7 @@ export default class Landing extends Component {
                     }
                     try {
                       await axios.post(
-                        require("../config.json").url + "report/clearDatabase",
+                        localStorage.getItem("apiUrl") + "report/clearDatabase",
                         {
                           start: new Date(
                             this.state.restaurantDeleteStart

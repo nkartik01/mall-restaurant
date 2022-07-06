@@ -165,19 +165,11 @@ router.post("/updateTable", auth_operator, async (req, res) => {
     req.body.orderChange.at = at;
     table1.orderHistory = req.body.orderHistory;
     var prefix =
-      table1.restaurant === "Urban Food Court"
-        ? "UFC-"
-        : table1.restaurant === "Perry Club"
-        ? "PC-"
-        : table1.restaurant === "Pizzaria"
-        ? "PZ-"
-        : table1.restaurant === "Dosa Counter"
-        ? "DC-"
-        : table1.restaurant === "Juice Bar"
-        ? "JB-"
-        : table1.restaurant === "Umega Hotel"
-        ? "UH-"
-        : null;
+      table1.restaurant
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase() + "-";
     // console.log(table1, table1.restaurant);
     if (!table1.bill || table1.bill === "") {
       table1.orderSnippets = [];
@@ -270,13 +262,7 @@ router.post("/freeTable", auth_operator, async (req, res) => {
 });
 
 router.get("/createTables", async (req, res) => {
-  var restaurants = ["Urban Food Court", "Perry Club"];
-  // var restaurants = ["Pizzaria", "Dosa Counter", "Juice Bar", "Umega Hotel"];
-  // var tables = await db.collection("table").get();
-  // tables = tables.docs;
-  // for (var i = 0; i < tables.length; i++) {
-  //   db.collection("table").doc(tables[i].id).delete();
-  // }
+  var restaurants = [];
   for (var i = 0; i < 2; i++) {
     for (var j = 0; j < 15; j++) {
       new Table({

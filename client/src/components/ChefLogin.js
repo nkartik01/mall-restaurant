@@ -12,10 +12,13 @@ export default class ChefLogin extends Component {
     e.preventDefault();
     const { chefUsername, password } = this.state;
     try {
-      var res = await axios.post(require("../config.json").url + "login/chef", {
-        username: chefUsername,
-        password: password,
-      });
+      var res = await axios.post(
+        localStorage.getItem("apiUrl") + "login/chef",
+        {
+          username: chefUsername,
+          password: password,
+        }
+      );
 
       if (res.data.warn) {
         console.log(res.data.warn);

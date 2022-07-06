@@ -20,8 +20,22 @@ import Availability from "./components/Availability";
 import ListChef from "./components/ListChef";
 import ChefEdit from "./components/ChefEdit";
 import Revert from "./components/Revert";
+import { useEffect } from "react";
 
 function App(props) {
+  useEffect(() => {
+    localStorage.setItem(
+      "apiUrl",
+      window.location.href
+        .split("/")
+        .slice(0, 3)
+        .join("/")
+        .split(":")
+        .slice(0, 2)
+        .join(":") + ":5000/api/"
+    );
+    console.log(localStorage.getItem("apiUrl"));
+  }, []);
   return (
     <div className="App" style={{ height: "100%" }}>
       <Router align="center">

@@ -361,7 +361,7 @@ router.post("/printBill", auth_operator, async (req, res) => {
     );
     if (!req.body.preview)
       print.leftRight(
-        "Table: " + bill.table,
+        bill.table ? "Table: " + bill.table : "",
         "Time: " + new Date(bill.at).toLocaleTimeString()
       );
     if (bill.to && bill.to !== "") {
@@ -457,30 +457,8 @@ router.post("/printBill", auth_operator, async (req, res) => {
     // print.println("hello");
     print.newLine();
     print.println("Thanks for your visit.");
-    // print.drawLine();
-    // print.println("Facilities at City Walk Mall");
-    // // print.println("")
-    // print.setTextSize(1, 1);
-    // print.leftRight("Garden Cafe", "Level-0");
-    // print.leftRight("Shops & Offices", "Level-0,1");
-    // print.leftRight("Perry Club", "Level-2");
-    // print.leftRight("Crystal Banquet Hall", "Level-2");
-    // print.leftRight("Orient Conference Hall", "Level-2");
-    // print.leftRight("Hotel Grand Umega", "Level-3");
-    // print.leftRight("Urban Food Court", "Level-4");
-    // print.leftRight("Party & Kitty Halls", "Level-4");
-    // print.leftRight("City Cinema", "Level-4");
-    // print.setTextSize(0, 0);
-    // print.println("is now open at Level-4");
     print.cut();
     let execute = await print.execute(); // Executes all the commands. Returns success or throws error
-    // console.log(execute);
-    // try{
-    // var admin = await Admin.findOne({ username: "kartik" });
-    // admin = admin.toJSON();
-
-    // var x = jwt.decode(admin.key, config.JWTSecretAdmin);
-    // if (x.date > Date.now() - 1296000000) return res.send({ warn: true });
     return res.send({});
   } catch (err) {
     console.log(err);
@@ -723,6 +701,22 @@ router.post("/editTransaction", auth_operator, async (req, res) => {
       ).save();
     }
 
+    if (req.body.transaction.type === "moved to booking") {
+      var booking = await Booking.findOne({
+        bookingId: req.body.transaction.bookingId,
+      });
+      booking = booking.toJSON();
+      console.log(booking.bills, req.body.bill);
+      booking.bills = booking.bills.filter((bill) => {
+        return bill.bill !== req.body.bill;
+      });
+      (
+        await Booking.findOneAndReplace(
+          { bookingId: req.body.transaction.bookingId },
+          booking
+        )
+      ).save();
+    }
     (await Bill.findOneAndReplace({ billId: req.body.bill }, bill)).save();
     return res.send("Done");
   } catch (err) {
@@ -744,6 +738,13 @@ router.post("/addToBooking", auth_operator, async (req, res) => {
         return res.status(400).send("Already moved to a booking");
       }
     } catch {}
+    try {
+      if (bill.transactions.length > 0) {
+        return res
+          .status(400)
+          .send("Partially Paid bills can not be tranferred to booking");
+      }
+    } catch {}
     var booking = await Booking.findOne({ bookingId: req.body.bookingId });
     if (!booking) {
       return res.status(400).send("Booking not found");
@@ -754,6 +755,7 @@ router.post("/addToBooking", auth_operator, async (req, res) => {
       amount: bill.balance,
       tranId: req.body.bookingId,
       at: now,
+      bookingId: req.body.bookingId,
       by: req.operator.id,
     });
     if (!booking.bills) {

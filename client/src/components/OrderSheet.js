@@ -305,7 +305,7 @@ export default class OrderSheet extends Component {
                           return null;
                         });
                         var res = await axios.post(
-                          require("../config.json").url + "menu/updateTable",
+                          localStorage.getItem("apiUrl") + "menu/updateTable",
                           {
                             orderHistory: propsTable.orderHistory,
                             orderChange: propsTable.orderChange,
@@ -327,7 +327,7 @@ export default class OrderSheet extends Component {
                             .map(async (order, _) => {
                               try {
                                 await axios.post(
-                                  require("../config.json").url +
+                                  localStorage.getItem("apiUrl") +
                                     "bill/printOrder",
                                   {
                                     kot: true,
@@ -362,7 +362,7 @@ export default class OrderSheet extends Component {
                                 try {
                                   console.log(order);
                                   await axios.post(
-                                    require("../config.json").url +
+                                    localStorage.getItem("apiUrl") +
                                       "bill/printOrder",
                                     {
                                       // kot: true,
@@ -391,7 +391,7 @@ export default class OrderSheet extends Component {
                           else
                             try {
                               await axios.post(
-                                require("../config.json").url +
+                                localStorage.getItem("apiUrl") +
                                   "bill/printOrder",
                                 {
                                   counterName: "",
@@ -472,7 +472,7 @@ export default class OrderSheet extends Component {
                             this.state.historyCopy
                           );
                           await axios.post(
-                            require("../config.json").url + "bill/editBill",
+                            localStorage.getItem("apiUrl") + "bill/editBill",
                             {
                               table: propsTable.id,
                               bill: propsTable.bill,
@@ -703,7 +703,7 @@ export default class OrderSheet extends Component {
                       if (propsTable.balance !== 0) return;
                       else {
                         await axios.post(
-                          require("../config.json").url + "menu/freeTable",
+                          localStorage.getItem("apiUrl") + "menu/freeTable",
                           { table: propsTable },
                           {
                             headers: {
@@ -747,7 +747,7 @@ export default class OrderSheet extends Component {
                                 );
                                 if (!confirm) return;
                                 await axios.post(
-                                  require("../config.json").url + "bill/merge",
+                                  localStorage.getItem("apiUrl") + "bill/merge",
                                   {
                                     table1: table.tableId,
                                     table2: propsTable.tableId,
@@ -788,7 +788,7 @@ export default class OrderSheet extends Component {
                   onClick={async (e) => {
                     e.preventDefault();
                     var res = await axios.get(
-                      require("../config.json").url +
+                      localStorage.getItem("apiUrl") +
                         "bill/activeTables/" +
                         propsTable.restaurant,
                       {
@@ -811,7 +811,7 @@ export default class OrderSheet extends Component {
 
                   //   Payment logic as needed
                   await axios.post(
-                    require("../config.json").url + "menu/freeTable",
+                    localStorage.getItem("apiUrl") + "menu/freeTable",
                     { table: propsTable },
                     {
                       headers: {

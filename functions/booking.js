@@ -5,7 +5,6 @@ const fs = require("fs");
 const moment = require("moment");
 const Room = require("./models/Room");
 const auth_operator = require("./middleware/auth_operator");
-router.post;
 router.post("/editBooking", async (req, res) => {
   try {
     console.log(req.body.bookingId);
@@ -93,16 +92,27 @@ router.post("/editBooking", async (req, res) => {
         );
         delete req.body.rooms[i].photo;
       }
-      if (req.body.rooms[i].id) {
+      if (req.body.rooms[i].idFront) {
         var bitmap = await new Buffer.from(
-          req.body.rooms[i].id.slice(23),
+          req.body.rooms[i].idFront.slice(23),
           "base64"
         );
         fs.writeFileSync(
-          "C:/images/id/" + bookingId + "_" + (i + 1).toString() + ".jpg",
+          "C:/images/id/" + bookingId + "_F" + (i + 1).toString() + ".jpg",
           bitmap
         );
-        delete req.body.rooms[i].id;
+        delete req.body.rooms[i].idFront;
+      }
+      if (req.body.rooms[i].idBack) {
+        var bitmap = await new Buffer.from(
+          req.body.rooms[i].idBack.slice(23),
+          "base64"
+        );
+        fs.writeFileSync(
+          "C:/images/id/" + bookingId + "_B" + (i + 1).toString() + ".jpg",
+          bitmap
+        );
+        delete req.body.rooms[i].idBack;
       }
       req.body.rooms[i].room = req.body.rooms[i].room.label;
     }
@@ -115,7 +125,18 @@ router.post("/editBooking", async (req, res) => {
         )
       ).save();
     } else {
+      var at = Date.now();
       req.body.bookingId = booking.length + 1;
+      // new Bill({
+      //   billId: "H-" + booking.bookingId,
+      //   billNo: booking.bookingId,
+      //   restraunt: "Hotel Hive",
+      //   orderChanges: [],
+      //   balance: 0,
+      //   at,
+      //   transactions: [],
+      //   finalOrder: { order: [], sum: 0 },
+      // }).save();
       booking = new Booking(req.body).save();
     }
     return res.send({ bookingId: req.body.bookingId });
@@ -130,6 +151,7 @@ router.post("/date", async (req, res) => {
     var date1 = new Date(req.body.date).setHours(0, 0, 0, 0);
     var date2 = date1 + 1000 * 60 * 60 * 24;
     var bookings = await Booking.find({
+      cancelled: { $ne: true },
       rooms: {
         $elemMatch: {
           arrivalTime: { $lt: date2 },
@@ -150,11 +172,18 @@ router.post("/date", async (req, res) => {
           room.photo = "data:image/jpeg;base64," + photo.toString();
         } catch {}
         try {
-          var id = fs.readFileSync(
-            "C:/images/id/" + booking.id + "_" + (k + 1).toString() + ".jpg",
+          var idFront = fs.readFileSync(
+            "C:/images/id/" + booking.id + "_F" + (k + 1).toString() + ".jpg",
             { encoding: "base64" }
           );
-          room.id = "data:image/jpeg;base64," + id.toString();
+          room.idFront = "data:image/jpeg;base64," + idFront.toString();
+        } catch {}
+        try {
+          var idBack = fs.readFileSync(
+            "C:/images/id/" + booking.id + "_B" + (k + 1).toString() + ".jpg",
+            { encoding: "base64" }
+          );
+          room.idBack = "data:image/jpeg;base64," + idBack.toString();
         } catch {}
         room.arrivalTime = new Date(room.arrivalTime);
         room.arrivalTime =
@@ -204,6 +233,7 @@ router.post("/room", async (req, res) => {
     var date2 = date1 + days * (1000 * 60 * 60 * 24);
     for (var i = 0; i < days; i = i + 1) {
       var bookings = await Booking.find({
+        cancelled: { $ne: true },
         rooms: {
           $elemMatch: {
             room: req.body.room,
@@ -231,11 +261,18 @@ router.post("/room", async (req, res) => {
             room.photo = "data:image/jpeg;base64," + photo.toString();
           } catch {}
           try {
-            var id = fs.readFileSync(
-              "C:/images/id/" + booking.id + "_" + (k + 1).toString() + ".jpg",
+            var idFront = fs.readFileSync(
+              "C:/images/id/" + booking.id + "_F" + (k + 1).toString() + ".jpg",
               { encoding: "base64" }
             );
-            room.id = "data:image/jpeg;base64," + id.toString();
+            room.idFront = "data:image/jpeg;base64," + idFront.toString();
+          } catch {}
+          try {
+            var idBack = fs.readFileSync(
+              "C:/images/id/" + booking.id + "_B" + (k + 1).toString() + ".jpg",
+              { encoding: "base64" }
+            );
+            room.idBack = "data:image/jpeg;base64," + idBack.toString();
           } catch {}
 
           room.arrivalTime = new Date(room.arrivalTime);
@@ -326,128 +363,158 @@ router.delete("/deleteRoom", async (req, res) => {
   }
 });
 
-router.post("/generateBill", auth_operator, async (req, res) => {
+router.post("/cancelBooking", async (req, res) => {
   try {
-    var booking = await Booking.findOne({ bookingId: req.body.bookingId });
-    booking = booking.toJSON();
-    if (!booking.bill || booking.bill === "") {
-      var bills = await Bill.find({ restaurant: "Hotel Grand Umega" });
-    }
+    // var bill=
+    (
+      await Booking.findOneAndUpdate(
+        { bookingId: req.body.bookingId },
+        { cancelled: true }
+      )
+    ).save();
+    return res.send("Done");
   } catch (err) {
     console.log(err);
     res.status(500).send(err.toString());
   }
 });
 
-router.post("/printBill", async (req, res) => {
+router.post("/checkout", async (req, res) => {
   try {
-    const ThermalPrinter = require("node-thermal-printer").printer;
-    const PrinterTypes = require("node-thermal-printer").types;
-    const electron =
-      typeof process !== "undefined" &&
-      process.versions &&
-      !!process.versions.electro;
-    console.log(req.body.printer);
-    let print = new ThermalPrinter({
-      type: PrinterTypes.EPSON, // Printer type: 'star' or 'epson'
-      interface: "printer:" + req.body.printer, // Printer interface
-      // interface: "printer:Microsoft Print to PDF",
-      driver: require(electron ? "electron-printer" : "printer"),
-    });
-    console.log(1);
-    let isConnected = await print.isPrinterConnected(); // Check if print is connected, return bool of status
-    console.log(isConnected);
-    print.alignCenter();
-    print.setTextSize(1, 1);
-    if (req.body.restaurant === "Perry Club") print.println("Urban Food Court");
-    else print.println(req.body.restaurant);
-    print.setTextSize(0, 0);
-    print.println("City Walk Mall, Hanumangarh Road, Abohar");
-    print.println("A Unit of RDESCO City Walk Pvt. Ltd.");
+    var booking = await Booking.findOne({ bookingId: req.body.bookingId });
+    booking = booking.toJSON();
+    var sum = 0;
+    var bill = await Bill.find({ billId: "H-" + req.body.bookingId });
+    if (bill.length > 0) {
+      bill = bill[0].toJSON();
+      (
+        await Bill.findOneAndUpdate(
+          { billId: "H-" + req.body.bookingId },
+          {
+            to:
+              booking.rooms[0].name +
+              (booking.rooms[0].company
+                ? " C/o " + booking.rooms[0].company
+                : ""),
+            gstin: booking.rooms[0].gstin,
+            finalOrder: {
+              order: [
+                ...booking.rooms.map((room) => {
+                  sum =
+                    sum +
+                    room.roomRate *
+                      parseInt(
+                        (new Date(room.checkoutTime).valueOf() -
+                          new Date(room.arrivalTime).valueOf()) /
+                          (1000 * 60 * 60 * 24) +
+                          1,
+                        10
+                      );
+                  return {
+                    item:
+                      (room.room ? room.room : "") +
+                      " (" +
+                      new Date(room.arrivalTime).toLocaleString("en-GB") +
+                      " to " +
+                      new Date(room.checkoutTime).toLocaleString("en-GB") +
+                      ")",
+                    price: room.roomRate,
+                    quantity: parseInt(
+                      (new Date(room.checkoutTime).valueOf() -
+                        new Date(room.arrivalTime).valueOf()) /
+                        (1000 * 60 * 60 * 24) +
+                        1,
+                      10
+                    ),
+                  };
+                }),
+                ...booking.bills.map((bill) => {
+                  sum = sum + bill.amount;
+                  return {
+                    item:
+                      bill.bill +
+                      " (" +
+                      new Date(bill.at).toLocaleString("en-GB") +
+                      ")",
+                    price: bill.amount,
+                    quantity: 1,
+                  };
+                }),
+              ],
+              sum,
+            },
+            balance:
+              parseInt(bill.balance) +
+              (parseInt(sum) - parseInt(bill.finalOrder.sum)),
+          },
+          { useFindAndModify: false }
+        )
+      ).save();
+    } else {
+      var sum = 0;
+      new Bill({
+        billId: "H-" + booking.bookingId,
+        billNo: booking.bookingId,
+        restaurant: "Hotel Hive",
+        to:
+          booking.rooms[0].name +
+          (booking.rooms[0].company ? " C/o " + booking.rooms[0].company : ""),
+        gstin: booking.rooms[0].gstin,
 
-    // print.println("Hanumangarh Road, Abohar");
-    print.leftRight("GSTIN: 03AAICR8822Q1ZS", "FSSAI: 12119201000010");
-
-    if (req.body.preview) {
-      print.newLine();
-      print.println("Bill Preview");
+        at: new Date(Date.now()).valueOf(),
+        finalOrder: {
+          order: [
+            ...booking.rooms.map((room) => {
+              sum =
+                sum +
+                room.roomRate *
+                  parseInt(
+                    (new Date(room.checkoutTime).valueOf() -
+                      new Date(room.arrivalTime).valueOf()) /
+                      (1000 * 60 * 60 * 24) +
+                      1,
+                    10
+                  );
+              return {
+                item:
+                  (room.room ? room.room : "") +
+                  " (" +
+                  new Date(room.arrivalTime).toLocaleString("en-GB") +
+                  " to " +
+                  new Date(room.checkoutTime).toLocaleString("en-GB") +
+                  ")",
+                price: room.roomRate,
+                quantity: parseInt(
+                  (new Date(room.checkoutTime).valueOf() -
+                    new Date(room.arrivalTime).valueOf()) /
+                    (1000 * 60 * 60 * 24) +
+                    1,
+                  10
+                ),
+              };
+            }),
+            ...booking.bills.map((bill) => {
+              sum = sum + bill.amount;
+              return {
+                item:
+                  bill.bill +
+                  " (" +
+                  new Date(bill.at).toLocaleString("en-GB") +
+                  ")",
+                price: bill.amount,
+                quantity: 1,
+              };
+            }),
+          ],
+          sum,
+        },
+        orderChanges: [],
+        gstIncluded: booking.gstIncuded,
+        balance: sum,
+        transactions: [],
+      }).save();
     }
-    print.newLine();
-    print.leftRight(
-      "Bill No. :" + req.body.bill,
-      "Date: " + new Date(Date.now()).toLocaleDateString("en-GB")
-    );
-    if (!req.body.preview)
-      print.leftRight("", "Time: " + new Date(Date.now()).toLocaleTimeString());
-
-    print.drawLine();
-    print.tableCustom([
-      { text: "Sr.", width: 0.08, align: "LEFT" },
-      { text: "Item", width: 0.4, align: "LEFT" },
-      { width: 0.13, text: "Price", align: "RIGHT" },
-      { text: "Qty", width: 0.1, align: "RIGHT" },
-      { text: "Amount", width: 0.19, align: "RIGHT" },
-    ]);
-    // print.table(["Sr. No.", "Item", "Price", "Quantity", "Amount"]);
-    print.drawLine();
-    req.body.orderHistory.order.map((order, i) => {
-      print.tableCustom([
-        { text: (i + 1).toString() + ".", width: 0.08, align: "LEFT" },
-        { text: order.item, width: 0.4, align: "LEFT" },
-        { text: order.price, width: 0.13, align: "RIGHT" },
-        { text: order.quantity, width: 0.1, align: "RIGHT" },
-        { text: order.price * order.quantity, width: 0.19, align: "RIGHT" },
-      ]);
-      print.tableCustom([
-        { text: "", width: 0.08 },
-        { text: order.detail, width: 0.9 },
-      ]);
-      // return print.table([i + 1, order.item, order.price, order.quantity, order.price * order.quantity]);
-    });
-    // print.drawLine();
-    // var bill = (await Bill.findOne({ billId: req.body.bill })).toJSON();
-
-    // var orders = [];
-    // bill.orderChanges.map((order, _) => {
-    //   if (order.type === "edit") {
-    //     return;
-    //   }
-    //   orders.push(order.orderNo);
-    // });
-    // // print.println();
-    // print.leftRight(orders.join(", "), "Total: " + req.body.orderHistory.sum + " ");
-    // // logic for tax
-    // if (!bill.discAmount) bill.discAmount = 0;
-    // if (bill.discAmount && bill.discAmount > 0) print.leftRight("", "Discount: " + bill.discAmount + " ");
-    // console.log("hi", parseInt(req.body.orderHistory.sum - parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))));
-    // if (parseInt(req.body.orderHistory.sum - parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))) !== 0)
-    //   print.leftRight("", "Already Paid: " + parseInt(req.body.orderHistory.sum - parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))).toString() + " ");
-    if (req.body.orderHistory.sum !== req.body.balance)
-      print.leftRight("", "Amount to be paid: " + req.body.balance + " ");
-    if (!req.body.preview) {
-      print.leftRight("", "Amount Recieved: " + parseInt(req.body.paid) + " ");
-      print.leftRight("", "Payment mode: " + req.body.method);
-      if (!req.body.preview)
-        if (req.body.method === "rfid") {
-          print.leftRight("", "Card No.: " + req.body.uid);
-        } else if (req.body.method !== "cash") {
-          print.leftRight("", "Txn Id: " + req.body.tranId);
-        }
-      if (req.body.balance - req.body.paid !== 0)
-        print.leftRight(
-          "",
-          "Pending: " +
-            parseInt(parseInt(req.body.balance) - parseInt(req.body.paid)) +
-            " "
-        );
-    }
-    // print.println("hello");
-    print.newLine();
-    print.println("Thanks for your visit.");
-    print.cut();
-    let execute = await print.execute(); // Executes all the commands. Returns success or throws error
-    console.log(execute);
-    return res.send({ execute });
+    res.send("billGenerated");
   } catch (err) {
     console.log(err);
     res.status(500).send(err.toString());

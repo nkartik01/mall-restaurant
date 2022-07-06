@@ -13,8 +13,11 @@ export default class OperatorLogin extends Component {
     const { operatorUsername, password } = this.state;
     try {
       var res = await axios.post(
-        require("../config.json").url + "login/operator",
-        { username: operatorUsername, password: password }
+        localStorage.getItem("apiUrl") + "login/operator",
+        {
+          username: operatorUsername,
+          password: password,
+        }
       );
       if (res.data.warn) {
         console.log(res.data.warn);

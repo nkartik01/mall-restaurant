@@ -15,7 +15,7 @@ export default class OperatorEdit extends Component {
   };
   getOperator = async (e) => {
     var res = await axios.get(
-      require("../config.json").url +
+      localStorage.getItem("apiUrl") +
         "operator/getOperator/" +
         this.props.match.params.username,
       {
@@ -54,7 +54,7 @@ export default class OperatorEdit extends Component {
         username,
         permissions: { restaurant, wait, edit, changeMenu },
       };
-      await axios.post(require("../config.json").url + "operator/edit", data, {
+      await axios.post(localStorage.getItem("apiUrl") + "operator/edit", data, {
         headers: { "x-auth-token": localStorage.getItem("token") },
       });
       alert("Operator edited successfully");
