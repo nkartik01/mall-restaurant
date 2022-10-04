@@ -66,6 +66,8 @@ router.post("/sale", async (req, res) => {
     var movedSum = 0;
     var itemwise = [];
     var itemwiseEdit = [];
+    var menuwise = [];
+    var tax = {};
     bills.map((bill, _) => {
       try {
         bill.finalOrder.order.map((orderItem, _) => {
@@ -81,6 +83,37 @@ router.post("/sale", async (req, res) => {
           });
           if (c === 0) {
             itemwise.push({ ...orderItem });
+          }
+          c = 0;
+          menuwise.map((item, _) => {
+            if (item.menuId === orderItem.menuId) {
+              item.amount = (
+                parseFloat(item.amount) +
+                parseFloat(orderItem.price) * parseInt(orderItem.quantity)
+              ).toFixed(2);
+              c = 1;
+            }
+          });
+          if (c === 0) {
+            menuwise.push({
+              menuId: orderItem.menuId,
+              amount:
+                parseFloat(orderItem.price) * parseInt(orderItem.quantity),
+            });
+          }
+          if (orderItem.tax && orderItem.tax !== "") {
+            var orderTax = orderItem.tax.split(";");
+            orderTax.map((taxItem) => {
+              var item = taxItem.split(":");
+              if (!tax[item[0].toUpperCase()]) {
+                tax[item[0].toUpperCase()] = 0;
+              }
+              tax[item[0].toUpperCase()] = (
+                parseFloat(tax[item[0].toUpperCase()]) +
+                (parseFloat(item[1]) * orderItem.price * orderItem.quantity) /
+                  100
+              ).toFixed(2);
+            });
           }
         });
       } catch {}
@@ -133,6 +166,8 @@ router.post("/sale", async (req, res) => {
       discAmount,
       cancelled,
       movedSum,
+      menuwise,
+      tax,
     });
   } catch (err) {
     console.log(err);

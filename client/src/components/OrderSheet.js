@@ -124,6 +124,7 @@ export default class OrderSheet extends Component {
                                       if (tabind !== 1) {
                                         propsTable.orderChange.order.push({
                                           disc: menu.disc,
+                                          tax: menu.tax,
                                           item: item.name,
                                           kot: menu.kot,
                                           counterName: menu.counterName,

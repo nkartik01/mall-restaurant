@@ -57,6 +57,7 @@ router.post("/setMenu/:menu", async (req, res) => {
             // description: worksheet["C" + j].v,
           });
         } catch (err) {
+          console.log(j);
           console.log(err);
         }
       }
@@ -71,6 +72,7 @@ router.post("/setMenu/:menu", async (req, res) => {
         kot: req.body.kot,
         disc: req.body.disc,
         counterName: req.body.counterName,
+        tax: req.body.tax,
       }).save();
     else
       (
@@ -83,6 +85,7 @@ router.post("/setMenu/:menu", async (req, res) => {
             kot: req.body.kot,
             disc: req.body.disc,
             counterName: req.body.counterName,
+            tax: req.body.tax,
           },
           { useFindAndModify: false }
         )
@@ -315,7 +318,7 @@ router.delete("/table", async (req, res) => {
       return res.status(400).send("Table doesn't exist");
     }
 
-    (await table.remove()).save();
+    await table.remove();
     return res.send("Done");
   } catch (err) {
     console.log(err);

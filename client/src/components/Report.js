@@ -21,6 +21,7 @@ class Report extends Component {
     restaurant: "overall",
     restaurants: [],
     what: "summary",
+    tax: {},
   };
   getRestaurants = async () => {
     var res = await axios.get(
@@ -210,6 +211,22 @@ class Report extends Component {
                     <th scope="col">Credit</th>
                     <td>{this.state.balance}</td>
                   </tr>
+                  {Object.keys(this.state.tax).map((taxItem) => {
+                    return (
+                      <tr>
+                        <th scope="row">{taxItem}</th>
+                        <td>{this.state.tax[taxItem]}</td>
+                      </tr>
+                    );
+                  })}
+                  {this.state.menuwise.map((menuItem) => {
+                    return (
+                      <tr>
+                        <th>{menuItem.menuId}</th>
+                        <th>{menuItem.amount}</th>
+                      </tr>
+                    );
+                  })}
                   <tr>
                     <th>Cancelled Bills</th>
                     <td>{this.state.cancelled.length}</td>

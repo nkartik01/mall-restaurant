@@ -384,21 +384,64 @@ router.post("/printBill", auth_operator, async (req, res) => {
     ]);
     // print.table(["Sr. No.", "Item", "Price", "Quantity", "Amount"]);
     print.drawLine();
-    req.body.orderHistory.order.map((order, i) => {
-      print.tableCustom([
-        { text: i + 1, width: 0.08 },
-        { text: order.item, width: 0.4 },
-        { text: order.price, width: 0.13, align: "RIGHT" },
-        { text: order.quantity, width: 0.1, align: "RIGHT" },
-        { text: order.price * order.quantity, width: 0.19, align: "RIGHT" },
-      ]);
-      if (order.detail && order.detail !== "") {
-        print.tableCustom([
-          { text: "", width: 0.08 },
-          { text: order.detail, width: 0.9 },
-        ]);
-      }
-      // return print.table([i + 1, order.item, order.price, order.quantity, order.price * order.quantity]);
+    const menus = [
+      ...new Set(req.body.orderHistory.order.map((item) => item.menuId)),
+    ];
+    menus.map((menu) => {
+      var tax = {};
+
+      var subTotal = 0;
+      req.body.orderHistory.order
+        .filter((order) => order.menuId === menu)
+        .map((order, i) => {
+          var totalTax = 0;
+          var orderTax = [];
+          if (order.tax) {
+            orderTax = order.tax.split(";");
+            orderTax.map((taxItem) => {
+              var item = taxItem.split(":");
+              if (!tax[item[0].toUpperCase()]) {
+                tax[item[0].toUpperCase()] = 0;
+              }
+              totalTax = totalTax + parseFloat(item[1]);
+              // tax[item[0].toUpperCase()]=tax[item[0].toUpperCase()]+parseFloat(item[1])
+            });
+          }
+          subTotal = subTotal + order.price * order.quantity;
+          order.price = ((order.price * 100) / (100 + totalTax)).toFixed(2);
+          orderTax.map((taxItem) => {
+            var item = taxItem.split(":");
+            tax[item[0].toUpperCase()] = (
+              parseFloat(tax[item[0].toUpperCase()]) +
+              (parseFloat(item[1]) * order.price * order.quantity) / 100
+            ).toFixed(2);
+          });
+
+          print.tableCustom([
+            { text: i + 1, width: 0.08 },
+            { text: order.item, width: 0.4 },
+            { text: order.price, width: 0.13, align: "RIGHT" },
+            { text: order.quantity, width: 0.1, align: "RIGHT" },
+            {
+              text: (order.price * order.quantity).toFixed(2),
+              width: 0.19,
+              align: "RIGHT",
+            },
+          ]);
+          if (order.detail && order.detail !== "") {
+            print.tableCustom([
+              { text: "", width: 0.08 },
+              { text: order.detail, width: 0.9 },
+            ]);
+          }
+          // return print.table([i + 1, order.item, order.price, order.quantity, order.price * order.quantity]);
+        });
+      console.log(tax);
+      Object.keys(tax).map((taxItem) => {
+        console.log(taxItem);
+        print.leftRight("", `${taxItem}: ${tax[taxItem]} `);
+      });
+      print.leftRight("", `Sub-total: ${subTotal.toFixed(2)} `);
     });
     print.drawLine();
 
@@ -409,15 +452,22 @@ router.post("/printBill", auth_operator, async (req, res) => {
       }
       orders.push(order.orderNo);
     });
+    // Object.keys(tax).map((taxItem) => {
+    //   print.alignRight(`${taxItem}: ${tax[taxItem]}`);
+    // });
+
     // print.println();
     print.leftRight(
       orders.join(", "),
-      "Total: " + req.body.orderHistory.sum + " "
+      "Total: " + parseFloat(req.body.orderHistory.sum).toFixed(2) + " "
     );
     // logic for tax
     if (!bill.discAmount) bill.discAmount = 0;
     if (bill.discAmount && bill.discAmount > 0)
-      print.leftRight("", "Discount: " + bill.discAmount + " ");
+      print.leftRight(
+        "",
+        "Discount: " + parseFloat(bill.discAmount).toFixed(2) + " "
+      );
     // console.log("hi", parseInt(req.body.orderHistory.sum - parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))));
     if (
       parseInt(
@@ -428,16 +478,24 @@ router.post("/printBill", auth_operator, async (req, res) => {
       print.leftRight(
         "",
         "Already Paid: " +
-          parseInt(
+          parseFloat(
             req.body.orderHistory.sum -
-              parseInt(parseInt(req.body.balance) + parseInt(bill.discAmount))
-          ).toString() +
+              parseFloat(
+                parseInt(req.body.balance) + parseFloat(bill.discAmount)
+              )
+          ).toFixed(2) +
           " "
       );
     if (req.body.orderHistory.sum !== req.body.balance)
-      print.leftRight("", "Amount to be paid: " + req.body.balance + " ");
+      print.leftRight(
+        "",
+        "Amount to be paid: " + parseFloat(req.body.balance).toFixed(2) + " "
+      );
     if (!req.body.preview) {
-      print.leftRight("", "Amount Recieved: " + parseInt(req.body.paid) + " ");
+      print.leftRight(
+        "",
+        "Amount Recieved: " + parseFloat(req.body.paid).toFixed(2) + " "
+      );
       print.leftRight("", "Payment mode: " + req.body.method + " ");
       if (!req.body.preview)
         if (req.body.method === "rfid") {
@@ -449,7 +507,9 @@ router.post("/printBill", auth_operator, async (req, res) => {
         print.leftRight(
           "",
           "Pending: " +
-            parseInt(parseInt(req.body.balance) - parseInt(req.body.paid)) +
+            parseFloat(
+              parseFloat(req.body.balance) - parseFloat(req.body.paid)
+            ).toFixed(2) +
             " "
         );
     }

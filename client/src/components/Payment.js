@@ -280,12 +280,12 @@ export default class Payment extends Component {
                     type="text"
                     required
                     placeholder="Customer GSTIN"
-                    id="to"
-                    name="to"
-                    value={this.state.to}
+                    id="gstin"
+                    name="gstin"
+                    value={this.state.gstin}
                     onChange={(e) => {
                       e.preventDefault();
-                      this.setState({ to: e.target.value });
+                      this.setState({ gstin: e.target.value });
                     }}
                     hidden={
                       !this.state.partial || this.props.disable ? true : false

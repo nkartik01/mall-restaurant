@@ -521,4 +521,17 @@ router.post("/checkout", async (req, res) => {
   }
 });
 
+router.post("/getByPhone", async (req, res) => {
+  try {
+    var booking = await Booking.findOne({
+      rooms: { $elemMatch: { mobile: req.body.mobile } },
+    }).sort({ bookingId: -1 });
+    booking = booking.toJSON();
+    res.send({ booking });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.toString());
+  }
+});
+
 module.exports = router;

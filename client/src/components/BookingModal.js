@@ -32,7 +32,6 @@ export default class BookingModal extends Component {
   render() {
     var x = 0;
     var booking = this.props.booking;
-    console.log(booking);
     var roomsList = this.state.roomsList;
     if (!booking.bills) booking.bills = [];
     return (
@@ -402,10 +401,81 @@ export default class BookingModal extends Component {
                                         name="mobile"
                                         id="mobile"
                                         className="form-control"
-                                        onChange={(e) => {
+                                        onChange={async (e) => {
                                           e.preventDefault();
 
                                           room.mobile = e.target.value;
+                                          if (room.mobile.length === 10) {
+                                            var booking = await axios.post(
+                                              localStorage.getItem("apiUrl") +
+                                                "booking/getByPhone",
+                                              { mobile: room.mobile }
+                                            );
+
+                                            var room2 =
+                                              booking.data.booking.rooms.find(
+                                                (room1) =>
+                                                  room1.mobile === room.mobile
+                                              );
+                                            console.log(room2);
+                                            room.name = room2.name;
+                                            room.company = room2.company;
+                                            room.address = room2.address;
+                                            room.gstin = room2.gstin;
+                                            room.dob =
+                                              new Date(room2.dob)
+                                                .getFullYear()
+                                                .toString() +
+                                              "-" +
+                                              (
+                                                new Date(room2.dob).getMonth() +
+                                                1
+                                              )
+                                                .toString()
+                                                .padStart(2, 0) +
+                                              "-" +
+                                              new Date(room2.dob)
+                                                .getDate()
+                                                .toString()
+                                                .padStart(2, 0);
+
+                                            room.doa =
+                                              new Date(room2.doa)
+                                                .getFullYear()
+                                                .toString() +
+                                              "-" +
+                                              (
+                                                new Date(room2.doa).getMonth() +
+                                                1
+                                              )
+                                                .toString()
+                                                .padStart(2, 0) +
+                                              "-" +
+                                              new Date(room2.doa)
+                                                .getDate()
+                                                .toString()
+                                                .padStart(2, 0);
+                                            room.mobile = room2.mobile;
+                                            room.email = room2.email;
+                                            room.nationality =
+                                              room2.nationality;
+                                            room.passportNumber =
+                                              room2.passportNumber;
+                                            room.passportDateOfIssue =
+                                              room2.passportDateOfIssue;
+                                            room.passportPlaceOfIssue =
+                                              room2.passportPlaceOfIssue;
+                                            room.passportValidUpto =
+                                              room2.passportValidUpto;
+
+                                            room.visaNumber = room2.visaNumber;
+                                            room.visaDateOfIssue =
+                                              room2.visaDateOfIssue;
+                                            room.visaPlaceOfIssue =
+                                              room2.visaPlaceOfIssue;
+                                            room.visaValidUpto =
+                                              room2.visaValidUpto;
+                                          }
                                           this.setState({});
                                         }}
                                         required

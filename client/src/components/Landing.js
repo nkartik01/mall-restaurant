@@ -15,6 +15,7 @@ export default class Landing extends Component {
     disc: true,
     menus: [],
     restaurants: [],
+    tax: "",
   };
   getPrinters = async () => {
     var printers = await axios.get(
@@ -184,6 +185,7 @@ export default class Landing extends Component {
                           kot: this.state.kot,
                           disc: this.state.disc,
                           counterName: this.state.counterName,
+                          tax: this.state.tax,
                         }
                       );
                       AlertDiv("green", "Menu Updated");
@@ -266,6 +268,16 @@ export default class Landing extends Component {
                       );
                     })}
                   </select>
+                  <label>Tax</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={this.state.tax}
+                    onChange={(e) => {
+                      e.preventDefault();
+                      this.setState({ tax: e.target.value });
+                    }}
+                  />
                   <input
                     className="form-control"
                     type="submit"

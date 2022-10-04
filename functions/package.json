@@ -19,7 +19,6 @@
     "basic-ftp": "^4.6.6",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
-    "child-process": "^1.0.2",
     "config": "^3.3.3",
     "cors": "^2.8.5",
     "cron": "^1.8.2",
