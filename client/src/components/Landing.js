@@ -719,10 +719,9 @@ export default class Landing extends Component {
                       return alert("Incorrect Password");
                     }
                     try {
-                      await axios.get(
-                        localStorage.getItem("apiUrl") +
-                          "report/restore/" +
-                          this.state.restoreFolder,
+                      await axios.post(
+                        localStorage.getItem("apiUrl") + "report/restore",
+                        { address: this.state.restoreFolder },
                         {
                           headers: {
                             "x-auth-token": localStorage.getItem("token"),

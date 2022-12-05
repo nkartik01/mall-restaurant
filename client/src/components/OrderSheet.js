@@ -4,7 +4,7 @@ import React, { Component, Fragment } from "react";
 import { Tab, Row, Col, Nav } from "react-bootstrap";
 import AlertDiv from "../AlertDiv";
 import Payment from "./Payment";
-
+import billTable from "./billTable";
 export default class OrderSheet extends Component {
   afterDisc = () => {
     this.props.getRestaurants();
@@ -468,10 +468,37 @@ export default class OrderSheet extends Component {
                       <form
                         onSubmit={async (e) => {
                           e.preventDefault();
-                          console.log(
-                            this.state.proposedChanges,
-                            this.state.historyCopy
+                          var otp = Math.floor(1000 + Math.random() * 9000);
+
+                          var res = await axios.post(
+                            localStorage.getItem("apiUrl") + "report/mail",
+                            {
+                              header: `OTP for Edit Request for Bill ${propsTable.bill} is ${otp}`,
+                              content: `An Update is requested on Bill ${
+                                propsTable.bill
+                              } <br/>Reason: ${
+                                this.state.proposedChanges.reason
+                              }. <br/>The OTP is ${otp}. <br/>Current Bill: ${billTable(
+                                propsTable.orderHistory
+                              )}Items to be removed: ${billTable(
+                                this.state.proposedChanges
+                              )}`,
+                              type: "edit",
+                            },
+                            {
+                              headers: {
+                                "x-auth-token": localStorage.getItem("token"),
+                              },
+                            }
                           );
+                          console.log(res.data);
+                          if (res.data === "MailNotNeeded") {
+                          } else {
+                            var prompt = window.prompt("Enter the OTP");
+                            if (prompt.toString() !== otp.toString()) {
+                              return;
+                            }
+                          }
                           await axios.post(
                             localStorage.getItem("apiUrl") + "bill/editBill",
                             {
@@ -528,7 +555,6 @@ export default class OrderSheet extends Component {
                                       style={{ borderRadius: "100%" }}
                                       onClick={(e) => {
                                         e.preventDefault();
-                                        console.log(this.state);
                                         var { historyCopy, proposedChanges } =
                                           this.state;
                                         var x = historyCopy.order[i].quantity;
@@ -582,19 +608,6 @@ export default class OrderSheet extends Component {
                                       -
                                     </button>
                                     {" " + item.quantity + " "}
-                                    {/* <button
-                              style={{ borderRadius: "100%" }}
-                              onClick={() => {
-                                console.log(propsTable.orderHistory);
-                                propsTable.orderChange.order[i1].quantity = propsTable.orderChange.order[i1].quantity + 1;
-
-                                propsTable.orderChange.sum = propsTable.orderChange.sum + parseInt(item.price);
-                                propsTable.projectedTotal = propsTable.projectedTotal + parseInt(item.price);
-                                this.setState({});
-                              }}
-                            >
-                              +
-                            </button> */}
                                   </td>
 
                                   <td>{item.price * item.quantity}</td>

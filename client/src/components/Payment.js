@@ -2,6 +2,7 @@ import React, { Component, Fragment } from "react";
 import axios from "axios";
 import AlertDiv from "../AlertDiv";
 import { Modal } from "react-bootstrap";
+import billTable from "./billTable";
 export default class Payment extends Component {
   state = {
     partial: false,
@@ -36,16 +37,13 @@ export default class Payment extends Component {
           discPerc: bill.discPerc,
         });
       }
-    } catch (err) {
-      console.log(err, err.response);
-    }
+    } catch (err) {}
   };
   componentDidMount() {
     this.getBill();
   }
   render() {
     // this.setState
-    console.log(this.state, this.props);
     return (
       <div>
         <form
@@ -843,6 +841,34 @@ export default class Payment extends Component {
                       e.preventDefault();
                       var reason = window.prompt("Reason for cancelling?");
                       if (!reason || reason === "") return;
+                      var otp = Math.floor(1000 + Math.random() * 9000);
+
+                      var res = await axios.post(
+                        localStorage.getItem("apiUrl") + "report/mail",
+                        {
+                          header: `OTP for Request to Cancel Bill ${this.props.bill} is ${otp}`,
+                          content: `A cancellation is requested on Bill ${
+                            this.props.bill
+                          } <br/>Reason: ${reason}. <br/>The OTP is ${otp}. <br/>Current Bill: ${billTable(
+                            this.props.orderHistory
+                          )}`,
+                          type: "cancel",
+                        },
+                        {
+                          headers: {
+                            "x-auth-token": localStorage.getItem("token"),
+                          },
+                        }
+                      );
+                      console.log(res.data);
+                      if (res.data === "MailNotNeeded") {
+                      } else {
+                        var prompt = window.prompt("Enter the OTP");
+                        if (prompt.toString() !== otp.toString()) {
+                          return;
+                        }
+                      }
+
                       try {
                         await axios.post(
                           localStorage.getItem("apiUrl") + "bill/cancelBill",

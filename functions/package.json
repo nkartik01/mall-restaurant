@@ -33,13 +33,14 @@
     "mongoose": "^5.11.15",
     "node-printer": "^1.0.4",
     "node-thermal-printer": "^4.1.2",
+    "nodemailer": "^6.8.0",
     "printer": "^0.4.0",
     "req": "^0.1.4",
-    "xlsx": "^0.16.9"
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "electron": "^12.0.9",
-    "electron-packager": "^15.2.0",
+    "electron": "^21.1.1",
+    "electron-packager": "^16.0.0",
     "electron-rebuild": "^2.3.5"
   },
   "private": true

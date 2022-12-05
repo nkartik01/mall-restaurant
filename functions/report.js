@@ -7,6 +7,7 @@ var backup = require("./backup.js");
 const config = require("./config/default.json");
 const fs = require("fs");
 const { exec } = require("child_process");
+const Config = require("./models/Config");
 router.post("/sale", async (req, res) => {
   try {
     var start = new Date(parseInt(req.body.start));
@@ -198,15 +199,15 @@ router.get("/backup", auth_admin, async (req, res) => {
   return res.send("Backup saved at " + testClass1);
 });
 
-router.get("/restore/:address", auth_admin, async (req, res) => {
+router.post("/restore", auth_admin, async (req, res) => {
   try {
-    var address = req.params.address;
+    var address = req.body.address;
     await exec('mongo mall --eval "db.dropDatabase()"', function (err, stdout) {
       if (err) throw err;
       if (stdout) {
         console.log(stdout);
       }
-      restore("C:/" + address);
+      restore(address);
       return res.send("done");
     });
   } catch (err) {
@@ -247,6 +248,50 @@ router.post("/clearDatabase", auth_admin, async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).send(err.toString());
+  }
+});
+
+router.post("/mail", auth_operator, async (req, res) => {
+  try {
+    var config = await Config.findOne({});
+    config = config.toJSON();
+    console.log(config.sendMailForEdit, config.sendMailForEdit !== true);
+
+    if (
+      (req.body.type === "edit" && config.sendMailForEdit !== true) ||
+      (req.body.type === "cancel" && config.sendMailForCancel !== true)
+    ) {
+      return res.send("MailNotNeeded");
+    }
+    console.log("hello");
+    var nodemailer = require("nodemailer");
+    var transport = nodemailer.createTransport({
+      service: "gmail",
+      host: "smtp.gmail.com",
+      auth: {
+        user: config.fromEmail,
+        pass: config.password,
+      },
+    });
+    var mailOptions = {
+      from: `Mall <${config.fromEmail}>`,
+      // to: emails,
+      to: config.toEmail,
+      subject: req.body.header,
+      html: `${req.body.content}`,
+    };
+    var err = 0;
+    await new Promise((resolve, reject) => {
+      transport.sendMail(mailOptions, async (error, info) => {
+        if (error) reject(error);
+        console.log(info);
+        resolve(info);
+      });
+    });
+    res.send("Mail Sent");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.toString);
   }
 });
 
