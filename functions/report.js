@@ -236,15 +236,11 @@ router.post("/clearDatabase", auth_admin, async (req, res) => {
     var start = new Date(parseInt(req.body.start));
     start.setHours(0, 0, 0, 0);
     start = start.valueOf();
-    var end = new Date(parseInt(req.body.end));
-    end.setHours(23, 59, 59, 999);
-    end = end.valueOf();
-    console.log(start, end);
-    await Bill.find({ at: { $lte: end, $gte: start } }).deleteMany();
+    await Bill.find({ at: { $gte: start } }).deleteMany();
     await OperatorTransaction.find({
-      at: { $lte: end, $gte: start },
+      at: { $gte: start },
     }).deleteMany();
-    await ChefSide.find({ at: { $lte: end, $gte: start } }).deleteMany();
+    await ChefSide.find({ at: { $gte: start } }).deleteMany();
   } catch (err) {
     console.log(err);
     res.status(500).send(err.toString());
