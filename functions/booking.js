@@ -5,6 +5,7 @@ const fs = require("fs");
 const moment = require("moment");
 const Room = require("./models/Room");
 const auth_operator = require("./middleware/auth_operator");
+const Admin = require("./models/Admin");
 router.post("/editBooking", async (req, res) => {
   try {
     console.log(req.body.bookingId);
@@ -385,64 +386,111 @@ router.post("/checkout", async (req, res) => {
     booking = booking.toJSON();
     var sum = 0;
     var bill = await Bill.find({ billId: "H-" + req.body.bookingId });
+
+    var to =
+      booking.rooms[0].name +
+      (booking.rooms[0].company ? " C/o " + booking.rooms[0].company : "");
+    var gstin = booking.rooms[0].gstin;
+    var hotelTax = (await Admin.findOne({ username: "kartik" })).toJSON()
+      .hotelTax;
+
+    var finalOrder = {
+      order: [
+        ...booking.rooms.reduce((itms, room) => {
+          sum =
+            sum +
+            room.roomRate *
+              parseInt(
+                (new Date(room.checkoutTime).valueOf() -
+                  new Date(room.arrivalTime).valueOf()) /
+                  (1000 * 60 * 60 * 24) +
+                  1,
+                10
+              );
+          var billItms = [
+            {
+              item:
+                (room.room ? room.room : "") +
+                " (" +
+                new Date(room.arrivalTime).toLocaleString("en-GB") +
+                " to " +
+                new Date(room.checkoutTime).toLocaleString("en-GB") +
+                ")",
+              tax: hotelTax,
+              price: room.roomRate,
+              menuId: "Hotel",
+
+              quantity: parseInt(
+                (new Date(room.checkoutTime).valueOf() -
+                  new Date(room.arrivalTime).valueOf()) /
+                  (1000 * 60 * 60 * 24) +
+                  1,
+                10
+              ),
+            },
+          ];
+          if (room.extraBed) {
+            sum =
+              sum +
+              parseInt(
+                (new Date(room.checkoutTime).valueOf() -
+                  new Date(room.arrivalTime).valueOf()) /
+                  (1000 * 60 * 60 * 24) +
+                  1,
+                10
+              ) *
+                room.extraBedNumber *
+                room.extraBedCost;
+            billItms.push({
+              item:
+                "Extra Bed" +
+                (room.room ? `(${room.room})` : "") +
+                " (" +
+                new Date(room.arrivalTime).toLocaleString("en-GB") +
+                " to " +
+                new Date(room.checkoutTime).toLocaleString("en-GB") +
+                ")",
+              tax: hotelTax,
+              price: room.extraBedCost,
+              menuId: "Hotel",
+              quantity:
+                parseInt(
+                  (new Date(room.checkoutTime).valueOf() -
+                    new Date(room.arrivalTime).valueOf()) /
+                    (1000 * 60 * 60 * 24) +
+                    1,
+                  10
+                ) * room.extraBedNumber,
+            });
+          }
+          return itms.concat(billItms);
+        }, []),
+        ...booking.bills.map((bill) => {
+          sum = sum + bill.amount;
+          return {
+            item:
+              bill.bill +
+              " (" +
+              new Date(bill.at).toLocaleString("en-GB") +
+              ")",
+            price: bill.amount,
+            menuId: "Food",
+            quantity: 1,
+          };
+        }),
+      ],
+      sum,
+    };
     if (bill.length > 0) {
       bill = bill[0].toJSON();
       (
         await Bill.findOneAndUpdate(
           { billId: "H-" + req.body.bookingId },
           {
-            to:
-              booking.rooms[0].name +
-              (booking.rooms[0].company
-                ? " C/o " + booking.rooms[0].company
-                : ""),
-            gstin: booking.rooms[0].gstin,
-            finalOrder: {
-              order: [
-                ...booking.rooms.map((room) => {
-                  sum =
-                    sum +
-                    room.roomRate *
-                      parseInt(
-                        (new Date(room.checkoutTime).valueOf() -
-                          new Date(room.arrivalTime).valueOf()) /
-                          (1000 * 60 * 60 * 24) +
-                          1,
-                        10
-                      );
-                  return {
-                    item:
-                      (room.room ? room.room : "") +
-                      " (" +
-                      new Date(room.arrivalTime).toLocaleString("en-GB") +
-                      " to " +
-                      new Date(room.checkoutTime).toLocaleString("en-GB") +
-                      ")",
-                    price: room.roomRate,
-                    quantity: parseInt(
-                      (new Date(room.checkoutTime).valueOf() -
-                        new Date(room.arrivalTime).valueOf()) /
-                        (1000 * 60 * 60 * 24) +
-                        1,
-                      10
-                    ),
-                  };
-                }),
-                ...booking.bills.map((bill) => {
-                  sum = sum + bill.amount;
-                  return {
-                    item:
-                      bill.bill +
-                      " (" +
-                      new Date(bill.at).toLocaleString("en-GB") +
-                      ")",
-                    price: bill.amount,
-                    quantity: 1,
-                  };
-                }),
-              ],
-              sum,
-            },
+            to,
+            gstin,
+            finalOrder,
+            orderHistory: finalOrder,
             balance:
               parseInt(bill.balance) +
               (parseInt(sum) - parseInt(bill.finalOrder.sum)),
@@ -451,63 +499,15 @@ router.post("/checkout", async (req, res) => {
         )
       ).save();
     } else {
-      var sum = 0;
       new Bill({
         billId: "H-" + booking.bookingId,
         billNo: booking.bookingId,
         restaurant: "Hotel Hive",
-        to:
-          booking.rooms[0].name +
-          (booking.rooms[0].company ? " C/o " + booking.rooms[0].company : ""),
-        gstin: booking.rooms[0].gstin,
-
+        to,
+        gstin,
+        orderHistory: finalOrder,
         at: new Date(Date.now()).valueOf(),
-        finalOrder: {
-          order: [
-            ...booking.rooms.map((room) => {
-              sum =
-                sum +
-                room.roomRate *
-                  parseInt(
-                    (new Date(room.checkoutTime).valueOf() -
-                      new Date(room.arrivalTime).valueOf()) /
-                      (1000 * 60 * 60 * 24) +
-                      1,
-                    10
-                  );
-              return {
-                item:
-                  (room.room ? room.room : "") +
-                  " (" +
-                  new Date(room.arrivalTime).toLocaleString("en-GB") +
-                  " to " +
-                  new Date(room.checkoutTime).toLocaleString("en-GB") +
-                  ")",
-                price: room.roomRate,
-                quantity: parseInt(
-                  (new Date(room.checkoutTime).valueOf() -
-                    new Date(room.arrivalTime).valueOf()) /
-                    (1000 * 60 * 60 * 24) +
-                    1,
-                  10
-                ),
-              };
-            }),
-            ...booking.bills.map((bill) => {
-              sum = sum + bill.amount;
-              return {
-                item:
-                  bill.bill +
-                  " (" +
-                  new Date(bill.at).toLocaleString("en-GB") +
-                  ")",
-                price: bill.amount,
-                quantity: 1,
-              };
-            }),
-          ],
-          sum,
-        },
+        finalOrder,
         orderChanges: [],
         gstIncluded: booking.gstIncuded,
         balance: sum,

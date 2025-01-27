@@ -442,8 +442,8 @@ router.post("/printBill", auth_operator, async (req, res) => {
         print.leftRight("", `${taxItem}: ${tax[taxItem]} `);
       });
       print.leftRight("", `Sub-total: ${subTotal.toFixed(2)} `);
+      print.drawLine();
     });
-    print.drawLine();
 
     var orders = [];
     bill.orderChanges.map((order, _) => {

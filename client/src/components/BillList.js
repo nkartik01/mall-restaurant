@@ -122,6 +122,7 @@ export default class BillList extends Component {
                     }}
                   >
                     <option value="overall">Overall</option>
+                    <option value="Hotel Hive">Hotel Hive</option>
                     {this.state.restaurants.map((menu, _) => {
                       return <option value={menu.id}>{menu.id}</option>;
                     })}
