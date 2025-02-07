@@ -86,7 +86,7 @@ export default class GRCPrint extends Component {
                     <td
                       style={{ width: "28%", borderBottom: "2px dotted black" }}
                     >
-                      {room.GSTIN}
+                      {room.gstin}
                     </td>
                   </tr>
                 </tbody>

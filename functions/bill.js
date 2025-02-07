@@ -384,16 +384,17 @@ router.post("/printBill", auth_operator, async (req, res) => {
     ]);
     // print.table(["Sr. No.", "Item", "Price", "Quantity", "Amount"]);
     print.drawLine();
-    const menus = [
-      ...new Set(req.body.orderHistory.order.map((item) => item.menuId)),
+    const taxes = [
+      ...new Set(req.body.orderHistory.order.map((item) => item.tax)),
     ];
-    menus.map((menu) => {
+    taxes.map((taxString) => {
       var tax = {};
 
       var subTotal = 0;
       req.body.orderHistory.order
-        .filter((order) => order.menuId === menu)
+        .filter((order) => order.tax === taxString)
         .map((order, i) => {
+          console.log(order.menuId);
           var totalTax = 0;
           var orderTax = [];
           if (order.tax) {

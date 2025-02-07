@@ -391,8 +391,6 @@ router.post("/checkout", async (req, res) => {
       booking.rooms[0].name +
       (booking.rooms[0].company ? " C/o " + booking.rooms[0].company : "");
     var gstin = booking.rooms[0].gstin;
-    var hotelTax = (await Admin.findOne({ username: "kartik" })).toJSON()
-      .hotelTax;
 
     var finalOrder = {
       order: [
@@ -416,7 +414,7 @@ router.post("/checkout", async (req, res) => {
                 " to " +
                 new Date(room.checkoutTime).toLocaleString("en-GB") +
                 ")",
-              tax: hotelTax,
+              tax: room.tax,
               price: room.roomRate,
               menuId: "Hotel",
 
@@ -450,7 +448,7 @@ router.post("/checkout", async (req, res) => {
                 " to " +
                 new Date(room.checkoutTime).toLocaleString("en-GB") +
                 ")",
-              tax: hotelTax,
+              tax: room.tax,
               price: room.extraBedCost,
               menuId: "Hotel",
               quantity:
@@ -528,6 +526,17 @@ router.post("/getByPhone", async (req, res) => {
     }).sort({ bookingId: -1 });
     booking = booking.toJSON();
     res.send({ booking });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.toString());
+  }
+});
+
+router.get("/getHotelTaxes", async (req, res) => {
+  try {
+    var taxes = (await Admin.findOne({ username: "kartik" })).toJSON()
+      .hotelTaxes;
+    res.send({ taxes });
   } catch (err) {
     console.log(err);
     res.status(500).send(err.toString());

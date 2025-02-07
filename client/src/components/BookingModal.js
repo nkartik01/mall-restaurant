@@ -12,6 +12,7 @@ export default class BookingModal extends Component {
     today: new Date(),
     tomorrow: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
     roomsList: [],
+    taxes: [],
   };
   webcamRef1 = React.createRef();
   webcamRef2 = React.createRef();
@@ -24,7 +25,12 @@ export default class BookingModal extends Component {
       roomsList.push({ value: room, label: room });
       return null;
     });
-    this.setState({ roomsList });
+    var taxes = await axios.get(
+      localStorage.getItem("apiUrl") + "booking/getHotelTaxes"
+    );
+    taxes = taxes.data.taxes;
+    console.log(taxes);
+    this.setState({ roomsList, taxes });
   };
   componentDidMount() {
     this.getRooms();
@@ -571,27 +577,30 @@ export default class BookingModal extends Component {
                                   </div>
                                   <div className="col-md-2">
                                     <div className="form-group">
-                                      <label htmlFor="gstIncluded">
-                                        GST Included
-                                      </label>
-                                      <br />
-                                      <label className="switch">
-                                        <input
-                                          type="checkbox"
-                                          checked={room.gstIncluded}
-                                          name="gstIncluded"
-                                          id="gstIncluded"
-                                          onChange={(e) => {
-                                            // console.log(e.ta)
+                                      <label htmlFor="tax">Tax</label>
+                                      <select
+                                        type="checkbox"
+                                        value={room.tax}
+                                        name="tax"
+                                        id="tax"
+                                        onChange={(e) => {
+                                          // console.log(e.ta)
 
-                                            room.gstIncluded = e.target.checked;
-                                            console.log(room.gstIncluded);
-                                            this.setState({});
-                                          }}
-                                          placeholder="gstIncluded"
-                                        />
-                                        <span className="slider round"></span>
-                                      </label>
+                                          room.tax = e.target.value;
+                                          console.log(room.tax);
+                                          this.setState({});
+                                        }}
+                                        required
+                                        className="form-control"
+                                        // placeholder="tax"
+                                      >
+                                        <option value={null}></option>
+                                        {this.state.taxes.map((tax) => {
+                                          return (
+                                            <option value={tax}>{tax}</option>
+                                          );
+                                        })}
+                                      </select>
                                     </div>
                                   </div>
                                   <div className="col-md-3">
